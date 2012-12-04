@@ -1,0 +1,247 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E60166E6B43004888F4 /* Foundation.framework */; };
+		39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 39898E65166E6B43004888F4 /* AirImagePicker.h */; };
+		39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 39898E67166E6B43004888F4 /* AirImagePicker.m */; };
+		39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E76166E6ED3004888F4 /* UIKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		39898E5B166E6B43004888F4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/${PRODUCT_NAME}";
+			dstSubfolderSpec = 16;
+			files = (
+				39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		39898E5D166E6B43004888F4 /* libAirImagePicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAirImagePicker.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		39898E60166E6B43004888F4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirImagePicker-Prefix.pch"; sourceTree = "<group>"; };
+		39898E65166E6B43004888F4 /* AirImagePicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AirImagePicker.h; sourceTree = "<group>"; };
+		39898E67166E6B43004888F4 /* AirImagePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AirImagePicker.m; sourceTree = "<group>"; };
+		39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlashRuntimeExtensions.h; sourceTree = "<group>"; };
+		39898E76166E6ED3004888F4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		39898E5A166E6B43004888F4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */,
+				39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		39898E52166E6B43004888F4 = {
+			isa = PBXGroup;
+			children = (
+				39898E62166E6B43004888F4 /* AirImagePicker */,
+				39898E5F166E6B43004888F4 /* Frameworks */,
+				39898E5E166E6B43004888F4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		39898E5E166E6B43004888F4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				39898E5D166E6B43004888F4 /* libAirImagePicker.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		39898E5F166E6B43004888F4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				39898E60166E6B43004888F4 /* Foundation.framework */,
+				39898E76166E6ED3004888F4 /* UIKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		39898E62166E6B43004888F4 /* AirImagePicker */ = {
+			isa = PBXGroup;
+			children = (
+				39898E65166E6B43004888F4 /* AirImagePicker.h */,
+				39898E67166E6B43004888F4 /* AirImagePicker.m */,
+				39898E63166E6B43004888F4 /* Supporting Files */,
+			);
+			path = AirImagePicker;
+			sourceTree = "<group>";
+		};
+		39898E63166E6B43004888F4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */,
+				39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		39898E5C166E6B43004888F4 /* AirImagePicker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 39898E6B166E6B43004888F4 /* Build configuration list for PBXNativeTarget "AirImagePicker" */;
+			buildPhases = (
+				39898E59166E6B43004888F4 /* Sources */,
+				39898E5A166E6B43004888F4 /* Frameworks */,
+				39898E5B166E6B43004888F4 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AirImagePicker;
+			productName = AirImagePicker;
+			productReference = 39898E5D166E6B43004888F4 /* libAirImagePicker.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		39898E54166E6B43004888F4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = FreshPlanet;
+			};
+			buildConfigurationList = 39898E57166E6B43004888F4 /* Build configuration list for PBXProject "AirImagePicker" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 39898E52166E6B43004888F4;
+			productRefGroup = 39898E5E166E6B43004888F4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				39898E5C166E6B43004888F4 /* AirImagePicker */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		39898E59166E6B43004888F4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		39898E69166E6B43004888F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		39898E6A166E6B43004888F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		39898E6C166E6B43004888F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/AirImagePicker.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		39898E6D166E6B43004888F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/AirImagePicker.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		39898E57166E6B43004888F4 /* Build configuration list for PBXProject "AirImagePicker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39898E69166E6B43004888F4 /* Debug */,
+				39898E6A166E6B43004888F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		39898E6B166E6B43004888F4 /* Build configuration list for PBXNativeTarget "AirImagePicker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39898E6C166E6B43004888F4 /* Debug */,
+				39898E6D166E6B43004888F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 39898E54166E6B43004888F4 /* Project object */;
+}
