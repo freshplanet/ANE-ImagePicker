@@ -78,7 +78,7 @@ static AirImagePicker *sharedInstance = nil;
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
     if (sourceType == UIImagePickerControllerSourceTypeCamera || UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
     {
-        [rootViewController presentViewController:self.imagePicker animated:YES completion:NULL];
+        [rootViewController presentModalViewController:self.imagePicker animated:YES];
     }
     else
     {
@@ -101,7 +101,7 @@ static AirImagePicker *sharedInstance = nil;
     }
     else
     {
-        [self.imagePicker dismissViewControllerAnimated:YES completion:NULL];
+        [self.imagePicker dismissModalViewControllerAnimated:YES];
         self.imagePicker = nil;
     }
     
@@ -117,7 +117,7 @@ static AirImagePicker *sharedInstance = nil;
     }
     else
     {
-        [self.imagePicker dismissViewControllerAnimated:YES completion:NULL];
+        [self.imagePicker dismissModalViewControllerAnimated:YES];
         self.imagePicker = nil;
     }
     

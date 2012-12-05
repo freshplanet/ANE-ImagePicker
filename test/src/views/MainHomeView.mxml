@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="HomeView"
+		addedToStage="onAddedToStage(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.freshplanet.ane.AirImagePicker.AirImagePicker;
+			
+			import spark.primitives.BitmapImage;
+			
+			protected function onAddedToStage(event:Event):void
+			{
+				var isImagePickerAvailable:Boolean = AirImagePicker.getInstance().isImagePickerAvailable();
+				var isCameraAvailable:Boolean = AirImagePicker.getInstance().isCameraAvailable();
+				
+				imagePickerStateLabel.text = isImagePickerAvailable ? "YES" : "NO";
+				cameraStateLabel.text = isCameraAvailable ? "YES" : "NO";
+			}
+			
+			protected function onClickDisplayImagePickerButton(event:MouseEvent):void
+			{
+				AirImagePicker.getInstance().displayImagePicker(onImagePicked);
+			}
+			
+			protected function onImagePicked(image:BitmapData):void
+			{
+				pickedImage.source = image;
+			}
+			
+			protected function onClickDisplayCameraButton(event:MouseEvent):void
+			{
+				AirImagePicker.getInstance().displayCamera(onImagePicked);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations></fx:Declarations>
+	
+	<s:Label x="7" y="6" text="isImagePickerAvailable: "/>
+	<s:Label id="imagePickerStateLabel" x="185" y="6" text="?"/>
+	<s:Label x="6" y="29" text="isCameraAvailable:"/>
+	<s:Label id="cameraStateLabel" x="185" y="29" text="?"/>
+	<s:Button id="displayImagePickerButton" x="10" y="52" label="displayImagePicker" click="onClickDisplayImagePickerButton(event)"/>
+	<s:Button id="displayCameraButton" x="10" y="103" label="displayCamera" click="onClickDisplayCameraButton(event)"/>
+	<s:BitmapImage id="pickedImage" x="10" y="154"/>
+	
+</s:View>

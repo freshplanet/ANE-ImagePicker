@@ -38,11 +38,11 @@
     </platform>
 
     <platform name="Android-ARM"> 
-        <applicationDeployment> 
-            <nativeLibrary>libAirImagePicker.jar</nativeLibrary> 
+        <applicationDeployment/> 
+            <!-- <nativeLibrary>libAirImagePicker.jar</nativeLibrary> 
             <initializer>com.freshplanet.ane.AirImagePicker.AirImagePickerExtension</initializer> 
             <finalizer>com.freshplanet.ane.AirImagePicker.AirImagePickerExtension</finalizer> 
-        </applicationDeployment> 
+        </applicationDeployment>  -->
     </platform> 
     
     <platform name="default"> 

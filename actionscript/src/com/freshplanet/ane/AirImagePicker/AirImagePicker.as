@@ -35,7 +35,7 @@ package com.freshplanet.ane.AirImagePicker
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
 		{
-			return Capabilities.manufacturer.indexOf("iOS") != 1 || Capabilities.manufacturer.indexOf("Android") != -1;
+			return Capabilities.manufacturer.indexOf("iOS") > -1 || Capabilities.manufacturer.indexOf("Android") > -1;
 		}
 		
 		public function AirImagePicker()

@@ -6,6 +6,7 @@ build.config
 actionscript/bin
 .actionScriptProperties
 .flexLibProperties
+.flexProperties
 
 # Eclipse
 .settings
@@ -26,3 +27,7 @@ xcuserdata
 Icon
 Thumbs.db
 .DS_Store
+
+# Test
+test/bin-debug
+test/src/Main-app.xml
