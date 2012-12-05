@@ -18,6 +18,7 @@
 
 package com.freshplanet.ane.AirImagePicker
 {
+	import flash.display.BitmapData;
 	import flash.events.EventDispatcher;
 	import flash.events.StatusEvent;
 	import flash.external.ExtensionContext;
@@ -93,11 +94,10 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * Once the user picks an image, it is returned as a parameter to the provided
 		 * callback function. If the user cancels, <code>null</code> is returned to the
-		 * callback. The callback can take an optional error parameter that will be
-		 * passed if something wrong happens.
+		 * callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData, error:String = null)</code>
+		 * <code>function myCallback(image:BitmapData)</code>
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
@@ -126,11 +126,10 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * Once the user takes a picture, it is returned as a parameter to the provided
 		 * callback function. If the user cancels, <code>null</code> is returned to the
-		 * callback. The callback can take an optional error parameter that will be
-		 * passed if something wrong happens.
+		 * callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData, error:String = null)</code>
+		 * <code>function myCallback(image:BitmapData)</code>
 		 * 
 		 * @see #isCameraAvailable()
 		 */
@@ -160,7 +159,31 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function onStatus( event : StatusEvent ) : void
 		{
-			if (event.code == "LOGGING") // Simple log message
+			var callback:Function = _callback;
+			
+			if (event.code == "DID_FINISH_PICKING")
+			{
+				if (callback != null)
+				{
+					_callback = null;
+					
+					var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
+					var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
+					var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
+					_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
+					
+					callback(pickedImageBitmapData);
+				}
+			}
+			else if (event.code == "DID_CANCEL")
+			{
+				if (callback != null)
+				{
+					_callback = null;
+					callback(null);
+				}
+			}
+			else if (event.code == "LOGGING") // Simple log message
 			{
 				log(event.level);
 			}

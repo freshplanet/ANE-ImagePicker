@@ -167,6 +167,44 @@ DEFINE_ANE_FUNCTION(displayCamera)
     return nil;
 }
 
+DEFINE_ANE_FUNCTION(getPickedImageWidth)
+{
+    UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
+    
+    if (pickedImage)
+    {
+        CGImageRef imageRef = [pickedImage CGImage];
+        NSUInteger width = CGImageGetWidth(imageRef);
+        
+        FREObject result;
+        if (FRENewObjectFromUint32(width, &result) == FRE_OK)
+        {
+            return result;
+        }
+        else return nil;
+    }
+    else return nil;
+}
+
+DEFINE_ANE_FUNCTION(getPickedImageHeight)
+{
+    UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
+    
+    if (pickedImage)
+    {
+        CGImageRef imageRef = [pickedImage CGImage];
+        NSUInteger height = CGImageGetHeight(imageRef);
+        
+        FREObject result;
+        if (FRENewObjectFromUint32(height, &result) == FRE_OK)
+        {
+            return result;
+        }
+        else return nil;
+    }
+    else return nil;
+}
+
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
 {
     UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
@@ -237,7 +275,7 @@ DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 4;
+    NSInteger nbFuntionsToLink = 7;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -258,9 +296,17 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[3].functionData = NULL;
     func[3].function = &displayCamera;
     
-    func[4].name = (const uint8_t*) "drawPickedImageToBitmapData";
+    func[4].name = (const uint8_t*) "getPickedImageWidth";
     func[4].functionData = NULL;
-    func[4].function = &drawPickedImageToBitmapData;
+    func[4].function = &getPickedImageWidth;
+    
+    func[5].name = (const uint8_t*) "getPickedImageHeight";
+    func[5].functionData = NULL;
+    func[5].function = &getPickedImageHeight;
+    
+    func[6].name = (const uint8_t*) "drawPickedImageToBitmapData";
+    func[6].functionData = NULL;
+    func[6].function = &drawPickedImageToBitmapData;
     
     *functionsToSet = func;
     

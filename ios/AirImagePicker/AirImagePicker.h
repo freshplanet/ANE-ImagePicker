@@ -38,6 +38,8 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable);
 DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
+DEFINE_ANE_FUNCTION(getPickedImageWidth);
+DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 
 
