@@ -18,7 +18,7 @@
 
 #import "FlashRuntimeExtensions.h"
 
-@interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 
 @property (nonatomic, retain) UIImagePickerController *imagePicker;
 @property (nonatomic, retain) UIPopoverController *popover;
@@ -28,7 +28,7 @@
 
 + (void)log:(NSString *)message;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType anchor:(CGRect)anchor;
 
 @end
 

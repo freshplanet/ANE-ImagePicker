@@ -22,6 +22,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.events.EventDispatcher;
 	import flash.events.StatusEvent;
 	import flash.external.ExtensionContext;
+	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	
 	public class AirImagePicker extends EventDispatcher
@@ -98,15 +99,23 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @param callback A callback function of the following form:
 		 * <code>function myCallback(image:BitmapData)</code>
+		 * @param anchor On the iPad, the image picker is displayed in a popover that
+		 * doesn't cover the whole screen. This parameter is the anchor from which the
+		 * popover will be presented. For example, it could be the bounds of the button
+		 * on which the user clicked to display the image picker. Note that you should
+		 * use absolute stage coordinates. Example: <code>var anchor:Rectangle = 
+		 * myButton.getBounds(stage);</code>
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function ) : void
+		public function displayImagePicker( callback : Function, anchor : Rectangle = null ) : void
 		{
 			if (!isImagePickerAvailable()) callback(null);
 			
 			_callback = callback;
-			_context.call("displayImagePicker");
+			
+			if (anchor != null) _context.call("displayImagePicker", anchor);
+			else _context.call("displayImagePicker");
 		}
 		
 		/**

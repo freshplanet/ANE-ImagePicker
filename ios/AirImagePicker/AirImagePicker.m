@@ -65,7 +65,7 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -83,7 +83,8 @@ static AirImagePicker *sharedInstance = nil;
     else
     {
         self.popover = [[[UIPopoverController alloc] initWithContentViewController:self.imagePicker] autorelease];
-        [self.popover presentPopoverFromRect:rootViewController.view.bounds inView:rootViewController.view
+        self.popover.delegate = self;
+        [self.popover presentPopoverFromRect:anchor inView:rootViewController.view
                     permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
     }
 }
@@ -124,6 +125,24 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
 }
 
+#pragma mark - UIPopoverControllerDelegate
+
+- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
+{
+    if (self.popover)
+    {
+        [self.popover dismissPopoverAnimated:YES];
+        self.popover = nil;
+    }
+    else
+    {
+        [self.imagePicker dismissModalViewControllerAnimated:YES];
+        self.imagePicker = nil;
+    }
+    
+    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
+}
+
 @end
 
 
@@ -143,7 +162,35 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable)
 
 DEFINE_ANE_FUNCTION(displayImagePicker)
 {
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
+    CGRect anchor;
+    if (argc > 0)
+    {
+        // Extract anchor properties
+        FREObject anchorObject = argv[0];
+        FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
+        FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
+        FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
+        FREGetObjectProperty(anchorObject, (const uint8_t *)"width", &anchorWidth, &thrownException);
+        FREGetObjectProperty(anchorObject, (const uint8_t *)"height", &anchorHeight, &thrownException);
+        
+        // Convert anchor properties to double
+        double x, y, width, height;
+        FREGetObjectAsDouble(anchorX, &x);
+        FREGetObjectAsDouble(anchorY, &y);
+        FREGetObjectAsDouble(anchorWidth, &width);
+        FREGetObjectAsDouble(anchorHeight, &height);
+        
+        // Divide properties by the scale (useful for Retina Display)
+        CGFloat scale = [[UIScreen mainScreen] scale];
+        anchor = CGRectMake(x/scale, y/scale, width/scale, height/scale);
+    }
+    else
+    {
+        UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+        anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
+    }
+    
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary anchor:anchor];
     
     return nil;
 }
@@ -162,7 +209,7 @@ DEFINE_ANE_FUNCTION(isCameraAvailable)
 
 DEFINE_ANE_FUNCTION(displayCamera)
 {
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera anchor:CGRectZero];
     
     return nil;
 }
