@@ -11,6 +11,7 @@
 			
 			protected function onAddedToStage(event:Event):void
 			{
+				AirImagePicker.getInstance().logEnabled = true;
 				var isImagePickerAvailable:Boolean = AirImagePicker.getInstance().isImagePickerAvailable();
 				var isCameraAvailable:Boolean = AirImagePicker.getInstance().isCameraAvailable();
 				
@@ -22,17 +23,27 @@
 			{
 				var anchor:Rectangle = displayImagePickerButton.getBounds(stage);
 				
-				AirImagePicker.getInstance().displayImagePicker(onImagePicked, anchor);
+				AirImagePicker.getInstance().displayImagePicker(onImagePicked, cropCheckBox.selected, anchor);
 			}
 			
-			protected function onImagePicked(image:BitmapData):void
+			protected function onImagePicked(image:BitmapData, data:ByteArray):void
 			{
-				pickedImage.source = image;
+				if (image)
+				{
+					pickedImage.source = image;
+					
+					var aspectRatio:Number = image.height / image.width;
+					pickedImage.width = 150;
+					pickedImage.height = pickedImage.width * aspectRatio;
+				}
+				
+				if (data)
+					trace("[AirImagePicker Test] ANE returned JPEG data of " + data.length + " bytes");
 			}
 			
 			protected function onClickDisplayCameraButton(event:MouseEvent):void
 			{
-				AirImagePicker.getInstance().displayCamera(onImagePicked);
+				AirImagePicker.getInstance().displayCamera(onImagePicked, cropCheckBox.selected);
 			}
 			
 		]]>
@@ -44,8 +55,9 @@
 	<s:Label id="imagePickerStateLabel" x="185" y="6" text="?"/>
 	<s:Label x="6" y="29" text="isCameraAvailable:"/>
 	<s:Label id="cameraStateLabel" x="185" y="29" text="?"/>
+	<s:CheckBox id="cropCheckBox" x="10" y="154" label="Crop"/>
 	<s:Button id="displayImagePickerButton" x="10" y="52" label="displayImagePicker" click="onClickDisplayImagePickerButton(event)"/>
 	<s:Button id="displayCameraButton" x="10" y="103" label="displayCamera" click="onClickDisplayCameraButton(event)"/>
-	<s:BitmapImage id="pickedImage" x="10" y="154"/>
+	<s:BitmapImage id="pickedImage" x="10" y="194" width="250"/>
 	
 </s:View>

@@ -24,6 +24,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.external.ExtensionContext;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
+	import flash.utils.ByteArray;
 	
 	public class AirImagePicker extends EventDispatcher
 	{
@@ -93,12 +94,16 @@ package com.freshplanet.ane.AirImagePicker
 		 * Display the gallery image picker if it is available on the current device.
 		 * Otherwise, do nothing.<br><br>
 		 * 
-		 * Once the user picks an image, it is returned as a parameter to the provided
-		 * callback function. If the user cancels, <code>null</code> is returned to the
-		 * callback.
+		 * Once the user picks an image, it is returned to the provided callback function,
+		 * both as a <code>BitmapData</code> and a JPEG-encoded <code>BypeArray</code>.
+		 * If the user cancels, <code>null</code> is returned to the callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData)</code>
+		 * <code>function myCallback(image:BitmapData, data:ByteArray)</code>. The <code>
+		 * data</code> parameter will contain a JPEG-encoded version of the image.
+		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
+		 * ratio. A native UI will be displayed to allow the user to do the cropping
+		 * properly. Default: <code>false</code>.
 		 * @param anchor On the iPad, the image picker is displayed in a popover that
 		 * doesn't cover the whole screen. This parameter is the anchor from which the
 		 * popover will be presented. For example, it could be the bounds of the button
@@ -108,14 +113,14 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, crop : Boolean = false, anchor : Rectangle = null ) : void
 		{
-			if (!isImagePickerAvailable()) callback(null);
+			if (!isImagePickerAvailable()) callback(null, null);
 			
 			_callback = callback;
 			
-			if (anchor != null) _context.call("displayImagePicker", anchor);
-			else _context.call("displayImagePicker");
+			if (anchor != null) _context.call("displayImagePicker", crop, anchor);
+			else _context.call("displayImagePicker", crop);
 		}
 		
 		/**
@@ -133,21 +138,24 @@ package com.freshplanet.ane.AirImagePicker
 		 * Display the camera if it is available on the current device. Otherwise, do
 		 * nothing.<br><br>
 		 * 
-		 * Once the user takes a picture, it is returned as a parameter to the provided
-		 * callback function. If the user cancels, <code>null</code> is returned to the
-		 * callback.
+		 * Once the user takes a picture, it is returned to the provided callback function,
+		 * both as a <code>BitmapData</code> and a JPEG-encoded <code>BypeArray</code>.
+		 * If the user cancels, <code>null</code> is returned to the callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData)</code>
+		 * <code>function myCallback(image:BitmapData, data:ByteArray)</code>
+		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
+		 * ratio. A native UI will be displayed to allow the user to do the cropping
+		 * properly. Default: <code>false</code>.
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function ) : void
+		public function displayCamera( callback : Function, crop : Boolean = false ) : void
 		{
-			if (!isCameraAvailable()) callback(null);
+			if (!isCameraAvailable()) callback(null, null);
 			
 			_callback = callback;
-			_context.call("displayCamera");
+			_context.call("displayCamera", crop);
 		}
 		
 		
@@ -176,12 +184,21 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					
+					log("Did finish picking");
+					
+					// Load BitmapData
 					var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
 					var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
+					log("Image size: "+pickedImageWidth+"x"+pickedImageHeight);
 					var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
 					_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
 					
-					callback(pickedImageBitmapData);
+					// Load JPEG-encoded ByteArray
+					var pickedImageByteArray:ByteArray = new ByteArray();
+					pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
+					_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
+					
+					callback(pickedImageBitmapData, pickedImageByteArray);
 				}
 			}
 			else if (event.code == "DID_CANCEL")
@@ -189,7 +206,7 @@ package com.freshplanet.ane.AirImagePicker
 				if (callback != null)
 				{
 					_callback = null;
-					callback(null);
+					callback(null, null);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message

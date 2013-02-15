@@ -23,12 +23,13 @@
 @property (nonatomic, retain) UIImagePickerController *imagePicker;
 @property (nonatomic, retain) UIPopoverController *popover;
 @property (nonatomic, readonly) UIImage *pickedImage;
+@property (nonatomic, readonly) NSData *pickedImageJPEGData;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop anchor:(CGRect)anchor;
 
 @end
 
@@ -41,6 +42,8 @@ DEFINE_ANE_FUNCTION(displayCamera);
 DEFINE_ANE_FUNCTION(getPickedImageWidth);
 DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
+DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
+DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
 
 
 // ANE Setup

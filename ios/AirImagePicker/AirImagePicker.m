@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "AirImagePicker.h"
+#import "UIImage+Resize.h"
 
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
@@ -28,6 +29,7 @@ FREContext AirIPCtx = nil;
 @synthesize imagePicker = _imagePicker;
 @synthesize popover = _popover;
 @synthesize pickedImage = _pickedImage;
+@synthesize pickedImageJPEGData = _pickedImageJPEGData;
 
 static AirImagePicker *sharedInstance = nil;
 
@@ -56,6 +58,7 @@ static AirImagePicker *sharedInstance = nil;
     [_imagePicker release];
     [_popover release];
     [_pickedImage release];
+    [_pickedImageJPEGData release];
     [super dealloc];
 }
 
@@ -65,13 +68,13 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType anchor:(CGRect)anchor
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
     self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
     self.imagePicker.sourceType = sourceType;
-    self.imagePicker.allowsEditing = YES;
+    self.imagePicker.allowsEditing = crop;
     self.imagePicker.delegate = self;
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
@@ -93,8 +96,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
-    _pickedImage = [(UIImage *)[info objectForKey:UIImagePickerControllerEditedImage] retain];
-    
+    // Dismiss the UI
     if (self.popover)
     {
         [self.popover dismissPopoverAnimated:YES];
@@ -106,7 +108,68 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker = nil;
     }
     
-    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"OK");
+    // Process image in background thread
+    dispatch_queue_t thread = dispatch_queue_create("image processing", NULL);
+    dispatch_async(thread, ^{
+        
+        // Retrieve image
+        BOOL crop = YES;
+        _pickedImage = [info objectForKey:UIImagePickerControllerEditedImage];
+        if (!_pickedImage)
+        {
+            crop = NO;
+            _pickedImage = [info objectForKey:UIImagePickerControllerOriginalImage];
+        }
+        
+        if (!crop)
+        {
+            // Unedited images may have an incorrect orientation. We fix it.
+            _pickedImage = [_pickedImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:_pickedImage.size interpolationQuality:kCGInterpolationDefault];
+        }
+        else if (_pickedImage.size.width != _pickedImage.size.height)
+        {
+            // If image is not square (happens if the user didn't zoom enough when cropping), we add black areas around
+            CGFloat longestEdge = MAX(_pickedImage.size.width, _pickedImage.size.height);
+            CGRect drawRect = CGRectZero;
+            drawRect.size = _pickedImage.size;
+            if (_pickedImage.size.width > _pickedImage.size.height)
+            {
+                drawRect.origin.y = (longestEdge - _pickedImage.size.height) / 2;
+            }
+            else
+            {
+                drawRect.origin.x = (longestEdge - _pickedImage.size.width) / 2;
+            }
+            
+            // Prepare drawing context
+            CGImageRef imageRef = _pickedImage.CGImage;
+            CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+            CGContextRef context = CGBitmapContextCreate(NULL, longestEdge, longestEdge, 8, 0, colorSpace, kCGImageAlphaPremultipliedLast);
+            CGColorSpaceRelease(colorSpace);
+            
+            // Draw new image
+            UIColor *black = [UIColor blackColor];
+            CGContextSetFillColorWithColor(context, black.CGColor);
+            CGContextFillRect(context, CGRectMake(0, 0, longestEdge, longestEdge));
+            CGContextDrawImage(context, drawRect, imageRef);
+            CGImageRef newImageRef = CGBitmapContextCreateImage(context);
+            _pickedImage = [UIImage imageWithCGImage:newImageRef];
+            
+            // Clean up
+            CGContextRelease(context);
+            CGImageRelease(newImageRef);
+        }
+        
+        // JPEG compression
+        _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+        
+        [_pickedImage retain];
+        [_pickedImageJPEGData retain];
+        
+        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"OK");
+        
+    });
+    dispatch_release(thread);
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
@@ -162,11 +225,16 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable)
 
 DEFINE_ANE_FUNCTION(displayImagePicker)
 {
+    uint32_t cropValue;
+    FREObject cropObject = argv[0];
+    FREGetObjectAsBool(cropObject, &cropValue);
+    BOOL crop = (cropValue != 0);
+    
     CGRect anchor;
-    if (argc > 0)
+    if (argc > 1)
     {
         // Extract anchor properties
-        FREObject anchorObject = argv[0];
+        FREObject anchorObject = argv[1];
         FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
         FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
         FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
@@ -190,7 +258,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary anchor:anchor];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor];
     
     return nil;
 }
@@ -209,7 +277,12 @@ DEFINE_ANE_FUNCTION(isCameraAvailable)
 
 DEFINE_ANE_FUNCTION(displayCamera)
 {
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera anchor:CGRectZero];
+    uint32_t cropValue;
+    FREObject cropObject = argv[0];
+    FREGetObjectAsBool(cropObject, &cropValue);
+    BOOL crop = (cropValue != 0);
+    
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero];
     
     return nil;
 }
@@ -316,13 +389,49 @@ DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
     return nil;
 }
 
+DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize)
+{
+    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
+    
+    if (jpegData)
+    {
+        FREObject result;
+        if (FRENewObjectFromUint32(jpegData.length, &result) == FRE_OK)
+        {
+            return result;
+        }
+        else return nil;
+    }
+    else return nil;
+}
+
+DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray)
+{
+    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
+    
+    if (jpegData)
+    {
+        // Get the AS3 ByteArray
+        FREByteArray byteArray;
+        FREAcquireByteArray(argv[0], &byteArray);
+        
+        // Copy JPEG representation in ByteArray
+        memcpy(byteArray.bytes, jpegData.bytes, jpegData.length);
+        
+        // Release our control over the ByteArray
+        FREReleaseByteArray(argv[0]);
+    }
+    
+    return nil;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 7;
+    NSInteger nbFuntionsToLink = 9;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -354,6 +463,14 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[6].name = (const uint8_t*) "drawPickedImageToBitmapData";
     func[6].functionData = NULL;
     func[6].function = &drawPickedImageToBitmapData;
+    
+    func[7].name = (const uint8_t*) "getPickedImageJPEGRepresentationSize";
+    func[7].functionData = NULL;
+    func[7].function = &getPickedImageJPEGRepresentationSize;
+    
+    func[8].name = (const uint8_t*) "copyPickedImageJPEGRepresentationToByteArray";
+    func[8].functionData = NULL;
+    func[8].function = &copyPickedImageJPEGRepresentationToByteArray;
     
     *functionsToSet = func;
     
