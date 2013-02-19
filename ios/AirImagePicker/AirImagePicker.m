@@ -17,12 +17,21 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "AirImagePicker.h"
+#import <QuartzCore/QuartzCore.h>
+#import <OpenGLES/ES1/gl.h>
+#import <OpenGLES/ES1/glext.h>
 #import "UIImage+Resize.h"
 
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
 
 FREContext AirIPCtx = nil;
+
+@interface AirImagePicker ()
+{
+    UIView *_overlay;
+}
+@end
 
 @implementation AirImagePicker
 
@@ -59,6 +68,7 @@ static AirImagePicker *sharedInstance = nil;
     [_popover release];
     [_pickedImage release];
     [_pickedImageJPEGData release];
+    [_overlay release];
     [super dealloc];
 }
 
@@ -92,6 +102,53 @@ static AirImagePicker *sharedInstance = nil;
     }
 }
 
+- (void)displayOverlay:(UIImage *)overlay
+{
+    // Create a final overlay including a black area instead of the status bar, if needed.
+    
+    UIView *rootView = [[[[UIApplication sharedApplication] keyWindow] rootViewController] view];
+    
+    CGRect statusBarFrame = CGRectZero;
+    CGRect overlayFrame = rootView.frame;
+    CGRect finalOverlayFrame = rootView.frame;
+    if (![UIApplication sharedApplication].statusBarHidden)
+    {
+        statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
+        finalOverlayFrame.origin.y -= 40;
+        finalOverlayFrame.size.height += 20;
+    }
+    
+    // Setup context
+    UIGraphicsBeginImageContext(finalOverlayFrame.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    UIGraphicsPushContext(context);
+    
+    // Fill status bar area with black
+    UIColor *blackColor = [UIColor blackColor];
+    CGContextSetFillColorWithColor(context, blackColor.CGColor);
+    CGContextFillRect(context, statusBarFrame);
+    
+    // Draw actual overlay
+    [overlay drawInRect:overlayFrame];
+    
+    // Produce final overlay and clean up context
+    UIGraphicsPopContext();
+    UIImage *finalOverlay = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    // Display overlay
+    _overlay = [[UIImageView alloc] initWithImage:finalOverlay];
+    _overlay.frame = finalOverlayFrame;
+    [rootView addSubview:_overlay];
+}
+
+- (void)removeOverlay
+{
+    [_overlay removeFromSuperview];
+    [_overlay release];
+    _overlay = nil;
+}
+
 #pragma mark - UIImagePickerControllerDelegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
@@ -111,6 +168,12 @@ static AirImagePicker *sharedInstance = nil;
     // Process image in background thread
     dispatch_queue_t thread = dispatch_queue_create("image processing", NULL);
     dispatch_async(thread, ^{
+        
+        // Clean up previous image
+        [_pickedImage release];
+        _pickedImage = nil;
+        [_pickedImageJPEGData release];
+        _pickedImageJPEGData = nil;
         
         // Retrieve image
         BOOL crop = YES;
@@ -425,13 +488,50 @@ DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray)
     return nil;
 }
 
+DEFINE_ANE_FUNCTION(displayOverlay)
+{
+    // Get the AS3 BitmapData
+    FREBitmapData bitmapData;
+    FREAcquireBitmapData(argv[0], &bitmapData);
+    
+    // Make data provider from buffer
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, bitmapData.bits32, (bitmapData.width * bitmapData.height * 4), NULL);
+    
+    // Setup for CGImage creation
+    int                     bitsPerComponent = 8;
+    int                     bitsPerPixel     = 32;
+    int                     bytesPerRow      = 4 * bitmapData.width;
+    CGColorSpaceRef         colorSpaceRef    = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo            bitmapInfo = kCGBitmapByteOrder32Little | (bitmapData.hasAlpha ? (bitmapData.isPremultiplied ? kCGImageAlphaPremultipliedFirst : kCGImageAlphaFirst) : kCGImageAlphaNoneSkipFirst);
+    CGColorRenderingIntent  renderingIntent = kCGRenderingIntentDefault;
+    
+    // Create CGImage
+    CGImageRef imageRef = CGImageCreate(bitmapData.width, bitmapData.height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpaceRef, bitmapInfo, provider, NULL, NO, renderingIntent);
+    
+    // Create overlay from CGImage
+    UIImage *overlay = [UIImage imageWithCGImage:imageRef];
+    [[AirImagePicker sharedInstance] displayOverlay:overlay];
+    
+    // Clean up
+    FREReleaseBitmapData(argv[0]);
+    
+    return nil;
+}
+
+DEFINE_ANE_FUNCTION(removeOverlay)
+{
+    [[AirImagePicker sharedInstance] removeOverlay];
+    
+    return nil;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 9;
+    NSInteger nbFuntionsToLink = 11;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -471,6 +571,14 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[8].name = (const uint8_t*) "copyPickedImageJPEGRepresentationToByteArray";
     func[8].functionData = NULL;
     func[8].function = &copyPickedImageJPEGRepresentationToByteArray;
+    
+    func[9].name = (const uint8_t*) "displayOverlay";
+    func[9].functionData = NULL;
+    func[9].function = &displayOverlay;
+    
+    func[10].name = (const uint8_t*) "removeOverlay";
+    func[10].functionData = NULL;
+    func[10].function = &removeOverlay;
     
     *functionsToSet = func;
     

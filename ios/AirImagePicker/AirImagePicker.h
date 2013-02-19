@@ -31,6 +31,9 @@
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop anchor:(CGRect)anchor;
 
+- (void)displayOverlay:(UIImage *)overlay;
+- (void)removeOverlay;
+
 @end
 
 
@@ -44,6 +47,7 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
 DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+DEFINE_ANE_FUNCTION(removeOverlay);
 
 
 // ANE Setup

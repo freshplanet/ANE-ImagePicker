@@ -19,6 +19,8 @@
 package com.freshplanet.ane.AirImagePicker
 {
 	import flash.display.BitmapData;
+	import flash.display.Stage3D;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.StatusEvent;
 	import flash.external.ExtensionContext;
@@ -63,6 +65,29 @@ package com.freshplanet.ane.AirImagePicker
 		public static function getInstance() : AirImagePicker
 		{
 			return _instance ? _instance : new AirImagePicker();
+		}
+		
+		/**
+		 * If you use Stage3D, displaying the camera or the image gallery will cause a
+		 * context loss.<br><br>
+		 * 
+		 * In order for this ANE not to crash your app, you need to be able to handle a
+		 * lost context. If you are using Starling, set <code>handleLostContext</code>
+		 * to <code>true</code> on your <code>Starling</code> instance.<br><br>
+		 * 
+		 * Even then, you will see a white screen before and after displaying the camera.
+		 * In order to avoid this, you can pass a <code>BitmapData</code> overlay for the
+		 * ANE to display on top of the white screen. For example, you could pass a
+		 * screenshot of your user interface.
+		 * 
+		 * @param stage3D Your Stage3D instance. The ANE will listen to events in order
+		 * to remove the overlay when a new context is created.
+		 * @param overlay The overlay that will be drawn on the screen.
+		 */
+		public function setupStage3DOverlay(stage3D:Stage3D, overlay:BitmapData):void
+		{
+			_stage3D = stage3D;
+			_overlay = overlay;
 		}
 		
 		/**
@@ -117,8 +142,7 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (!isImagePickerAvailable()) callback(null, null);
 			
-			_callback = callback;
-			
+			prepareToDisplayNativeUI(callback);
 			if (anchor != null) _context.call("displayImagePicker", crop, anchor);
 			else _context.call("displayImagePicker", crop);
 		}
@@ -154,7 +178,7 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (!isCameraAvailable()) callback(null, null);
 			
-			_callback = callback;
+			prepareToDisplayNativeUI(callback);
 			_context.call("displayCamera", crop);
 		}
 		
@@ -173,6 +197,33 @@ package com.freshplanet.ane.AirImagePicker
 		private var _context : ExtensionContext;
 		private var _logEnabled : Boolean = false;
 		private var _callback : Function = null;
+		private var _stage3D : Stage3D;
+		private var _overlay : BitmapData;
+		
+		private function prepareToDisplayNativeUI( callback : Function ) : void
+		{
+			if (_stage3D && _overlay)
+			{
+				_callback = wrapCallbackForStage3D(callback);
+				_context.call("displayOverlay", _overlay);
+			}
+			else
+			{
+				_callback = callback;
+			}
+		}
+		
+		private function wrapCallbackForStage3D( callback : Function ) : Function
+		{
+			return function(image:BitmapData, data:ByteArray):void {
+				var onContextRestored:Function = function(event:Event):void {
+					_stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+					_context.call("removeOverlay");
+					if (callback != null) callback(image, data);
+				};
+				_stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+			};
+		}
 		
 		private function onStatus( event : StatusEvent ) : void
 		{
@@ -184,12 +235,9 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					
-					log("Did finish picking");
-					
 					// Load BitmapData
 					var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
 					var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
-					log("Image size: "+pickedImageWidth+"x"+pickedImageHeight);
 					var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
 					_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
 					
