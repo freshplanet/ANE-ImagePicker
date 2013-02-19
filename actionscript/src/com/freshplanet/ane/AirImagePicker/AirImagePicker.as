@@ -142,7 +142,6 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (!isImagePickerAvailable()) callback(null, null);
 			
-			prepareToDisplayNativeUI(callback);
 			if (anchor != null) _context.call("displayImagePicker", crop, anchor);
 			else _context.call("displayImagePicker", crop);
 		}
