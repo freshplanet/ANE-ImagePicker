@@ -47,6 +47,7 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
 DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+DEFINE_ANE_FUNCTION(displayOverlay);
 DEFINE_ANE_FUNCTION(removeOverlay);
 
 

@@ -30,6 +30,8 @@
 			{
 				if (image)
 				{
+					trace("[AirImagePicker Test] ANE returned image of " + image.width + "x" + image.height);
+					
 					pickedImage.source = image;
 					
 					var aspectRatio:Number = image.height / image.width;
