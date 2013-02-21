@@ -153,6 +153,8 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
+    NSLog(@"Z");
+    
     // Dismiss the UI
     if (self.popover)
     {
@@ -165,6 +167,8 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker = nil;
     }
     
+    NSLog(@"A");
+    
     // Process image in background thread
     dispatch_queue_t thread = dispatch_queue_create("image processing", NULL);
     dispatch_async(thread, ^{
@@ -174,6 +178,8 @@ static AirImagePicker *sharedInstance = nil;
         _pickedImage = nil;
         [_pickedImageJPEGData release];
         _pickedImageJPEGData = nil;
+        
+        NSLog(@"B");
         
         // Retrieve image
         BOOL crop = YES;
@@ -186,6 +192,7 @@ static AirImagePicker *sharedInstance = nil;
         
         if (!crop)
         {
+            NSLog(@"C");
             // Unedited images may have an incorrect orientation. We fix it.
             _pickedImage = [_pickedImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:_pickedImage.size interpolationQuality:kCGInterpolationDefault];
         }
@@ -229,7 +236,11 @@ static AirImagePicker *sharedInstance = nil;
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
         
-        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"OK");
+        NSLog(@"D");
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"OK");
+        });
         
     });
     dispatch_release(thread);

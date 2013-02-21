@@ -86,8 +86,18 @@ package com.freshplanet.ane.AirImagePicker
 		 */
 		public function setupStage3DOverlay(stage3D:Stage3D, overlay:BitmapData):void
 		{
+			if (_stage3D)
+			{
+				_stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
+			}
+			
 			_stage3D = stage3D;
 			_overlay = overlay;
+			
+			if (_stage3D)
+			{
+				_stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
+			}
 		}
 		
 		/**
@@ -200,6 +210,7 @@ package com.freshplanet.ane.AirImagePicker
 		private var _callback : Function = null;
 		private var _stage3D : Stage3D;
 		private var _overlay : BitmapData;
+		private var _context3DLost : Boolean = false;
 		
 		private function prepareToDisplayNativeUI( callback : Function ) : void
 		{
@@ -216,14 +227,29 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function wrapCallbackForStage3D( callback : Function ) : Function
 		{
-			return function(image:BitmapData, data:ByteArray):void {
-				var onContextRestored:Function = function(event:Event):void {
-					_stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+			return function(image:BitmapData, data:ByteArray):void
+			{
+				if (_context3DLost)
+				{
+					var onContextRestored:Function = function(event:Event):void
+					{
+						_stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+						_context.call("removeOverlay");
+						if (callback != null) callback(image, data);
+					};
+					_stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+				}
+				else
+				{
 					_context.call("removeOverlay");
 					if (callback != null) callback(image, data);
-				};
-				_stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
+				}
 			};
+		}
+		
+		private function onContext3DCreated( event : Event ) : void
+		{
+			_context3DLost = !_context3DLost;
 		}
 		
 		private function onStatus( event : StatusEvent ) : void
