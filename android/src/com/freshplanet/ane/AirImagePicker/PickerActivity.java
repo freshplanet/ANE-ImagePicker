@@ -5,7 +5,10 @@ import java.io.File;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -68,8 +71,6 @@ public class PickerActivity extends Activity
 		{
 			try
 			{
-				AirImagePickerExtension.log("Image path: " + imagePath);
-				
 				// Choose a sample size with an arbitrary memory limit
 				int memoryLimit = 5 * 1024 * 1024; // 5MB
 				BitmapFactory.Options options = new BitmapFactory.Options();
@@ -82,7 +83,44 @@ public class PickerActivity extends Activity
 				// Decode the image
 				options.inJustDecodeBounds = false;
 				options.inSampleSize = sampleSize;
-				AirImagePickerExtension.context.pickedImage = BitmapFactory.decodeFile(imagePath, options);
+				Bitmap rawImage = BitmapFactory.decodeFile(imagePath, options);
+				
+				// Fix image orientation
+				ExifInterface exif = new ExifInterface(imagePath);
+				int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+				int rotate = 0;
+				switch (exifOrientation)
+				{
+		          case ExifInterface.ORIENTATION_ROTATE_90:
+		        	  rotate = 90;
+		        	  break; 
+		          
+		          case ExifInterface.ORIENTATION_ROTATE_180:
+		        	  rotate = 180;
+		        	  break;
+
+		          case ExifInterface.ORIENTATION_ROTATE_270:
+		        	  rotate = 270;
+		        	  break;
+				}
+				if (rotate != 0)
+				{
+					int w = rawImage.getWidth();
+					int h = rawImage.getHeight();
+					
+					Matrix mtx = new Matrix();
+					mtx.preRotate(rotate);
+					
+					AirImagePickerExtension.context.pickedImage = Bitmap.createBitmap(rawImage, 0, 0, w, h, mtx, true);
+				}
+				else
+				{
+					AirImagePickerExtension.context.pickedImage = rawImage;
+				}
+				
+				AirImagePickerExtension.log("Image path: " + imagePath);
+				AirImagePickerExtension.log("Image size: " + AirImagePickerExtension.context.pickedImage.getWidth() + "x" + AirImagePickerExtension.context.pickedImage.getHeight());
+				AirImagePickerExtension.log("Rotation: " + rotate);
 				
 				// Dispatch finish event
 				context.dispatchStatusEventAsync("DID_FINISH_PICKING", "OK");

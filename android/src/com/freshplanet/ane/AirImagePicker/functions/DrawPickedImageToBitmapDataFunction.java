@@ -22,29 +22,35 @@ public class DrawPickedImageToBitmapDataFunction implements FREFunction
 			bitmapData.acquire();
 			ByteBuffer bitmapBits = bitmapData.getBits();
 			
-			// Get picked image data
-			Bitmap pickedImage = AirImagePickerExtension.context.pickedImage;
-			ByteBuffer pickedImageBits = ByteBuffer.allocate(4*pickedImage.getWidth()*pickedImage.getHeight());
-			pickedImage.copyPixelsToBuffer(pickedImageBits);
-			
-			// Copy image in BitmapData and convert from RGBA to BGRA
-			int EXCEPT_R_MASK = 0x00FFFFFF;
-			int ONLY_R_MASK = ~EXCEPT_R_MASK;
-			int EXCEPT_B_MASK = 0xFFFF00FF;
-			int ONLY_B_MASK = ~EXCEPT_B_MASK;
-			int pixel, newPixel, r, b;
-			pickedImageBits.position(0);
-			while (pickedImageBits.hasRemaining())
+			try
 			{
-				pixel = pickedImageBits.getInt();
-				r = (pixel & ONLY_R_MASK) >> 24;
-				b = (pixel & ONLY_B_MASK) >> 8;
-				newPixel = (pixel & EXCEPT_B_MASK & EXCEPT_R_MASK) | (b << 24) | (r << 8);
-				bitmapBits.putInt(newPixel);
+				// Get picked image data
+				Bitmap pickedImage = AirImagePickerExtension.context.pickedImage;
+				ByteBuffer pickedImageBits = ByteBuffer.allocate(4*pickedImage.getWidth()*pickedImage.getHeight());
+				pickedImage.copyPixelsToBuffer(pickedImageBits);
+				
+				// Copy image in BitmapData and convert from RGBA to BGRA
+				int i;
+				byte a, r, g, b;
+				int capacity = pickedImageBits.capacity();
+				for (i=0; i<capacity; i+=4)
+				{
+					r = pickedImageBits.get(i);
+					g = pickedImageBits.get(i+1);
+					b = pickedImageBits.get(i+2);
+					a = pickedImageBits.get(i+3);
+					
+					bitmapBits.put(i, b);
+					bitmapBits.put(i+1, g);
+					bitmapBits.put(i+2, r);
+					bitmapBits.put(i+3, a);
+				}
 			}
-			
-			// Clean up
-			bitmapData.release();
+			finally
+			{
+				// Clean up
+				bitmapData.release();
+			}
 		}
 		catch (Exception exception)
 		{
