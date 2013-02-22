@@ -9,6 +9,7 @@ public class RemoveOverlayFunction implements FREFunction
 	@Override
 	public FREObject call(FREContext context, FREObject[] args)
 	{
+		// NOT IMPLEMENTED
 		return null;
 	}
 }

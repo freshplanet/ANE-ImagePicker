@@ -12,7 +12,7 @@ public class GetPickedImageHeightFunction implements FREFunction
 	{
 		try
 		{
-			return FREObject.newObject(AirImagePickerExtension.context.pickedImage.getHeight());
+			return FREObject.newObject(AirImagePickerExtension.context.getPickedImageHeight());
 		}
 		catch (Exception exception)
 		{

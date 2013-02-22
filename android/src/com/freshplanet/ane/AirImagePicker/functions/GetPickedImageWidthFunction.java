@@ -12,7 +12,7 @@ public class GetPickedImageWidthFunction implements FREFunction
 	{
 		try
 		{
-			return FREObject.newObject(AirImagePickerExtension.context.pickedImage.getWidth());
+			return FREObject.newObject(AirImagePickerExtension.context.getPickedImageWidth());
 		}
 		catch (Exception exception)
 		{

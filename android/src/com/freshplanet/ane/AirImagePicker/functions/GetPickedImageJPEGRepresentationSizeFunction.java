@@ -12,7 +12,7 @@ public class GetPickedImageJPEGRepresentationSizeFunction implements FREFunction
 	{
 		try
 		{
-			return FREObject.newObject(AirImagePickerExtension.context.pickedImageJPEGRepresentation.length);
+			return FREObject.newObject(AirImagePickerExtension.context.getPickedImageJPEGRepresentationSize());
 		}
 		catch (Exception exception)
 		{
