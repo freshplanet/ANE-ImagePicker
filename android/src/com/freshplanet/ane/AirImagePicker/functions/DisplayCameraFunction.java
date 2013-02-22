@@ -16,7 +16,7 @@ public class DisplayCameraFunction implements FREFunction
 		AirImagePickerExtensionContext ctx = (AirImagePickerExtensionContext)context;
 		
 		Intent intent = new Intent(ctx.getActivity().getApplicationContext(), PickerActivity.class);
-		intent.putExtra("action", AirImagePickerExtensionContext.TAKE_PICTURE);
+		intent.putExtra("action", AirImagePickerExtensionContext.TAKE_PICTURE_ACTION);
 		
 		ctx.getActivity().startActivity(intent);
 		

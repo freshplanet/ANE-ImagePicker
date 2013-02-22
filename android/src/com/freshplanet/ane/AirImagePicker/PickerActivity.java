@@ -16,6 +16,10 @@ import android.provider.MediaStore;
 
 public class PickerActivity extends Activity
 {
+	private static final String CURRENT_ACTION = "currentAction";
+	private static final String CAMERA_OUTPUT_PATH = "cameraOutputPath";
+	
+	private int currentAction = AirImagePickerExtensionContext.NO_ACTION;
 	private String cameraOutputPath;
 	
 	@Override
@@ -23,18 +27,52 @@ public class PickerActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		
-		int action = this.getIntent().getIntExtra("action", AirImagePickerExtensionContext.SELECT_IMAGE);
-		
-		Intent intent = AirImagePickerExtension.context.getIntentForAction(action);
-		
-		if (action == AirImagePickerExtensionContext.TAKE_PICTURE)
+		if (savedInstanceState != null)
 		{
-			File cameraOutputFile = new File(Environment.getExternalStorageDirectory(), "air-image-picker_"+String.valueOf(System.currentTimeMillis())+".jpg"); 
-			cameraOutputPath = cameraOutputFile.getAbsolutePath();
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraOutputFile));
+			cameraOutputPath = savedInstanceState.getString(CAMERA_OUTPUT_PATH);
+			currentAction = savedInstanceState.getInt(CURRENT_ACTION);
 		}
 		
-		startActivityForResult(intent, action);
+		if (currentAction == AirImagePickerExtensionContext.NO_ACTION)
+		{
+			currentAction = this.getIntent().getIntExtra("action", AirImagePickerExtensionContext.SELECT_IMAGE_ACTION);
+			
+			Intent intent = AirImagePickerExtension.context.getIntentForAction(currentAction);
+			
+			if (currentAction == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
+			{
+				// Get or create folder for camera pictures
+				File cameroOutputFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
+				if (!cameroOutputFolder.exists())
+				{
+					cameroOutputFolder.mkdir();
+					try
+					{
+						new File(cameroOutputFolder, ".nomedia").createNewFile();
+					}
+					catch (Exception e)
+					{
+						// Do nothing
+					}
+				}
+				
+				// Create camera output path
+				File cameraOutputFile = new File(cameroOutputFolder, String.valueOf(System.currentTimeMillis())+".jpg");
+				cameraOutputPath = cameraOutputFile.getAbsolutePath();
+				intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraOutputFile));
+			}
+			
+			startActivityForResult(intent, currentAction);
+		}
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState)
+	{
+		savedInstanceState.putInt(CURRENT_ACTION, currentAction);
+		savedInstanceState.putString(CAMERA_OUTPUT_PATH, cameraOutputPath);
+		
+		super.onSaveInstanceState(savedInstanceState);
 	}
 	
 	@Override
@@ -45,7 +83,7 @@ public class PickerActivity extends Activity
 		AirImagePickerExtensionContext context = AirImagePickerExtension.context;
 		
 		String imagePath = null;
-		if (requestCode == AirImagePickerExtensionContext.SELECT_IMAGE)
+		if (requestCode == AirImagePickerExtensionContext.SELECT_IMAGE_ACTION)
 		{
 			if (resultCode == Activity.RESULT_OK)
 			{
@@ -59,7 +97,7 @@ public class PickerActivity extends Activity
 		        imagePath = cursor.getString(column_index);
 			}
 		}
-		else if (requestCode == AirImagePickerExtensionContext.TAKE_PICTURE)
+		else if (requestCode == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
 		{
 			if (resultCode == Activity.RESULT_OK)
 			{
@@ -118,9 +156,12 @@ public class PickerActivity extends Activity
 					AirImagePickerExtension.context.pickedImage = rawImage;
 				}
 				
-				AirImagePickerExtension.log("Image path: " + imagePath);
-				AirImagePickerExtension.log("Image size: " + AirImagePickerExtension.context.pickedImage.getWidth() + "x" + AirImagePickerExtension.context.pickedImage.getHeight());
-				AirImagePickerExtension.log("Rotation: " + rotate);
+				// Delete original file if it was taken by camera
+				if (requestCode == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
+				{
+					File originalFile = new File(imagePath);
+					originalFile.delete();
+				}
 				
 				// Dispatch finish event
 				context.dispatchStatusEventAsync("DID_FINISH_PICKING", "OK");
@@ -136,6 +177,7 @@ public class PickerActivity extends Activity
 			context.dispatchStatusEventAsync("DID_CANCEL", "OK");
 		}
 		
+		currentAction = AirImagePickerExtensionContext.NO_ACTION;
 		finish();
 	}
 }

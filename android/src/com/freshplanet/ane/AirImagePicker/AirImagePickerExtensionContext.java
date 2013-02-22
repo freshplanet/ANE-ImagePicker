@@ -45,8 +45,9 @@ import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 
 public class AirImagePickerExtensionContext extends FREContext 
 {
-	public static final int SELECT_IMAGE = 1;
-	public static final int TAKE_PICTURE = 2;
+	public static final int NO_ACTION = -1;
+	public static final int SELECT_IMAGE_ACTION = 1;
+	public static final int TAKE_PICTURE_ACTION = 2;
 	
 	public Bitmap pickedImage;
 	
@@ -80,14 +81,14 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		switch (action)
 		{
-			case SELECT_IMAGE:
+			case SELECT_IMAGE_ACTION:
 			{
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 				intent.setType("image/*");
 				return Intent.createChooser(intent, "Choose Picture");
 			}
 				
-			case TAKE_PICTURE:
+			case TAKE_PICTURE_ACTION:
 			{
 				return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			}

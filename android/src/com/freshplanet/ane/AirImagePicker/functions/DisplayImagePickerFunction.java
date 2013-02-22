@@ -16,7 +16,7 @@ public class DisplayImagePickerFunction implements FREFunction
 		AirImagePickerExtensionContext ctx = (AirImagePickerExtensionContext)context;
 		
 		Intent intent = new Intent(ctx.getActivity().getApplicationContext(), PickerActivity.class);
-		intent.putExtra("action", AirImagePickerExtensionContext.SELECT_IMAGE);
+		intent.putExtra("action", AirImagePickerExtensionContext.SELECT_IMAGE_ACTION);
 		
 		ctx.getActivity().startActivity(intent);
 		

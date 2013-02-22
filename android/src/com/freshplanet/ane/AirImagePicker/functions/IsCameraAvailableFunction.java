@@ -19,7 +19,7 @@ public class IsCameraAvailableFunction implements FREFunction
 			AirImagePickerExtensionContext ctx = (AirImagePickerExtensionContext)context;
 			
 			Boolean hasCameraFeature = ctx.getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
-			Boolean isCameraIntentAvailable = ctx.isIntentAvailable(ctx.getIntentForAction(AirImagePickerExtensionContext.TAKE_PICTURE));
+			Boolean isCameraIntentAvailable = ctx.isIntentAvailable(ctx.getIntentForAction(AirImagePickerExtensionContext.TAKE_PICTURE_ACTION));
 			
 			return FREObject.newObject(hasCameraFeature && isCameraIntentAvailable);
 		}
