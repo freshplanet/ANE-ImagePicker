@@ -1,5 +1,6 @@
 package com.freshplanet.ane.AirImagePicker;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 import android.app.Activity;
@@ -16,10 +17,8 @@ import android.provider.MediaStore;
 
 public class PickerActivity extends Activity
 {
-	private static final String CURRENT_ACTION = "currentAction";
 	private static final String CAMERA_OUTPUT_PATH = "cameraOutputPath";
 	
-	private int currentAction = AirImagePickerExtensionContext.NO_ACTION;
 	private String cameraOutputPath;
 	
 	@Override
@@ -30,46 +29,45 @@ public class PickerActivity extends Activity
 		if (savedInstanceState != null)
 		{
 			cameraOutputPath = savedInstanceState.getString(CAMERA_OUTPUT_PATH);
-			currentAction = savedInstanceState.getInt(CURRENT_ACTION);
 		}
 		
-		if (currentAction == AirImagePickerExtensionContext.NO_ACTION)
+		int action = AirImagePickerExtension.context.getCurrentAction();
+		Intent intent = AirImagePickerExtension.context.getCurrentIntent();
+		
+		if (action == AirImagePickerExtensionContext.NO_ACTION || intent == null)
+			return;
+		
+		if (action == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
 		{
-			currentAction = this.getIntent().getIntExtra("action", AirImagePickerExtensionContext.SELECT_IMAGE_ACTION);
-			
-			Intent intent = AirImagePickerExtension.context.getIntentForAction(currentAction);
-			
-			if (currentAction == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
+			// Get or create folder for camera pictures
+			File cameroOutputFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
+			if (!cameroOutputFolder.exists())
 			{
-				// Get or create folder for camera pictures
-				File cameroOutputFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
-				if (!cameroOutputFolder.exists())
+				cameroOutputFolder.mkdir();
+				try
 				{
-					cameroOutputFolder.mkdir();
-					try
-					{
-						new File(cameroOutputFolder, ".nomedia").createNewFile();
-					}
-					catch (Exception e)
-					{
-						// Do nothing
-					}
+					new File(cameroOutputFolder, ".nomedia").createNewFile();
 				}
-				
-				// Create camera output path
-				File cameraOutputFile = new File(cameroOutputFolder, String.valueOf(System.currentTimeMillis())+".jpg");
-				cameraOutputPath = cameraOutputFile.getAbsolutePath();
-				intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraOutputFile));
+				catch (Exception e)
+				{
+					// Do nothing
+				}
 			}
 			
-			startActivityForResult(intent, currentAction);
+			// Create camera output path
+			File cameraOutputFile = new File(cameroOutputFolder, String.valueOf(System.currentTimeMillis())+".jpg");
+			cameraOutputPath = cameraOutputFile.getAbsolutePath();
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraOutputFile));
 		}
+		
+		AirImagePickerExtension.context.setCurrentAction(AirImagePickerExtensionContext.NO_ACTION);
+		
+		startActivityForResult(intent, action);
 	}
 	
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState)
 	{
-		savedInstanceState.putInt(CURRENT_ACTION, currentAction);
 		savedInstanceState.putString(CAMERA_OUTPUT_PATH, cameraOutputPath);
 		
 		super.onSaveInstanceState(savedInstanceState);
@@ -156,6 +154,11 @@ public class PickerActivity extends Activity
 					AirImagePickerExtension.context.pickedImage = rawImage;
 				}
 				
+				// Compress image to JPEG
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				AirImagePickerExtension.context.pickedImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+				AirImagePickerExtension.context.pickedImageJPEGRepresentation = outputStream.toByteArray();
+				
 				// Delete original file if it was taken by camera
 				if (requestCode == AirImagePickerExtensionContext.TAKE_PICTURE_ACTION)
 				{
@@ -177,7 +180,7 @@ public class PickerActivity extends Activity
 			context.dispatchStatusEventAsync("DID_CANCEL", "OK");
 		}
 		
-		currentAction = AirImagePickerExtensionContext.NO_ACTION;
 		finish();
+		return;
 	}
 }

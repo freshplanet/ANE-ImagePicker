@@ -14,11 +14,7 @@ public class IsImagePickerAvailableFunction implements FREFunction
 	{
 		try
 		{
-			AirImagePickerExtensionContext ctx = (AirImagePickerExtensionContext)context;
-			
-			Boolean isImagePickerIntentAvailable = ctx.isIntentAvailable(ctx.getIntentForAction(AirImagePickerExtensionContext.SELECT_IMAGE_ACTION));
-			
-			return FREObject.newObject(isImagePickerIntentAvailable);
+			return FREObject.newObject(AirImagePickerExtension.context.isActionAvailable(AirImagePickerExtensionContext.SELECT_IMAGE_ACTION));
 		}
 		catch (FREWrongThreadException exception)
 		{

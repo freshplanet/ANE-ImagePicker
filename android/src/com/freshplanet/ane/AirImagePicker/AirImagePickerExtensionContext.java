@@ -50,6 +50,10 @@ public class AirImagePickerExtensionContext extends FREContext
 	public static final int TAKE_PICTURE_ACTION = 2;
 	
 	public Bitmap pickedImage;
+	public byte[] pickedImageJPEGRepresentation;
+	
+	private int _currentAction = NO_ACTION;
+	private Intent _currentIntent;
 	
 	@Override
 	public void dispose() 
@@ -77,31 +81,52 @@ public class AirImagePickerExtensionContext extends FREContext
 		return functions;	
 	}
 	
-	public Intent getIntentForAction(int action)
+	public int getCurrentAction()
+	{
+		return _currentAction;
+	}
+	
+	public void setCurrentAction(int action)
+	{
+		if (action != _currentAction && (action == NO_ACTION || isActionAvailable(action)))
+		{
+			_currentAction = action;
+			_currentIntent = null;
+		}
+	}
+	
+	public Intent getCurrentIntent()
+	{
+		if (_currentIntent == null)
+		{
+			_currentIntent = getIntentForAction(_currentAction);
+		}
+		
+		return _currentIntent;
+	}
+	
+	public Boolean isActionAvailable(int action)
+	{
+		final PackageManager packageManager = getActivity().getPackageManager();
+	    List<ResolveInfo> list = packageManager.queryIntentActivities(getIntentForAction(action), PackageManager.MATCH_DEFAULT_ONLY);
+	    return list.size() > 0;
+	}
+	
+	private Intent getIntentForAction(int action)
 	{
 		switch (action)
 		{
 			case SELECT_IMAGE_ACTION:
-			{
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 				intent.setType("image/*");
 				return Intent.createChooser(intent, "Choose Picture");
-			}
-				
+			
 			case TAKE_PICTURE_ACTION:
-			{
 				return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-			}
-				
+			
 			default:
 				return null;
+				
 		}
-	}
-	
-	public Boolean isIntentAvailable(Intent intent)
-	{
-		final PackageManager packageManager = getActivity().getPackageManager();
-	    List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-	    return list.size() > 0;
 	}
 }
