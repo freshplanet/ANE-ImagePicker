@@ -4,7 +4,36 @@ Air Native Extension for mobile camera and gallery features (iOS + Android)
 This is an [Air native extension](http://www.adobe.com/devnet/air/native-extensions-for-air.html) that allows you to display native UI to pick an image from the gallery or take a picture with the camera on iOS and Android. It has been developed by [FreshPlanet](http://freshplanet.com).
 
 
-__THIS ANE IS A WORK IN PROGRESS. IT IS NOT READY TO BE USED YET.__
+Usage
+-----
+
+    ```actionscript
+    // Take a picture with the camera
+    if (AirImagePicker.getInstance().isCameraAvailable())
+    {
+        AirImagePicker.getInstance().displayCamera(function(image:BitmapData, data:ByteArray):void {
+            // Do something with the BitmapData or the JPEG-encoded ByteArray
+        });
+    }
+
+    // Pick an image from the gallery
+    if (AirImagePicker.getInstance().isImagePickerAvailable())
+    {
+        AirImagePicker.getInstance().displayImagePicker(function(image:BitmapData, data:ByteArray):void {
+            // Do something with the BitmapData or the JPEG-encoded ByteArray
+        });
+    }
+    ```
+
+Advanced features available: square cropping, custom positioning for the gallery image picker on iPad, custom overlay to avoid white screen when loosing Stage3D context.
+
+For more information, please look at the Actionscript documentation in [AirImagePicker.as](https://github.com/freshplanet/ANE-ImagePicker/blob/master/actionscript/src/com/freshplanet/ane/AirImagePicker/AirImagePicker.as).
+
+
+Installation
+---------
+
+The ANE binary (AirBurstly.ane) is located in the *bin* folder. You should add it to your application project's Build Path and make sure to package it with your app (more information [here](http://help.adobe.com/en_US/air/build/WS597e5dadb9cc1e0253f7d2fc1311b491071-8000.html)).
 
 
 Build script
