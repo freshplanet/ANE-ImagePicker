@@ -19,7 +19,7 @@ public class PickerActivity extends Activity
 	{
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		AirImagePickerExtension.context.onPickerActivityResult(this, requestCode, resultCode, data);
+		AirImagePickerExtension.context.onPickerActivityResult(requestCode, resultCode, data);
 		
 		finish();
 	}
