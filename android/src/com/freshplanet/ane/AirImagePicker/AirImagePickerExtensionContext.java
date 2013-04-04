@@ -107,9 +107,10 @@ public class AirImagePickerExtensionContext extends FREContext
 		return hasCameraFeature && isActionAvailable(CAMERA_ACTION);
 	}
 	
-	public void displayCamera(Boolean crop)
+	public void displayCamera(Boolean crop, String albumName)
 	{
 		_shouldCrop = crop;
+		_albumName = albumName;
 		startPickerActivityForAction(CAMERA_ACTION);
 	}
 	
@@ -427,6 +428,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	
 	private Bitmap _pickedImage;
 	private byte[] _pickedImageJPEGRepresentation;
+	private String _albumName;
 	
 	private File getTemporaryImageFile()
 	{
@@ -471,6 +473,23 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		_pickedImage = getOrientedSampleBitmapFromPath(filePath);
 		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
+		
+		if (_albumName != null)
+		{
+			// Save to album in Gallery.
+			ContentValues values = new ContentValues();
+			long current = System.currentTimeMillis();
+			values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
+			values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
+			values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+			values.put(MediaStore.Images.Media.DATA, filePath);
+			ContentResolver contentResolver = getActivity().getContentResolver();
+			
+			Uri base = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+			Uri newUri = contentResolver.insert(base, values);
+			
+			getActivity().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
+		}
 	}
 	
 	private Bitmap getOrientedSampleBitmapFromPath(String filePath)
