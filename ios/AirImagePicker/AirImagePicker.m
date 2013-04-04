@@ -232,11 +232,21 @@ static AirImagePicker *sharedInstance = nil;
         
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+
+        // Save Image in Device
+        NSLog(@"D");
+        
+        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+        [library saveImage:_pickedImage toAlbum:@"My HelloPop Images" withCompletionBlock:^(NSError *error) {
+            if (error!= nil) {
+                NSLog(@"AirImgePicker:  Error while saving to custom album: %@", [error description]);
+            }
+        }];
         
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
         
-        NSLog(@"D");
+        NSLog(@"E");
         
         dispatch_async(dispatch_get_main_queue(), ^{
             FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"OK");

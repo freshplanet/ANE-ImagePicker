@@ -11,6 +11,7 @@
 		39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 39898E65166E6B43004888F4 /* AirImagePicker.h */; };
 		39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 39898E67166E6B43004888F4 /* AirImagePicker.m */; };
 		39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E76166E6ED3004888F4 /* UIKit.framework */; };
+		65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */; };
 		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
 		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; };
 		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; };
@@ -37,6 +38,8 @@
 		39898E67166E6B43004888F4 /* AirImagePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AirImagePicker.m; sourceTree = "<group>"; };
 		39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlashRuntimeExtensions.h; sourceTree = "<group>"; };
 		39898E76166E6ED3004888F4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		65577E94170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ALAssetsLibrary+CustomPhotoAlbum.h"; sourceTree = "<group>"; };
+		65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ALAssetsLibrary+CustomPhotoAlbum.m"; sourceTree = "<group>"; };
 		FAF67EB516CEC370006E40A6 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
 		FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
 		FAF67EB916CEC4BB006E40A6 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
@@ -100,6 +103,8 @@
 			children = (
 				39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */,
 				39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */,
+				65577E94170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.h */,
+				65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -173,6 +178,7 @@
 				FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */,
 				FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */,
 				FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */,
+				65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
