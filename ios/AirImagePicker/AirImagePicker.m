@@ -39,6 +39,7 @@ FREContext AirIPCtx = nil;
 @synthesize popover = _popover;
 @synthesize pickedImage = _pickedImage;
 @synthesize pickedImageJPEGData = _pickedImageJPEGData;
+@synthesize customImageAlbumName = _customImageAlbumName;
 
 static AirImagePicker *sharedInstance = nil;
 
@@ -68,6 +69,7 @@ static AirImagePicker *sharedInstance = nil;
     [_popover release];
     [_pickedImage release];
     [_pickedImageJPEGData release];
+    [_customImageAlbumName release];
     [_overlay release];
     [super dealloc];
 }
@@ -78,7 +80,7 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop anchor:(CGRect)anchor
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -86,6 +88,9 @@ static AirImagePicker *sharedInstance = nil;
     self.imagePicker.sourceType = sourceType;
     self.imagePicker.allowsEditing = crop;
     self.imagePicker.delegate = self;
+    
+    self.customImageAlbumName = albumName;
+    NSLog(@"self. = %@", self.customImageAlbumName);
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
@@ -233,15 +238,20 @@ static AirImagePicker *sharedInstance = nil;
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
 
-        // Save Image in Device
         NSLog(@"D");
+
+        NSLog(@"_customImageAlbumName = %@", _customImageAlbumName);
         
-        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-        [library saveImage:_pickedImage toAlbum:@"My HelloPop Images" withCompletionBlock:^(NSError *error) {
-            if (error!= nil) {
-                NSLog(@"AirImgePicker:  Error while saving to custom album: %@", [error description]);
-            }
-        }];
+        // Save Image in Custom Album
+        if (_customImageAlbumName!=nil)
+        {
+            ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+            [library saveImage:_pickedImage toAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error) {
+                if (error!= nil) {
+                    NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                }
+            }];
+        }
         
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
@@ -342,7 +352,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop albumName:nil anchor:anchor];
     
     return nil;
 }
@@ -365,8 +375,18 @@ DEFINE_ANE_FUNCTION(displayCamera)
     FREObject cropObject = argv[0];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
+ 
+    uint32_t stringLength;
+    NSString *albumName = nil;
+    const uint8_t *albumNameString;
+    if (FREGetObjectAsUTF8(argv[1], &stringLength, &albumNameString) == FRE_OK)
+    {
+        albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
+    }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero];
+    NSLog(@"albumName = %@", albumName);
+    
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop albumName:albumName anchor:CGRectZero];
     
     return nil;
 }

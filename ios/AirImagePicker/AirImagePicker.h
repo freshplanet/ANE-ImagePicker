@@ -24,12 +24,13 @@
 @property (nonatomic, retain) UIPopoverController *popover;
 @property (nonatomic, readonly) UIImage *pickedImage;
 @property (nonatomic, readonly) NSData *pickedImageJPEGData;
+@property (nonatomic, strong) NSString *customImageAlbumName;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;

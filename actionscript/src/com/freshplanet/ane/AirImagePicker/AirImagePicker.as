@@ -182,15 +182,17 @@ package com.freshplanet.ane.AirImagePicker
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
 		 * properly. Default: <code>false</code>.
+		 * @param albumName (optional) The name of the Album where you want to store the pictures on the device.  If this value is not passed,
+		 * the native extension will not save the image on the device.
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function, crop : Boolean = false ) : void
+		public function displayCamera( callback : Function, crop : Boolean = false, albumName:String = null ) : void
 		{
 			if (!isCameraAvailable()) callback(null, null);
 			
 			prepareToDisplayNativeUI(callback);
-			_context.call("displayCamera", crop);
+			_context.call("displayCamera", crop, albumName);
 		}
 		
 		
