@@ -11,16 +11,18 @@ public class DisplayCameraFunction implements FREFunction
 	public FREObject call(FREContext ctx, FREObject[] args)
 	{
 		Boolean crop = false;
+		String albumName = null;
 		try
 		{
 			crop = args[0].getAsBool();
+			albumName = args[1].getAsString();
 		}
 		catch (Exception exception)
 		{
 			AirImagePickerExtension.log(exception.getMessage());
 		}
 		
-		AirImagePickerExtension.context.displayCamera(crop);
+		AirImagePickerExtension.context.displayCamera(crop,albumName);
 		
 		return null;
 	}
