@@ -212,7 +212,12 @@ public class AirImagePickerExtensionContext extends FREContext
 	//						ANE EVENTS					   //
 	//-----------------------------------------------------//
 
-	private void dispatchResultEvent(Boolean success)
+	/** 
+	 * 
+	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL", "PICASSA_NOT_SUPPORTED" 
+	 * 
+	 * */
+	private void dispatchResultEvent(String eventName)
 	{
 		_currentAction = NO_ACTION;
 		if (_pickerActivity != null)
@@ -220,8 +225,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			_pickerActivity.finish();
 		}
 
-		String event = success ? "DID_FINISH_PICKING" : "DID_CANCEL";
-		dispatchStatusEventAsync(event, "OK");
+		dispatchStatusEventAsync(eventName, "OK");
 	}
 
 
@@ -351,7 +355,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			dispatchResultEvent(false);
+			dispatchResultEvent("DID_CANCEL");
 		}
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onPickerActivityResult");
@@ -386,8 +390,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			processPickedImage(selectedImagePath);
-			dispatchResultEvent(true);
+			if ( processPickedImage(selectedImagePath) )
+				dispatchResultEvent("DID_FINISH_PICKING");
 		}
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery");
@@ -450,8 +454,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			processPickedImage(_cameraOutputPath);
-			dispatchResultEvent(true);
+			if ( processPickedImage(_cameraOutputPath) )
+				dispatchResultEvent("DID_FINISH_PICKING");
 		}
 
 		deleteTemporaryImageFile(_cameraOutputPath);
@@ -499,7 +503,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		deleteTemporaryImageFile(_cropInputPath);
 		deleteTemporaryImageFile(_cropOutputPath);
 
-		dispatchResultEvent(true);
+		dispatchResultEvent("DID_FINISH_PICKING");
 	}
 
 
@@ -511,12 +515,12 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Bitmap _pickedImage;
 	private byte[] _pickedImageJPEGRepresentation;
-	private String _albumName;
+	private String _albumName = "airImagePicker";
 
 	private File getTemporaryImageFile()
 	{
 		// Get or create folder for temp files
-		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
+		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+_albumName);
 		if (!tempFolder.exists())
 		{
 			tempFolder.mkdir();
@@ -552,20 +556,25 @@ public class AirImagePickerExtensionContext extends FREContext
 		return tempFile.getAbsolutePath();
 	}
 
-	private void processPickedImage(String filePath)
+	private Boolean processPickedImage(String filePath)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
 		
 		if ( filePath.startsWith("content://com.google.android.gallery3d.provider") )
 		{
-			final String picassaPath = filePath;
-			// Do this in a background thread, since we are fetching a large image from the web.
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					_pickedImage = getOrientedSampleBitmapFromPicassa(picassaPath);
-				}
-			}).start();
+			// RETRIEVING IMAGES FROM PICASSA IS NOT SUPPORTED IN THIS VERSION
+			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
+			Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+			return false;
+			
+//			final String picassaPath = filePath;
+//			// Do this in a background thread, since we are fetching a large image from the web.
+//			new Thread(new Runnable() {
+//				@Override
+//				public void run() {
+//					_pickedImage = getOrientedSampleBitmapFromPicassa(picassaPath);
+//				}
+//			}).start();
 		}
 		else {
 			_pickedImage = getOrientedSampleBitmapFromPath(filePath);
@@ -573,45 +582,54 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
 
-		if (_albumName != null)
-		{
-			long current = System.currentTimeMillis();
+		long current = System.currentTimeMillis();
 
-			// Save image to album
-			File folder = new File(Environment.getExternalStorageDirectory() + File.separator + _albumName);
-			if (!folder.exists()) {
-				folder.mkdir();
-				try {
-					new File(folder, ".nomedia").createNewFile();
-				} catch (Exception e) {}
-			}
-			File picture = new File(folder, "IMG_" + current);
-
-			// Write Image to File
+		// Save image to album
+		File folder = new File(Environment.getExternalStorageDirectory() + File.separator + _albumName);
+		if (!folder.exists()) {
+			folder.mkdir();
 			try {
-				FileOutputStream stream = new FileOutputStream(picture);
-				stream.write(_pickedImageJPEGRepresentation);
-				stream.close();
-			} catch (Exception exception) {}
-
-			// Notify Gallery provider that we have a new image.
-			ContentValues values = new ContentValues();
-			values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
-			values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
-			values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-			values.put(MediaStore.Images.Media.DATA, picture.getAbsolutePath());
-			ContentResolver contentResolver = getActivity().getContentResolver();
-			Uri base = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-			Uri newUri = contentResolver.insert(base, values);
-			getActivity().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
+				new File(folder, ".nomedia").createNewFile();
+			} catch (Exception e) {
+				Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + e.getMessage());
+				Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+				return false;
+			}
 		}
+		File picture = new File(folder, "IMG_" + current);
+
+		// Write Image to File
+		try {
+			FileOutputStream stream = new FileOutputStream(picture);
+			stream.write(_pickedImageJPEGRepresentation);
+			stream.close();
+		} catch (Exception exception) { 
+			Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + exception.getMessage());
+			Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+			return false; 
+		}
+
+		// Notify Gallery provider that we have a new image.
+		ContentValues values = new ContentValues();
+		values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
+		values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
+		values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+		values.put(MediaStore.Images.Media.DATA, picture.getAbsolutePath());
+		ContentResolver contentResolver = getActivity().getContentResolver();
+		Uri base = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+		Uri newUri = contentResolver.insert(base, values);
+		getActivity().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
+		Log.d(TAG, "[AirImagePickerExtensionContext] return TRUE Exiting processPickedImage");
+		return true;
 	}
 
+	@SuppressWarnings("unused")
 	private Bitmap getOrientedSampleBitmapFromPicassa(String filePath)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedSampleBitmapFromPicassa");
+		
+		// PICASSA PICKING IS NOT SUPPORTED FOR NOW
 		
 		File cacheDir;
 		
@@ -621,7 +639,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			cacheDir = new File(android.os.Environment.getExternalStorageDirectory(),".OCFL311");
 		} else {
 			Log.d(TAG, "[AirImagePickerExtensionContext] cacheDir from getCacheDir()");
-			cacheDir = getActivity().getCacheDir();
+			cacheDir = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
 		}
 		
 		if (!cacheDir.exists())
@@ -636,7 +654,9 @@ public class AirImagePickerExtensionContext extends FREContext
 			
 			InputStream is = null;
 			if ( filePath.startsWith("content://com.google.android.gallery3d") ) {
-				is = getActivity().getContentResolver().openInputStream(Uri.parse(filePath));
+				Log.d(TAG, "[AirImagePickerExtensionContext] 1");
+				is = getActivity().getApplicationContext().getContentResolver().openInputStream(Uri.parse(filePath));
+				Log.d(TAG, "[AirImagePickerExtensionContext] 2");
 			} else {
 				is = new URL(filePath.toString()).openStream();
 			}
@@ -655,7 +675,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			Log.d(TAG, "[AirImagePickerExtensionContext] done copying, close OutputStream");
 			os.close();
 			Bitmap b = getOrientedSampleBitmapFromPath(f.getAbsolutePath()); 
-
+			
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPicassa");
 			return b;
 		} 
