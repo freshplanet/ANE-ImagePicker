@@ -35,7 +35,6 @@ package com.freshplanet.ane.AirImagePicker
 		// 									   PUBLIC API										 //
 		// 																						 //
 		// --------------------------------------------------------------------------------------//
-		
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
 		{
@@ -131,11 +130,12 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * Once the user picks an image, it is returned to the provided callback function,
 		 * both as a <code>BitmapData</code> and a JPEG-encoded <code>BypeArray</code>.
-		 * If the user cancels, <code>null</code> is returned to the callback.
-		 * 
+		 * If the user cancels, <code>null</code> is returned to the callback.<br><br>
+		 *
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData, data:ByteArray)</code>. The <code>
-		 * data</code> parameter will contain a JPEG-encoded version of the image.
+		 * <code>function myCallback(image:BitmapData, data:ByteArray, status:String=null)</code>. The <code>
+		 * data</code> parameter will contain a JPEG-encoded version of the image.  The <code>status</code> will contain the 
+		 * reason why the picking failed.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
 		 * properly. Default: <code>false</code>.
@@ -275,7 +275,7 @@ package com.freshplanet.ane.AirImagePicker
 					pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
 					_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
 					
-					callback(pickedImageBitmapData, pickedImageByteArray);
+					callback(pickedImageBitmapData, pickedImageByteArray, null);
 				}
 			}
 			else if (event.code == "DID_CANCEL")
@@ -283,7 +283,16 @@ package com.freshplanet.ane.AirImagePicker
 				if (callback != null)
 				{
 					_callback = null;
-					callback(null, null);
+					callback(null, null, "DID_CANCEL");
+				}
+			}
+			else if (event.code == "PICASSA_NOT_SUPPORTED")
+			{
+				log("Picassa is not supported in this version");
+				if (callback != null)
+				{
+					_callback = null;
+					callback(null,null, "PICASSA_NOT_SUPPORTED");
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message

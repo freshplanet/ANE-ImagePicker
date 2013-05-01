@@ -26,25 +26,30 @@ import com.adobe.fre.FREExtension;
 public class AirImagePickerExtension implements FREExtension 
 {
 	private static String TAG = "AirImagePicker";
+	
 	private static Boolean PRINT_LOG = true;
 
 	public static AirImagePickerExtensionContext context;
 	
 	public FREContext createContext(String extId)
 	{
+		Log.d(TAG, "[AirImagePickerExtension] Entering createContext");
+		Log.d(TAG, "[AirImagePickerExtension] Exiting createContext");
 		return context = new AirImagePickerExtensionContext();
 	}
 
 	public void dispose() 
 	{
+		Log.d(TAG, "[AirImagePickerExtension] Entering dispose");
 		context = null;
+		Log.d(TAG, "[AirImagePickerExtension] Exiting dispose");
 	}
 	
 	public void initialize() {}
 	
 	public static void log(String message)
 	{
-		if (PRINT_LOG) Log.d(TAG, message);
+		if (PRINT_LOG) Log.d(TAG, "[AirImagePickerExtension] " + message);
 		context.dispatchStatusEventAsync("LOGGING", message);
 	}
 }
