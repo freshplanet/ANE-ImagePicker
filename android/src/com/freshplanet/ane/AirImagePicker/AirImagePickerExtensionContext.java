@@ -630,6 +630,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedSampleBitmapFromPicassa");
 		
 		// PICASSA PICKING IS NOT SUPPORTED FOR NOW
+		// http://dimitar.me/how-to-get-picasa-images-using-the-image-picker-on-android-devices-running-any-os-version/
 		
 		File cacheDir;
 		
