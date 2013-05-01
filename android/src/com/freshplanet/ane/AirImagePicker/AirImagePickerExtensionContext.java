@@ -22,6 +22,9 @@ package com.freshplanet.ane.AirImagePicker;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +44,8 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.MediaStore.MediaColumns;
+import android.util.Log;
 
 import com.adobe.fre.FREBitmapData;
 import com.adobe.fre.FREByteArray;
@@ -60,12 +65,19 @@ import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 
 public class AirImagePickerExtensionContext extends FREContext 
 {
+	private static String TAG = "AirImagePicker";
+	
 	@Override
 	public void dispose() 
 	{
-		AirImagePickerExtension.context = null;
-	}
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering dispose");
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Setting AirImagePickerExtension.context to null.");
 
+		AirImagePickerExtension.context = null;
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting dispose");
+	}
 
 	//-----------------------------------------------------//
 	//					EXTENSION API					   //
@@ -98,8 +110,10 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	public void displayImagePicker(Boolean crop)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
 		_shouldCrop = crop;
 		startPickerActivityForAction(GALLERY_ACTION);
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
 
 	public Boolean isCameraAvailable()
@@ -224,35 +238,48 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Boolean isActionAvailable(int action)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isActionAvailable");
+		
 		final PackageManager packageManager = getActivity().getPackageManager();
 		List<ResolveInfo> list = packageManager.queryIntentActivities(getIntentForAction(action), PackageManager.MATCH_DEFAULT_ONLY);
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isActionAvailable");
+		
 		return list.size() > 0;
 	}
 
 	private Intent getIntentForAction(int action)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getIntentForAction");
 		Intent intent;
 		switch (action)
 		{
 		case GALLERY_ACTION:
-			intent = new Intent(Intent.ACTION_GET_CONTENT);
-			intent.setType("image/*");
-			return Intent.createChooser(intent, "Choose Picture");
-
-		case CAMERA_ACTION:
-			return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-		case CROP_ACTION:
-			intent = new Intent("com.android.camera.action.CROP");
+//			intent = new Intent(Intent.ACTION_GET_CONTENT);
+//			intent.setType("image/*");
+//			return Intent.createChooser(intent, "Choose Picture");
+			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
-
+			
+		case CAMERA_ACTION:
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			
+		case CROP_ACTION:
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return new Intent("com.android.camera.action.CROP");
+		
 		default:
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return null;
 		}
 	}
 
 	private void prepareIntentForAction(Intent intent, int action)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering prepareIntentForAction");
+		
 		if (action == CAMERA_ACTION)
 		{
 			prepareIntentForCamera(intent);
@@ -261,6 +288,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			prepareIntentForCrop(intent);
 		}
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting prepareIntentForAction");
 	}
 
 	private void handleResultForAction(Intent data, int action)
@@ -284,29 +312,38 @@ public class AirImagePickerExtensionContext extends FREContext
 	//					PICKER ACTIVITY					   //
 	//-----------------------------------------------------//
 
-	PickerActivity _pickerActivity;
+	AirImagePickerActivity _pickerActivity;
 
 	private void startPickerActivityForAction(int action)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering startPickerActivityForAction");
+		
 		_currentAction = action;
-		_pickerActivity = null;
-		Intent intent = new Intent(getActivity().getApplicationContext(), PickerActivity.class);
+		Intent intent = new Intent(getActivity().getApplicationContext(), AirImagePickerActivity.class);
 		getActivity().startActivity(intent);
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting startPickerActivityForAction");
 	}
 
-	public void onCreatePickerActivity(PickerActivity pickerActivity)
+	public void onCreatePickerActivity(AirImagePickerActivity pickerActivity)
 	{
-		if (_pickerActivity == null && _currentAction != NO_ACTION)
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering onCreatePickerActivity");
+		
+		if (_currentAction != NO_ACTION)
 		{
 			Intent intent = getIntentForAction(_currentAction);
 			prepareIntentForAction(intent, _currentAction);
 			_pickerActivity = pickerActivity;
 			_pickerActivity.startActivityForResult(intent, _currentAction);
 		}
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onCreatePickerActivity");
 	}
 
 	public void onPickerActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering onPickerActivityResult");
+		
 		AirImagePickerExtension.log("onPickerActivityResult - requestCode = "+requestCode+" - resultCode = "+resultCode+" - data = "+data);
 		if (requestCode == _currentAction && resultCode == Activity.RESULT_OK)
 		{
@@ -316,6 +353,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			dispatchResultEvent(false);
 		}
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onPickerActivityResult");
 	}
 
 
@@ -323,27 +362,69 @@ public class AirImagePickerExtensionContext extends FREContext
 	//						 GALLERY					   //
 	//-----------------------------------------------------//
 
+	private String selectedImagePath;
+	
 	private void handleResultForGallery(Intent data)
 	{
-		Uri imageUri = data.getData();
-
-		// Convert the resulting Uri into an absolute file path
-		String[] proj = { MediaStore.Images.Media.DATA };
-		Cursor cursor = getActivity().getContentResolver().query(imageUri, proj, null, null, null);
-		int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-		cursor.moveToFirst();
-		String imagePath = cursor.getString(column_index);
-
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForGallery");
+		
+		Uri selectedImageUri = data.getData();
+		
+		// OI File Manager
+		String fileManagerString = selectedImageUri.getPath();
+		
+		// Media Gallery
+		selectedImagePath = getPath(selectedImageUri);
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
+		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
+		
 		if (_shouldCrop)
 		{
-			_cropInputPath = getPathForProcessedPickedImage(imagePath);
+			_cropInputPath = getPathForProcessedPickedImage(selectedImagePath);
 			startPickerActivityForAction(CROP_ACTION);
 		}
 		else
 		{
-			processPickedImage(imagePath);
+			processPickedImage(selectedImagePath);
 			dispatchResultEvent(true);
 		}
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery");
+	}
+	
+	private String getPath(Uri selectedImage)
+	{
+		final String[] filePathColumn = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
+		Cursor cursor = getActivity().getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+		
+		// Some devices return an URI of com.android instead of com.google.android
+		if (selectedImage.toString().startsWith("content://com.android.gallery3d.provider"))
+		{
+			selectedImage = Uri.parse( selectedImage.toString().replace("com.android.gallery3d", "com.google.android.gallery3d") );
+		}
+
+		if (cursor != null)
+		{
+			cursor.moveToFirst();
+			int columnIndex = cursor.getColumnIndex(MediaColumns.DATA);
+			
+			// if it is a picassa image on newer devices with OS 3.0 and up
+			if (selectedImage.toString().startsWith("content://com.google.android.gallery3d"))
+			{
+				columnIndex = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME);
+				return selectedImage.toString();
+			}
+			else
+			{
+				return cursor.getString(columnIndex);
+			}
+		}
+		else if ( selectedImage != null && selectedImage.toString().length() > 0 )
+		{
+			return selectedImage.toString();
+		}
+		else return null;
 	}
 
 
@@ -473,7 +554,23 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void processPickedImage(String filePath)
 	{
-		_pickedImage = getOrientedSampleBitmapFromPath(filePath);
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
+		
+		if ( filePath.startsWith("content://com.google.android.gallery3d.provider") )
+		{
+			final String picassaPath = filePath;
+			// Do this in a background thread, since we are fetching a large image from the web.
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					_pickedImage = getOrientedSampleBitmapFromPicassa(picassaPath);
+				}
+			}).start();
+		}
+		else {
+			_pickedImage = getOrientedSampleBitmapFromPath(filePath);
+		}
+		
 		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
 
 		if (_albumName != null)
@@ -508,10 +605,71 @@ public class AirImagePickerExtensionContext extends FREContext
 			Uri newUri = contentResolver.insert(base, values);
 			getActivity().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
 		}
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
 	}
 
+	private Bitmap getOrientedSampleBitmapFromPicassa(String filePath)
+	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedSampleBitmapFromPicassa");
+		
+		File cacheDir;
+		
+		// if the device has a SD card
+		if (android.os.Environment.getExternalStorageDirectory().equals(android.os.Environment.MEDIA_MOUNTED)){
+			Log.d(TAG, "[AirImagePickerExtensionContext] cacheDir from getExternalStorageDirectory()");
+			cacheDir = new File(android.os.Environment.getExternalStorageDirectory(),".OCFL311");
+		} else {
+			Log.d(TAG, "[AirImagePickerExtensionContext] cacheDir from getCacheDir()");
+			cacheDir = getActivity().getCacheDir();
+		}
+		
+		if (!cacheDir.exists())
+			cacheDir.mkdirs();
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] create file in cache dir");
+		File f = new File( cacheDir, "image_file_name.jpg");
+		
+		try
+		{
+			Log.d(TAG, "[AirImagePickerExtensionContext] open input stream in picassa");
+			
+			InputStream is = null;
+			if ( filePath.startsWith("content://com.google.android.gallery3d") ) {
+				is = getActivity().getContentResolver().openInputStream(Uri.parse(filePath));
+			} else {
+				is = new URL(filePath.toString()).openStream();
+			}
+			
+			Log.d(TAG, "[AirImagePickerExtensionContext] open outputstream in file system");
+			OutputStream os = new FileOutputStream(f);
+			
+			Log.d(TAG, "[AirImagePickerExtensionContext] copy bytes from picassa to file system");
+			// 
+			byte[] buffer = new byte[1024];
+			int len;
+			while( (len = is.read(buffer)) != -1 ) {
+				os.write(buffer,0,len);
+			}
+			
+			Log.d(TAG, "[AirImagePickerExtensionContext] done copying, close OutputStream");
+			os.close();
+			Bitmap b = getOrientedSampleBitmapFromPath(f.getAbsolutePath()); 
+
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPicassa");
+			return b;
+		} 
+		catch (Exception ex) {
+			Log.d( TAG, "[AirImagePickerExtensionContext] Exception: " + ex.getMessage());
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPicassa");
+			return null;
+		}
+	}
+	
 	private Bitmap getOrientedSampleBitmapFromPath(String filePath)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedSampleBitmapFromPath");
+		
 		// Choose a sample size according the memory limit
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
@@ -528,6 +686,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		// Fix orientation
 		Bitmap orientedSampleBitmap = getOrientedBitmapFromBitmapAndPath(sampleBitmap, filePath);
 
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPath");
 		return orientedSampleBitmap;
 	}
 
