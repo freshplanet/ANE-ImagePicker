@@ -229,7 +229,7 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function wrapCallbackForStage3D( callback : Function ) : Function
 		{
-			return function(image:BitmapData, data:ByteArray):void
+			return function(image:BitmapData, data:ByteArray, status:String):void
 			{
 				if (_context3DLost)
 				{
@@ -237,14 +237,14 @@ package com.freshplanet.ane.AirImagePicker
 					{
 						_stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
 						_context.call("removeOverlay");
-						if (callback != null) callback(image, data);
+						if (callback != null) callback(image, data, status);
 					};
 					_stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextRestored);
 				}
 				else
 				{
 					_context.call("removeOverlay");
-					if (callback != null) callback(image, data);
+					if (callback != null) callback(image, data, status);
 				}
 			};
 		}
