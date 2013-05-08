@@ -80,7 +80,7 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -88,9 +88,11 @@ static AirImagePicker *sharedInstance = nil;
     self.imagePicker.sourceType = sourceType;
     self.imagePicker.allowsEditing = crop;
     self.imagePicker.delegate = self;
+    if (allowVideo) {
+        self.imagePicker.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypeCamera];
+    }
     
     self.customImageAlbumName = albumName;
-    NSLog(@"self. = %@", self.customImageAlbumName);
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
@@ -324,11 +326,16 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
     
+    uint32_t allowVideoValue;
+    FREObject allowVideoObj = argv[1];
+    FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
+    BOOL allowVideo = (allowVideoValue != 0);
+    
     CGRect anchor;
-    if (argc > 1)
+    if (argc > 2)
     {
         // Extract anchor properties
-        FREObject anchorObject = argv[1];
+        FREObject anchorObject = argv[2];
         FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
         FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
         FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
@@ -352,7 +359,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop albumName:nil anchor:anchor];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:nil anchor:anchor];
     
     return nil;
 }
@@ -375,18 +382,21 @@ DEFINE_ANE_FUNCTION(displayCamera)
     FREObject cropObject = argv[0];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
+    
+    uint32_t allowVideoValue;
+    FREObject allowVideoObj = argv[1];
+    FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
+    BOOL allowVideo = (allowVideoValue != 0);    
  
     uint32_t stringLength;
     NSString *albumName = nil;
     const uint8_t *albumNameString;
-    if (FREGetObjectAsUTF8(argv[1], &stringLength, &albumNameString) == FRE_OK)
+    if (FREGetObjectAsUTF8(argv[2], &stringLength, &albumNameString) == FRE_OK)
     {
         albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
     }
     
-    NSLog(@"albumName = %@", albumName);
-    
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop albumName:albumName anchor:CGRectZero];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero];
     
     return nil;
 }
@@ -555,6 +565,9 @@ DEFINE_ANE_FUNCTION(displayOverlay)
     
     // Clean up
     FREReleaseBitmapData(argv[0]);
+    CFRelease(imageRef);
+    CFRelease(provider);
+    CFRelease(colorSpaceRef);
     
     return nil;
 }

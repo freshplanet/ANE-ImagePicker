@@ -30,7 +30,7 @@
 
 + (void)log:(NSString *)message;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;

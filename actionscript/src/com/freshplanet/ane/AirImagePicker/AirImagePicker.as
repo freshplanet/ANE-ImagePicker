@@ -136,6 +136,7 @@ package com.freshplanet.ane.AirImagePicker
 		 * <code>function myCallback(image:BitmapData, data:ByteArray, status:String=null)</code>. The <code>
 		 * data</code> parameter will contain a JPEG-encoded version of the image.  The <code>status</code> will contain the 
 		 * reason why the picking failed.
+		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
 		 * properly. Default: <code>false</code>.
@@ -148,14 +149,14 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, crop : Boolean = false, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, allowVideo:Boolean, crop : Boolean = false, anchor : Rectangle = null ) : void
 		{
 			if (!isImagePickerAvailable()) callback(null, null);
 			
 			_callback = callback;
 			
-			if (anchor != null) _context.call("displayImagePicker", crop, anchor);
-			else _context.call("displayImagePicker", crop);
+			if (anchor != null) _context.call("displayImagePicker", allowVideo, crop, anchor);
+			else _context.call("displayImagePicker", allowVideo, crop);
 		}
 		
 		/**
@@ -179,6 +180,7 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @param callback A callback function of the following form:
 		 * <code>function myCallback(image:BitmapData, data:ByteArray)</code>
+		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
 		 * properly. Default: <code>false</code>.
@@ -187,12 +189,12 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function, crop : Boolean = false, albumName:String = null ) : void
+		public function displayCamera( callback : Function, allowVideo:Boolean, crop : Boolean = false, albumName:String = null ) : void
 		{
 			if (!isCameraAvailable()) callback(null, null);
 			
 			prepareToDisplayNativeUI(callback);
-			_context.call("displayCamera", crop, albumName);
+			_context.call("displayCamera", allowVideo, crop, albumName);
 		}
 		
 		
