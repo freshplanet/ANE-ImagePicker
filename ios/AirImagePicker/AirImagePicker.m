@@ -88,8 +88,12 @@ static AirImagePicker *sharedInstance = nil;
     self.imagePicker.sourceType = sourceType;
     self.imagePicker.allowsEditing = crop;
     self.imagePicker.delegate = self;
-    if (allowVideo) {
-        self.imagePicker.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypeCamera];
+    if (allowVideo == true) {
+        // there are memory leaks that are not occuring if we use CoreFoundation C code
+        CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
+        CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
+        self.imagePicker.mediaTypes = (NSArray*) mTypesArray;
+        CFRelease(mTypesArray);
     }
     
     self.customImageAlbumName = albumName;
@@ -321,15 +325,15 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable)
 
 DEFINE_ANE_FUNCTION(displayImagePicker)
 {
-    uint32_t cropValue;
-    FREObject cropObject = argv[0];
-    FREGetObjectAsBool(cropObject, &cropValue);
-    BOOL crop = (cropValue != 0);
-    
     uint32_t allowVideoValue;
-    FREObject allowVideoObj = argv[1];
+    FREObject allowVideoObj = argv[0];
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
     BOOL allowVideo = (allowVideoValue != 0);
+    
+    uint32_t cropValue;
+    FREObject cropObject = argv[1];
+    FREGetObjectAsBool(cropObject, &cropValue);
+    BOOL crop = (cropValue != 0);
     
     CGRect anchor;
     if (argc > 2)
@@ -359,7 +363,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:nil anchor:anchor];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor];
     
     return nil;
 }
@@ -378,15 +382,15 @@ DEFINE_ANE_FUNCTION(isCameraAvailable)
 
 DEFINE_ANE_FUNCTION(displayCamera)
 {
+    uint32_t allowVideoValue;
+    FREObject allowVideoObj = argv[0];
+    FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
+    BOOL allowVideo = (allowVideoValue != 0);
+    
     uint32_t cropValue;
-    FREObject cropObject = argv[0];
+    FREObject cropObject = argv[1];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
-    
-    uint32_t allowVideoValue;
-    FREObject allowVideoObj = argv[1];
-    FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
-    BOOL allowVideo = (allowVideoValue != 0);    
  
     uint32_t stringLength;
     NSString *albumName = nil;
