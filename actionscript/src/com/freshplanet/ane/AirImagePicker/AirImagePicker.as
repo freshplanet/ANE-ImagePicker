@@ -149,7 +149,7 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, allowVideo:Boolean, crop : Boolean = false, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, anchor : Rectangle = null ) : void
 		{
 			if (!isImagePickerAvailable()) callback(null, null);
 			
@@ -189,7 +189,7 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function, allowVideo:Boolean, crop : Boolean = false, albumName:String = null ) : void
+		public function displayCamera( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, albumName:String = null ) : void
 		{
 			if (!isCameraAvailable()) callback(null, null);
 			
