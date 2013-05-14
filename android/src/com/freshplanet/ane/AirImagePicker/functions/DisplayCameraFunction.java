@@ -1,29 +1,46 @@
 package com.freshplanet.ane.AirImagePicker.functions;
 
+import android.util.Log;
+
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREFunction;
+import com.adobe.fre.FREInvalidObjectException;
 import com.adobe.fre.FREObject;
+import com.adobe.fre.FRETypeMismatchException;
+import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 
 public class DisplayCameraFunction implements FREFunction
 {
+	private static String TAG = "AirImagePicker";
+	
 	@Override
 	public FREObject call(FREContext ctx, FREObject[] args)
 	{
+		Log.d(TAG, "[DisplayCameraFunction] entering call()");
+		
+		Boolean allowVideoCapture = false;
 		Boolean crop = false;
 		String albumName = null;
-		try
-		{
-			crop = args[0].getAsBool();
-			albumName = args[1].getAsString();
-		}
-		catch (Exception exception)
-		{
-			AirImagePickerExtension.log(exception.getMessage());
-		}
 		
-		AirImagePickerExtension.context.displayCamera(crop,albumName);
+		try {
+			allowVideoCapture = args[0].getAsBool();
+			crop = args[1].getAsBool();
+			if (args.length > 2) {
+				albumName = args[2].getAsString();
+			}
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (FRETypeMismatchException e) {
+			e.printStackTrace();
+		} catch (FREInvalidObjectException e) {
+			e.printStackTrace();
+		} catch (FREWrongThreadException e) {
+			e.printStackTrace();
+		}
+		AirImagePickerExtension.context.displayCamera(allowVideoCapture,crop,albumName);
 		
+		Log.d(TAG, "[DisplayCameraFunction] exiting call()");
 		return null;
 	}
 }

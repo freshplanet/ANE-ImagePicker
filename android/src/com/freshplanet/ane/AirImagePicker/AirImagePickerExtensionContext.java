@@ -102,32 +102,52 @@ public class AirImagePickerExtensionContext extends FREContext
 
 		return functions;	
 	}
-
+	
 	public Boolean isImagePickerAvailable()
 	{
-		return isActionAvailable(GALLERY_ACTION);
+		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 	}
 
-	public void displayImagePicker(Boolean crop)
+	public void displayImagePicker(Boolean videosAllowed, Boolean crop)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
 		_shouldCrop = crop;
-		startPickerActivityForAction(GALLERY_ACTION);
+		if (videosAllowed)
+		{
+			startPickerActivityForAction(GALLERY_IMAGES_AND_VIDEOS_ACTION);
+		} 
+		else
+		{
+			startPickerActivityForAction(GALLERY_IMAGES_ONLY_ACTION);
+		}
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
 
 	public Boolean isCameraAvailable()
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isCameraAvailable");
+		
 		Boolean hasCameraFeature = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+		Boolean hasFrontCameraFeature = getActivity().getPackageManager().hasSystemFeature("android.hardware.camera.front");
+		Boolean isAvailable = (hasFrontCameraFeature || hasCameraFeature) && (isActionAvailable(CAMERA_IMAGE_ACTION) || isActionAvailable(CAMERA_VIDEO_ACTION));
 
-		return hasCameraFeature && isActionAvailable(CAMERA_ACTION);
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCameraAvailable");
+		return isAvailable;
 	}
 
-	public void displayCamera(Boolean crop, String albumName)
+	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName)
 	{
 		_shouldCrop = crop;
-		_albumName = albumName;
-		startPickerActivityForAction(CAMERA_ACTION);
+		if (albumName != null) _albumName = albumName;
+		
+		if (allowVideoCaptures)
+		{
+			startPickerActivityForAction(CAMERA_VIDEO_ACTION);
+		}
+		else
+		{
+			startPickerActivityForAction(CAMERA_IMAGE_ACTION);
+		}
 	}
 
 	public int getPickedImageWidth()
@@ -234,9 +254,11 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	public static final int NO_ACTION = -1;
-	public static final int GALLERY_ACTION = 0;
-	public static final int CAMERA_ACTION = 1;
-	public static final int CROP_ACTION = 2;
+	public static final int GALLERY_IMAGES_ONLY_ACTION = 0;
+	public static final int GALLERY_IMAGES_AND_VIDEOS_ACTION = 1;
+	public static final int CAMERA_IMAGE_ACTION = 2;
+	public static final int CAMERA_VIDEO_ACTION = 3;
+	public static final int CROP_ACTION = 4;
 
 	private int _currentAction = NO_ACTION;
 
@@ -258,17 +280,24 @@ public class AirImagePickerExtensionContext extends FREContext
 		Intent intent;
 		switch (action)
 		{
-		case GALLERY_ACTION:
-//			intent = new Intent(Intent.ACTION_GET_CONTENT);
-//			intent.setType("image/*");
-//			return Intent.createChooser(intent, "Choose Picture");
+		case GALLERY_IMAGES_ONLY_ACTION:
 			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
-		case CAMERA_ACTION:
+		case GALLERY_IMAGES_AND_VIDEOS_ACTION:
+			intent = new Intent(Intent.ACTION_GET_CONTENT);
+			intent.setType("video/*, images/*");
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return intent;
+			
+		case CAMERA_IMAGE_ACTION:
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			
+		case CAMERA_VIDEO_ACTION:
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 			
 		case CROP_ACTION:
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
@@ -284,7 +313,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering prepareIntentForAction");
 		
-		if (action == CAMERA_ACTION)
+		if (action == CAMERA_IMAGE_ACTION)
 		{
 			prepareIntentForCamera(intent);
 		}
@@ -297,11 +326,11 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForAction(Intent data, int action)
 	{
-		if (action == GALLERY_ACTION)
+		if (action == GALLERY_IMAGES_ONLY_ACTION)
 		{
 			handleResultForGallery(data);
 		}
-		else if (action == CAMERA_ACTION)
+		else if (action == CAMERA_IMAGE_ACTION)
 		{
 			handleResultForCamera(data);
 		}
@@ -592,7 +621,7 @@ public class AirImagePickerExtensionContext extends FREContext
 				new File(folder, ".nomedia").createNewFile();
 			} catch (Exception e) {
 				Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + e.getMessage());
-				Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+				Log.e(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
 				return false;
 			}
 		}
@@ -605,7 +634,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			stream.close();
 		} catch (Exception exception) { 
 			Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + exception.getMessage());
-			Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+			Log.e(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
 			return false; 
 		}
 
