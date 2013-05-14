@@ -25,12 +25,16 @@
 @property (nonatomic, readonly) UIImage *pickedImage;
 @property (nonatomic, readonly) NSData *pickedImageJPEGData;
 @property (nonatomic, strong) NSString *customImageAlbumName;
+@property (nonatomic, strong) NSString *videoPath;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
+
+- (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
+- (void) onVideoPickedWithVideoPath:(NSString*)videoPath;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;
@@ -48,6 +52,7 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
 DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+DEFINE_ANE_FUNCTION(getVideoPath);
 DEFINE_ANE_FUNCTION(displayOverlay);
 DEFINE_ANE_FUNCTION(removeOverlay);
 

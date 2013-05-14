@@ -27,7 +27,34 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
-	
+
+	/**
+	*  Take care of picking images and videos on iOS/Android
+	*
+	*  CALLBACKS:   
+	*
+	*   Because we are handling both videos and images, the callbacks to every 
+	*	Method in this native extension have the following form: <code>function( status:String, ...mediaArgs ):void</code>
+	*
+	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
+	*	(STATUS_DID_CANCEL), or STATUS_NOT_SUPPORTED when the requested feature is not supported by your device.
+	*   For Android, there's a specific status, STATUS_PICASSA_NOT_SUPPORTED, which is used when the user tries
+	* 	to pick an image from a Picassa Web Album.
+	*
+	*   mediaArgs:  An Array with different data according to the media type.
+	*		
+	*    	Images :  A BitmapData instance representing the image, and a ByteArray instance containing
+	*					a JPEG representation of the image.
+	*
+	*		Videos: A String containing the path of the video stored on the device, A BitmapData 
+	*					instance for a thumbnail of the video, and a ByteArray instance containing
+	*					a JPEG representation of the thumbnail.
+	*
+	*	You can use StageVideo or FreshPlanet's ANE-Video to play the video on your AIR App.	
+	*
+	*	@see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/StageVideo.html
+	*   @see https://github.com/freshplanet/ANE-Video
+	**/
 	public class AirImagePicker extends EventDispatcher
 	{
 		// --------------------------------------------------------------------------------------//
@@ -35,6 +62,12 @@ package com.freshplanet.ane.AirImagePicker
 		// 									   PUBLIC API										 //
 		// 																						 //
 		// --------------------------------------------------------------------------------------//
+
+		public static const STATUS_OK:String = "OK";
+		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
+		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
+		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
+
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
 		{
@@ -133,9 +166,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * If the user cancels, <code>null</code> is returned to the callback.<br><br>
 		 *
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData, data:ByteArray, status:String=null)</code>. The <code>
-		 * data</code> parameter will contain a JPEG-encoded version of the image.  The <code>status</code> will contain the 
-		 * reason why the picking failed.
+		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
+		 * explanation of the arguments passed to the callback.
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -151,7 +183,7 @@ package com.freshplanet.ane.AirImagePicker
 		 */
 		public function displayImagePicker( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, anchor : Rectangle = null ) : void
 		{
-			if (!isImagePickerAvailable()) callback(null, null);
+			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			_callback = callback;
 			
@@ -179,7 +211,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * If the user cancels, <code>null</code> is returned to the callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function myCallback(image:BitmapData, data:ByteArray)</code>
+		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
+		 * explanation of the arguments passed to the callback.
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -191,7 +224,7 @@ package com.freshplanet.ane.AirImagePicker
 		 */
 		public function displayCamera( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, albumName:String = null ) : void
 		{
-			if (!isCameraAvailable()) callback(null, null);
+			if (!isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			prepareToDisplayNativeUI(callback);
 			
@@ -269,35 +302,65 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					
-					// Load BitmapData
-					var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
-					var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
-					var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
-					_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
-					
-					// Load JPEG-encoded ByteArray
-					var pickedImageByteArray:ByteArray = new ByteArray();
-					pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-					_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
-					
-					callback(pickedImageBitmapData, pickedImageByteArray, null);
+					var mediaType:String = event.level;
+					if (mediaType == "IMAGE")
+					{
+						// Load BitmapData
+						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
+						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
+						var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
+						_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
+						
+						// Load JPEG-encoded ByteArray
+						var pickedImageByteArray:ByteArray = new ByteArray();
+						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
+						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
+						
+						callback(STATUS_OK, pickedImageBitmapData, pickedImageByteArray);
+					}
+					else if (mediaType == "VIDEO")
+					{
+						trace("[AirImagePicker] onStatus for mediaType VIDEO");
+
+						trace("[AirImagePicker] onStatus: 1");
+
+						var videoPath:String = _context.call("getVideoPath") as String;
+
+						trace("[AirImagePicker] onStatus: 2");
+
+						// Picked Image Data corresponds to the thumbnail of the video.
+						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
+						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
+						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
+						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
+
+						trace("[AirImagePicker] onStatus: 3");
+
+						// Load JPEG-encoded ByteArray of the thumbnail
+						var thumbnailImageByteArray:ByteArray = new ByteArray();
+						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
+						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
+
+						trace("[AirImagePicker] onStatus: 4");
+
+						callback(STATUS_OK, videoPath, thumbnailImageBitmapData, thumbnailImageByteArray);
+					}
 				}
 			}
-			else if (event.code == "DID_CANCEL")
+			else if (event.code == STATUS_DID_CANCEL)
 			{
 				if (callback != null)
 				{
 					_callback = null;
-					callback(null, null, "DID_CANCEL");
+					callback(STATUS_DID_CANCEL);
 				}
 			}
-			else if (event.code == "PICASSA_NOT_SUPPORTED")
+			else if (event.code == STATUS_PICASSA_NOT_SUPPORTED)
 			{
-				log("Picassa is not supported in this version");
 				if (callback != null)
 				{
 					_callback = null;
-					callback(null,null, "PICASSA_NOT_SUPPORTED");
+					callback(STATUS_PICASSA_NOT_SUPPORTED);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message
