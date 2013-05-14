@@ -194,7 +194,10 @@ package com.freshplanet.ane.AirImagePicker
 			if (!isCameraAvailable()) callback(null, null);
 			
 			prepareToDisplayNativeUI(callback);
-			_context.call("displayCamera", allowVideo, crop, albumName);
+			
+			if (albumName != null) _context.call("displayCamera", allowVideo, crop, albumName);
+			else _context.call("displayCamera", allowVideo, crop);
+			
 		}
 		
 		
