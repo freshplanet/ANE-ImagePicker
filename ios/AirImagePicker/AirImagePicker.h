@@ -34,7 +34,7 @@
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
-- (void) onVideoPickedWithVideoPath:(NSString*)videoPath;
+- (void) onVideoPicked;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;

@@ -50,7 +50,6 @@ static AirImagePicker *sharedInstance = nil;
     {
         sharedInstance = [[super allocWithZone:NULL] init];
     }
-    
     return sharedInstance;
 }
 
@@ -166,9 +165,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
-    NSLog(@"Entering imagePickerController");
-    
-    NSLog(@"imagePickerController 1");
+    NSLog(@"Entering imagePickerController:didFinishPickingMediaWithInfo");
     
     // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
     if (self.popover) {
@@ -179,16 +176,11 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker = nil;
     }
     
-    NSLog(@"imagePickerController 2");
-    
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
-    
-    NSLog(@"imagePickerController 3");
     
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
     {
-        NSLog(@"imagePickerController 4");
         [self onImagePickedWithOriginalImage:[info objectForKey:UIImagePickerControllerOriginalImage]
                                  editedImage:[info objectForKey:UIImagePickerControllerEditedImage]];
     }
@@ -196,14 +188,11 @@ static AirImagePicker *sharedInstance = nil;
     // Handle a movie
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeMovie, 0) == kCFCompareEqualTo)
     {
-        NSLog(@"imagePickerController 4");
-        NSString *moviePath = [[info objectForKey:UIImagePickerControllerMediaURL] path];
-        [self onVideoPickedWithVideoPath:moviePath];
+        self.videoPath = [[info objectForKey:UIImagePickerControllerMediaURL] path];
+        [self onVideoPicked];
     }
     
-    NSLog(@"imagePickerController 5");
-    
-    NSLog(@"Exiting imagePickerController");
+    NSLog(@"Exiting imagePickerController:didFinishPickingMediaWithInfo");
 }
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage
@@ -232,7 +221,6 @@ static AirImagePicker *sharedInstance = nil;
         
         if (!crop)
         {
-            NSLog(@"C");
             // Unedited images may have an incorrect orientation. We fix it.
             _pickedImage = [_pickedImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:_pickedImage.size interpolationQuality:kCGInterpolationDefault];
         }
@@ -273,8 +261,6 @@ static AirImagePicker *sharedInstance = nil;
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
         
-        NSLog(@"D");
-        
         NSLog(@"_customImageAlbumName = %@", _customImageAlbumName);
         
         // Save Image in Custom Album
@@ -291,8 +277,6 @@ static AirImagePicker *sharedInstance = nil;
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
         
-        NSLog(@"E");
-        
         dispatch_async(dispatch_get_main_queue(), ^{
             FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
         });
@@ -302,48 +286,49 @@ static AirImagePicker *sharedInstance = nil;
 
 }
 
-- (void) onVideoPickedWithVideoPath:(NSString*)videoPath
+- (void) onVideoPicked
 {
     NSLog(@"Entering onVideoPickedWithVideoPath");
     
-    dispatch_queue_t thread = dispatch_queue_create("image processing 2", NULL);
+    dispatch_queue_t thread = dispatch_queue_create("video processing", NULL);
     dispatch_async(thread, ^{
-        
-        _videoPath = videoPath;
-        
-        NSLog(@"onVideoPickedWithVideoPath 1");
-        
         // MPMoviePlayerController can also create a thumbnail, but we dont want to instantiate it just
         // for that.  Hence we use AVAssetImageGenerator.  It is also a good idea to use it because it is
         // thread-safe and you could have more than one instantiated at a time.
-        AVAsset *asset = [AVAsset assetWithURL:[NSURL URLWithString:videoPath]];
+        AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:[NSURL fileURLWithPath:_videoPath] options:nil];
         AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-        CMTime time = CMTimeMake(1, 1);
-        CGImageRef imageRef = [imageGenerator copyCGImageAtTime:time actualTime:NULL error:NULL];
-        _pickedImage = [UIImage imageWithCGImage:imageRef];
-        CGImageRelease(imageRef);  // ARC won't release CGImageRef
-        [imageGenerator release];
+        [asset release];
         
-        NSLog(@"onVideoPickedWithVideoPath 2");
+        CMTime time = CMTimeMakeWithSeconds(0,30);
         
+        AVAssetImageGeneratorCompletionHandler handler = ^(CMTime requestedTime, CGImageRef im,
+                                                           CMTime actualTime, AVAssetImageGeneratorResult result,
+                                                           NSError *error) {
+            if (result != AVAssetImageGeneratorSucceeded) {
+                NSLog(@"Couldn't generate thumbnail, error: %@", error);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)[[error description] UTF8String]);
+                });
+            } else {
+                _pickedImage = [[UIImage alloc] initWithCGImage:im];
+                _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+                
+                NSLog(@"movie thumbnail captured! w = %f, h = %f, size = %d", _pickedImage.size.width, _pickedImage.size.height, [_pickedImageJPEGData length]);
+                
+                [_pickedImage retain];
+                [_pickedImageJPEGData retain];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+                });
+            }
+        };
         
-        
-        
-        NSLog(@"onVideoPickedWithVideoPath 3");
-        _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-        [_pickedImageJPEGData retain];
-        
-        NSLog(@"onVideoPickedWithVideoPath 4");
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"onVideoPickedWithVideoPath 5");
-            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
-            NSLog(@"onVideoPickedWithVideoPath 6");
-        });
+        CGSize maxSize = CGSizeMake(320, 180);
+        imageGenerator.maximumSize = maxSize;
+        [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]] completionHandler:handler];
     });
     dispatch_release(thread);
-    
-    NSLog(@"onVideoPickedWithVideoPath 7");
     
     // we are not doing anything with the video yet.
     NSLog(@"Exiting onVideoPickedWithVideoPath");
@@ -494,6 +479,8 @@ DEFINE_ANE_FUNCTION(getPickedImageWidth)
         CGImageRef imageRef = [pickedImage CGImage];
         NSUInteger width = CGImageGetWidth(imageRef);
         
+        NSLog(@"getPickedImageWidth width = %i",width);
+        
         FREObject result;
         if (FRENewObjectFromUint32(width, &result) == FRE_OK)
         {
@@ -523,6 +510,8 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight)
     {
         CGImageRef imageRef = [pickedImage CGImage];
         NSUInteger height = CGImageGetHeight(imageRef);
+        
+        NSLog(@"getPickedImageWidth height = %i",height);
         
         FREObject result;
         if (FRENewObjectFromUint32(height, &result) == FRE_OK)
@@ -688,12 +677,15 @@ DEFINE_ANE_FUNCTION(removeOverlay)
 
 DEFINE_ANE_FUNCTION(getVideoPath)
 {
+    NSLog(@"Entering getVideoPath");
     FREObject retValue = NULL;
     
     NSString *videoPath = [[AirImagePicker sharedInstance] videoPath];
-    FRENewObjectFromUTF8(strlen([videoPath UTF8String]),
+    FRENewObjectFromUTF8(strlen([videoPath UTF8String])+1,
                          (const uint8_t *)[videoPath UTF8String],
                          &retValue);
+    
+    NSLog(@"Exiting getVideoPath");
     return retValue;
 }
 

@@ -37,8 +37,9 @@ package com.freshplanet.ane.AirImagePicker
 	*	Method in this native extension have the following form: <code>function( status:String, ...mediaArgs ):void</code>
 	*
 	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
-	*	(STATUS_DID_CANCEL), or STATUS_NOT_SUPPORTED when the requested feature is not supported by your device.
-	*   For Android, there's a specific status, STATUS_PICASSA_NOT_SUPPORTED, which is used when the user tries
+	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, or STATUS_NOT_SUPPORTED 
+	*   when the requested feature is not supported by your device.
+	*   For Android, there's a specific status, STATUS_PICASSA_NOT_SUPPORTED, used when the user tries
 	* 	to pick an image from a Picassa Web Album.
 	*
 	*   mediaArgs:  An Array with different data according to the media type.
@@ -64,6 +65,7 @@ package com.freshplanet.ane.AirImagePicker
 		// --------------------------------------------------------------------------------------//
 
 		public static const STATUS_OK:String = "OK";
+		public static const STATUS_ERROR:String = "ERROR";
 		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
@@ -296,7 +298,15 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			var callback:Function = _callback;
 			
-			if (event.code == "DID_FINISH_PICKING")
+			
+			if (event.code == "ERROR_GENERATING_VIDEO")
+			{
+				if (_callback != null)
+				{
+					callback(STATUS_ERROR, event.level);
+				}
+			}
+			else if (event.code == "DID_FINISH_PICKING")
 			{
 				if (callback != null)
 				{
