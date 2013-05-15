@@ -330,13 +330,8 @@ package com.freshplanet.ane.AirImagePicker
 					}
 					else if (mediaType == "VIDEO")
 					{
-						trace("[AirImagePicker] onStatus for mediaType VIDEO");
-
-						trace("[AirImagePicker] onStatus: 1");
-
+						// Video File path on device
 						var videoPath:String = _context.call("getVideoPath") as String;
-
-						trace("[AirImagePicker] onStatus: 2");
 
 						// Picked Image Data corresponds to the thumbnail of the video.
 						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
@@ -344,14 +339,10 @@ package com.freshplanet.ane.AirImagePicker
 						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
 						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
 
-						trace("[AirImagePicker] onStatus: 3");
-
 						// Load JPEG-encoded ByteArray of the thumbnail
 						var thumbnailImageByteArray:ByteArray = new ByteArray();
 						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
 						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
-
-						trace("[AirImagePicker] onStatus: 4");
 
 						callback(STATUS_OK, videoPath, thumbnailImageBitmapData, thumbnailImageByteArray);
 					}

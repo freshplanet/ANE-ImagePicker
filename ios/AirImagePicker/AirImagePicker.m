@@ -261,8 +261,6 @@ static AirImagePicker *sharedInstance = nil;
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
         
-        NSLog(@"_customImageAlbumName = %@", _customImageAlbumName);
-        
         // Save Image in Custom Album
         if (_customImageAlbumName!=nil)
         {
@@ -312,8 +310,6 @@ static AirImagePicker *sharedInstance = nil;
             } else {
                 _pickedImage = [[UIImage alloc] initWithCGImage:im];
                 _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-                
-                NSLog(@"movie thumbnail captured! w = %f, h = %f, size = %d", _pickedImage.size.width, _pickedImage.size.height, [_pickedImageJPEGData length]);
                 
                 [_pickedImage retain];
                 [_pickedImageJPEGData retain];
@@ -479,8 +475,6 @@ DEFINE_ANE_FUNCTION(getPickedImageWidth)
         CGImageRef imageRef = [pickedImage CGImage];
         NSUInteger width = CGImageGetWidth(imageRef);
         
-        NSLog(@"getPickedImageWidth width = %i",width);
-        
         FREObject result;
         if (FRENewObjectFromUint32(width, &result) == FRE_OK)
         {
@@ -510,8 +504,6 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight)
     {
         CGImageRef imageRef = [pickedImage CGImage];
         NSUInteger height = CGImageGetHeight(imageRef);
-        
-        NSLog(@"getPickedImageWidth height = %i",height);
         
         FREObject result;
         if (FRENewObjectFromUint32(height, &result) == FRE_OK)
