@@ -118,9 +118,14 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	public Boolean isCameraAvailable()
 	{
-		Boolean hasCameraFeature = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isCameraAvailable");
 
-		return hasCameraFeature && isActionAvailable(CAMERA_ACTION);
+		Boolean hasCameraFeature = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+		Boolean hasFrontCameraFeature = getActivity().getPackageManager().hasSystemFeature("android.hardware.camera.front");
+		Boolean isAvailable = (hasFrontCameraFeature || hasCameraFeature) && isActionAvailable(CAMERA_ACTION);
+
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCameraAvailable");
+		return isAvailable;
 	}
 
 	public void displayCamera(Boolean crop, String albumName)
@@ -259,9 +264,6 @@ public class AirImagePickerExtensionContext extends FREContext
 		switch (action)
 		{
 		case GALLERY_ACTION:
-//			intent = new Intent(Intent.ACTION_GET_CONTENT);
-//			intent.setType("image/*");
-//			return Intent.createChooser(intent, "Choose Picture");
 			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
