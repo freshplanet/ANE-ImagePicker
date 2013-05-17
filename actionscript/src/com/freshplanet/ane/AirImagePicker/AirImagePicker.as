@@ -298,11 +298,11 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			var callback:Function = _callback;
 			
-			
 			if (event.code == "ERROR_GENERATING_VIDEO")
 			{
 				if (_callback != null)
 				{
+					log("Error while generating video = "+event.level);
 					callback(STATUS_ERROR, event.level);
 				}
 			}

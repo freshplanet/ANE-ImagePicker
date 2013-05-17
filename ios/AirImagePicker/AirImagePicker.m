@@ -65,8 +65,8 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)dealloc
 {
-//    [_imagePicker release];
-//    [_popover release];
+    [_imagePicker release];
+    [_popover release];
     [_pickedImage release];
     [_pickedImageJPEGData release];
     [_customImageAlbumName release];
@@ -169,19 +169,18 @@ static AirImagePicker *sharedInstance = nil;
     
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
     
+    // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
+    if (self.popover) {
+        [self.popover dismissPopoverAnimated:YES];
+        self.popover = nil;
+    } else {
+        [self.imagePicker dismissModalViewControllerAnimated:YES];
+        self.imagePicker = nil;
+    }
+    
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
     {
-        // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
-        if (_popover) {
-            [_popover dismissPopoverAnimated:YES];
-            [_popover release];
-            [_imagePicker release];
-        } else {
-            [_imagePicker dismissModalViewControllerAnimated:YES];
-            [_imagePicker release];
-        }
-        
         [self onImagePickedWithOriginalImage:[info objectForKey:UIImagePickerControllerOriginalImage]
                                  editedImage:[info objectForKey:UIImagePickerControllerEditedImage]];
     }
@@ -301,18 +300,27 @@ static AirImagePicker *sharedInstance = nil;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
         NSURL *toURL = [NSURL fileURLWithPath:[documentsDirectory stringByAppendingPathComponent:@"myMovie.mov"]];
+
+        NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
-        NSError *copyFileError;
+        
+        // Check if file exists, if it does, delete it.
+        if ( [toURL checkResourceIsReachableAndReturnError:&fileError] == YES )
+        {
+            [fileManager removeItemAtPath:[toURL path] error:NULL];
+        }
+        
+        fileError = NULL;
         
         // Attempt the copy, and if it fails, log the error.
-        if ( !([fileManager copyItemAtURL:mediaURL toURL:toURL error:&copyFileError]) )
+        if ( !([fileManager copyItemAtURL:mediaURL toURL:toURL error:&fileError]) )
         {
-            NSLog(@"Couldn't copy video, error: %@", copyFileError);
+            NSLog(@"Couldn't copy video, error: %@", fileError);
             [fileManager release];  // we are done with the file manager, release it.
             dispatch_async(dispatch_get_main_queue(), ^{
                 FREDispatchStatusEventAsync(AirIPCtx,
                                             (const uint8_t *)"ERROR_GENERATING_VIDEO",
-                                            (const uint8_t *)[[copyFileError description] UTF8String]);
+                                            (const uint8_t *)[[fileError description] UTF8String]);
             });
         }
         else
@@ -356,18 +364,6 @@ static AirImagePicker *sharedInstance = nil;
                     [_videoPath retain];
                     [_pickedImage retain];
                     [_pickedImageJPEGData retain];
-                    
-                    // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie,
-                    // or to just cancel the operation, the system notifies the delegate of the user’s choice.
-                    // The system does not, however, dismiss the camera interface. The delegate must dismiss it
-                    if (_popover) {
-                        [_popover dismissPopoverAnimated:NO];
-                        [_popover release];
-                        [_imagePicker release];
-                    } else {
-                        [_imagePicker dismissModalViewControllerAnimated:NO];
-                        [_imagePicker release];
-                    }
                     
                     // Let the native extension know that we are done with the picking
                     dispatch_async(dispatch_get_main_queue(), ^{
@@ -728,6 +724,8 @@ DEFINE_ANE_FUNCTION(getVideoPath)
     FRENewObjectFromUTF8(strlen([videoPath UTF8String])+1,
                          (const uint8_t *)[videoPath UTF8String],
                          &retValue);
+    
+    [videoPath release];
     
     NSLog(@"Exiting getVideoPath");
     return retValue;
