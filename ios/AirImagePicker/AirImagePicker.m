@@ -189,8 +189,7 @@ static AirImagePicker *sharedInstance = nil;
     // Handle a movie
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeMovie, 0) == kCFCompareEqualTo)
     {
-        self.videoPath = [[info objectForKey:UIImagePickerControllerMediaURL] path];
-        [self onVideoPicked];
+        [self onVideoPickedWithMediaURL:[info objectForKey:UIImagePickerControllerMediaURL]];
     }
     
     NSLog(@"Exiting imagePickerController:didFinishPickingMediaWithInfo");
@@ -285,60 +284,102 @@ static AirImagePicker *sharedInstance = nil;
 
 }
 
-- (void) onVideoPicked
+- (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL
 {
     NSLog(@"Entering onVideoPickedWithVideoPath");
     
+    // For some weird reason, returning the path from the video stored on the
+    // camera roll is not working.  My solution is to copy the video to the
+    // app folder.
+    
+    // copying the video and generating the thumbnail can take time,
+    // this is why we do it on another thread, so we do not block execution.
     dispatch_queue_t thread = dispatch_queue_create("video processing", NULL);
     dispatch_async(thread, ^{
         
-        // MPMoviePlayerController can also create a thumbnail, but we dont want to instantiate it just
-        // for that.  Hence we use AVAssetImageGenerator.  It is also a good idea to use it because it is
-        // thread-safe and you could have more than one instantiated at a time.
-        AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:[NSURL fileURLWithPath:_videoPath] options:nil];
-        AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-        [asset release];
+        // Save a copy of the picked video to the app directory
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        NSURL *toURL = [NSURL fileURLWithPath:[documentsDirectory stringByAppendingPathComponent:@"myMovie.mov"]];
+        NSFileManager *fileManager = [[NSFileManager alloc] init];
+        NSError *copyFileError;
         
-        CMTime time = CMTimeMakeWithSeconds(0,30);
-        
-        AVAssetImageGeneratorCompletionHandler handler = ^(CMTime requestedTime, CGImageRef im,
-                                                           CMTime actualTime, AVAssetImageGeneratorResult result,
-                                                           NSError *error) {
-            if (result != AVAssetImageGeneratorSucceeded) {
-                NSLog(@"Couldn't generate thumbnail, error: %@", error);
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)[[error description] UTF8String]);
-                });
-            } else {
-                _pickedImage = [[UIImage alloc] initWithCGImage:im];
-                _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-                
-                [_pickedImage retain];
-                [_pickedImageJPEGData retain];
-                
-                // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
-                if (_popover) {
-                    [_popover dismissPopoverAnimated:YES];
-                    [_popover release];
-                    [_imagePicker release];
+        // Attempt the copy, and if it fails, log the error.
+        if ( !([fileManager copyItemAtURL:mediaURL toURL:toURL error:&copyFileError]) )
+        {
+            NSLog(@"Couldn't copy video, error: %@", copyFileError);
+            [fileManager release];  // we are done with the file manager, release it.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                FREDispatchStatusEventAsync(AirIPCtx,
+                                            (const uint8_t *)"ERROR_GENERATING_VIDEO",
+                                            (const uint8_t *)[[copyFileError description] UTF8String]);
+            });
+        }
+        else
+        {
+            // Success! Video was copied to the app directory.  Next is generating the thumbnail
+            //
+            // MPMoviePlayerController could also be used to create a thumbnail, but we dont want to instantiate it just
+            // for that.  Hence we use AVAssetImageGenerator.  It is also a good idea to use it because it is
+            // thread-safe and you could have more than one instantiated at a time.
+            
+            // we are done with the file manager, release it.
+            [fileManager release];
+            
+            // Create or Asset Generator and task it with creating the thumbnail
+            AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:toURL options:nil];
+            AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+            [asset release];
+            CMTime time = CMTimeMakeWithSeconds(0,30);
+            CGSize maxSize = CGSizeMake(320, 180);
+            imageGenerator.maximumSize = maxSize;
+            
+            // Attemp to create the CGImage of the thumbnail
+            [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]]
+                                                 completionHandler:^(CMTime requestedTime, CGImageRef image, CMTime actualTime,
+                                                                     AVAssetImageGeneratorResult result, NSError *error) {
+                // Something went wrong, log the error.
+                if (result != AVAssetImageGeneratorSucceeded) {
+                    NSLog(@"Couldn't generate thumbnail, error: %@", error);
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        FREDispatchStatusEventAsync(AirIPCtx,
+                                                    (const uint8_t *)"ERROR_GENERATING_VIDEO",
+                                                    (const uint8_t *)[[error description] UTF8String]);
+                    });
                 } else {
-                    [_imagePicker dismissModalViewControllerAnimated:YES];
-                    [_imagePicker release];
+                    // Success!  Store the data we will retrieve later
+                    _videoPath = [toURL path];
+                    _pickedImage = [[UIImage alloc] initWithCGImage:image];
+                    _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+                    
+                    // increase the reference count for the objects we are keeping.
+                    [_videoPath retain];
+                    [_pickedImage retain];
+                    [_pickedImageJPEGData retain];
+                    
+                    // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie,
+                    // or to just cancel the operation, the system notifies the delegate of the user’s choice.
+                    // The system does not, however, dismiss the camera interface. The delegate must dismiss it
+                    if (_popover) {
+                        [_popover dismissPopoverAnimated:NO];
+                        [_popover release];
+                        [_imagePicker release];
+                    } else {
+                        [_imagePicker dismissModalViewControllerAnimated:NO];
+                        [_imagePicker release];
+                    }
+                    
+                    // Let the native extension know that we are done with the picking
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+                    });
                 }
                 
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
-                });
-            }
-        };
-        
-        CGSize maxSize = CGSizeMake(320, 180);
-        imageGenerator.maximumSize = maxSize;
-        [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]] completionHandler:handler];
+            }];
+        }
     });
     dispatch_release(thread);
     
-    // we are not doing anything with the video yet.
     NSLog(@"Exiting onVideoPickedWithVideoPath");
 }
 
