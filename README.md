@@ -1,26 +1,26 @@
 Air Native Extension for mobile camera and gallery features (iOS + Android)
 ======================================
 
-This is an [Air native extension](http://www.adobe.com/devnet/air/native-extensions-for-air.html) that allows you to display native UI to pick an image from the gallery or take a picture with the camera on iOS and Android. It has been developed by [FreshPlanet](http://freshplanet.com).
+This is an [Air native extension](http://www.adobe.com/devnet/air/native-extensions-for-air.html) that allows you to display native UI to pick media (videos and images) from the gallery or take a picture/video with the camera on iOS and Android. It has been developed by [FreshPlanet](http://freshplanet.com).
 
 
 Usage
 -----
 
     ```actionscript
-    // Take a picture with the camera
+    // Take a picture/video with the camera
     if (AirImagePicker.getInstance().isCameraAvailable())
     {
-        AirImagePicker.getInstance().displayCamera(function(image:BitmapData, data:ByteArray):void {
-            // Do something with the BitmapData or the JPEG-encoded ByteArray
+        AirImagePicker.getInstance().displayCamera(function(status:String, ...mediaArgs):void {
+            // Do something with the Media information returned
         });
     }
 
     // Pick an image from the gallery
     if (AirImagePicker.getInstance().isImagePickerAvailable())
     {
-        AirImagePicker.getInstance().displayImagePicker(function(image:BitmapData, data:ByteArray):void {
-            // Do something with the BitmapData or the JPEG-encoded ByteArray
+        AirImagePicker.getInstance().displayImagePicker(function(status:String, ...mediaArgs):void {
+            // Do something with the Media information returned
         });
     }
     ```
@@ -50,4 +50,4 @@ Should you need to edit the extension source code and/or recompile it, you will 
 Authors
 ------
 
-This ANE has been written by [Alexis Taugeron](http://alexistaugeron.com). It belongs to [FreshPlanet Inc.](http://freshplanet.com) and is distributed under the [Apache Licence, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+This ANE has been written by [Alexis Taugeron](http://alexistaugeron.com) and [Daniel Rodriguez](http://www.github.com/dornad/). It belongs to [FreshPlanet Inc.](http://freshplanet.com) and is distributed under the [Apache Licence, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
