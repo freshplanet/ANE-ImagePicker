@@ -41,6 +41,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -59,6 +60,7 @@ import com.freshplanet.ane.AirImagePicker.functions.DrawPickedImageToBitmapDataF
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageHeightFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageJPEGRepresentationSizeFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageWidthFunction;
+import com.freshplanet.ane.AirImagePicker.functions.GetVideoPath;
 import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
@@ -97,42 +99,59 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("drawPickedImageToBitmapData", new DrawPickedImageToBitmapDataFunction());
 		functions.put("getPickedImageJPEGRepresentationSize", new GetPickedImageJPEGRepresentationSizeFunction());
 		functions.put("copyPickedImageJPEGRepresentationToByteArray", new CopyPickedImageJPEGRepresentationToByteArrayFunction());
+		functions.put("getVideoPath", new GetVideoPath());
 		functions.put("displayOverlay", new DisplayOverlayFunction()); // not implemented
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
 
 		return functions;	
 	}
-
+	
 	public Boolean isImagePickerAvailable()
 	{
-		return isActionAvailable(GALLERY_ACTION);
+		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 	}
 
-	public void displayImagePicker(Boolean crop)
+	public void displayImagePicker(Boolean videosAllowed, Boolean crop)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
 		_shouldCrop = crop;
-		startPickerActivityForAction(GALLERY_ACTION);
+		if (videosAllowed)
+		{
+			startPickerActivityForAction(GALLERY_IMAGES_AND_VIDEOS_ACTION);
+		} 
+		else
+		{
+			startPickerActivityForAction(GALLERY_IMAGES_ONLY_ACTION);
+		}
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
 
 	public Boolean isCameraAvailable()
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isCameraAvailable");
-
+		
 		Boolean hasCameraFeature = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
 		Boolean hasFrontCameraFeature = getActivity().getPackageManager().hasSystemFeature("android.hardware.camera.front");
-		Boolean isAvailable = (hasFrontCameraFeature || hasCameraFeature) && isActionAvailable(CAMERA_ACTION);
+		Boolean isAvailable = (hasFrontCameraFeature || hasCameraFeature) && (isActionAvailable(CAMERA_IMAGE_ACTION) || isActionAvailable(CAMERA_VIDEO_ACTION));
 
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCameraAvailable");
 		return isAvailable;
 	}
 
-	public void displayCamera(Boolean crop, String albumName)
+	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName)
 	{
 		_shouldCrop = crop;
-		_albumName = albumName;
-		startPickerActivityForAction(CAMERA_ACTION);
+		if (albumName != null) 
+			_albumName = albumName;
+		
+		if (allowVideoCaptures)
+		{
+			startPickerActivityForAction(CAMERA_VIDEO_ACTION);
+		}
+		else
+		{
+			startPickerActivityForAction(CAMERA_IMAGE_ACTION);
+		}
 	}
 
 	public int getPickedImageWidth()
@@ -218,11 +237,13 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	/** 
+	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL", "PICASSA_NOT_SUPPORTED"
 	 * 
-	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL", "PICASSA_NOT_SUPPORTED" 
-	 * 
+	 * @param message Extra information you want to pass to the actionscript side
+	 * of the native extension.  Usually you want to pass "OK".  In this case it 
+	 * is better to use dispatchResultEvent( String ). 
 	 * */
-	private void dispatchResultEvent(String eventName)
+	private void dispatchResultEvent(String eventName, String message)
 	{
 		_currentAction = NO_ACTION;
 		if (_pickerActivity != null)
@@ -230,7 +251,15 @@ public class AirImagePickerExtensionContext extends FREContext
 			_pickerActivity.finish();
 		}
 
-		dispatchStatusEventAsync(eventName, "OK");
+		dispatchStatusEventAsync(eventName, message);
+	}
+	
+	/**
+	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL", "PICASSA_NOT_SUPPORTED"
+	 */
+	private void dispatchResultEvent(String eventName)
+	{
+		dispatchResultEvent(eventName, "OK");
 	}
 
 
@@ -239,9 +268,11 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	public static final int NO_ACTION = -1;
-	public static final int GALLERY_ACTION = 0;
-	public static final int CAMERA_ACTION = 1;
-	public static final int CROP_ACTION = 2;
+	public static final int GALLERY_IMAGES_ONLY_ACTION = 0;
+	public static final int GALLERY_IMAGES_AND_VIDEOS_ACTION = 1;
+	public static final int CAMERA_IMAGE_ACTION = 2;
+	public static final int CAMERA_VIDEO_ACTION = 3;
+	public static final int CROP_ACTION = 4;
 
 	private int _currentAction = NO_ACTION;
 
@@ -263,14 +294,24 @@ public class AirImagePickerExtensionContext extends FREContext
 		Intent intent;
 		switch (action)
 		{
-		case GALLERY_ACTION:
+		case GALLERY_IMAGES_ONLY_ACTION:
 			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
-		case CAMERA_ACTION:
+		case GALLERY_IMAGES_AND_VIDEOS_ACTION:
+			intent = new Intent(Intent.ACTION_GET_CONTENT);
+			intent.setType("video/*, images/*");
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return intent;
+			
+		case CAMERA_IMAGE_ACTION:
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			
+		case CAMERA_VIDEO_ACTION:
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			return new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 			
 		case CROP_ACTION:
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
@@ -286,7 +327,11 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering prepareIntentForAction");
 		
-		if (action == CAMERA_ACTION)
+		if (action == CAMERA_IMAGE_ACTION)
+		{
+			prepareIntentForCamera(intent);
+		}
+		if (action == CAMERA_VIDEO_ACTION)
 		{
 			prepareIntentForCamera(intent);
 		}
@@ -299,13 +344,14 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForAction(Intent data, int action)
 	{
-		if (action == GALLERY_ACTION)
+		if (action == GALLERY_IMAGES_ONLY_ACTION || action == GALLERY_IMAGES_AND_VIDEOS_ACTION)
 		{
 			handleResultForGallery(data);
 		}
-		else if (action == CAMERA_ACTION)
+//		else if (action == CAMERA_IMAGE_ACTION || action == CAMERA_VIDEO_ACTION)
+		else if (action == CAMERA_IMAGE_ACTION )
 		{
-			handleResultForCamera(data);
+			handleResultForImageCamera(data);
 		}
 		else if (action == CROP_ACTION)
 		{
@@ -350,7 +396,8 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering onPickerActivityResult");
 		
-		AirImagePickerExtension.log("onPickerActivityResult - requestCode = "+requestCode+" - resultCode = "+resultCode+" - data = "+data);
+		debugActivityResult(requestCode, resultCode, data);
+		
 		if (requestCode == _currentAction && resultCode == Activity.RESULT_OK)
 		{
 			handleResultForAction(data, _currentAction);
@@ -362,13 +409,33 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onPickerActivityResult");
 	}
-
+	
+	private void debugActivityResult( int requestCode, int resultCode, Intent data )
+	{
+		String requestCodeStr;
+		if ( requestCode == NO_ACTION )	requestCodeStr = "NO_ACTION";
+		else if ( requestCode == GALLERY_IMAGES_ONLY_ACTION )	requestCodeStr = "GALLERY_IMAGES_ONLY_ACTION";
+		else if ( requestCode == GALLERY_IMAGES_AND_VIDEOS_ACTION )	requestCodeStr = "GALLERY_IMAGES_AND_VIDEOS_ACTION";
+		else if ( requestCode == CAMERA_IMAGE_ACTION )	requestCodeStr = "CAMERA_IMAGE_ACTION";
+		else if ( requestCode == CAMERA_VIDEO_ACTION )	requestCodeStr = "CAMERA_VIDEO_ACTION";
+		else if ( requestCode == CROP_ACTION )	requestCodeStr = "CROP_ACTION";
+		else requestCodeStr = "[unknown]";
+		
+		String resultCodeStr;
+		if (resultCode == Activity.RESULT_OK)	resultCodeStr = "Activity.RESULT_OK";
+		else if (resultCode == Activity.RESULT_CANCELED)	resultCodeStr = "Activity.RESULT_CANCELED";
+		else if (resultCode == Activity.RESULT_FIRST_USER)	resultCodeStr = "Activity.RESULT_FIRST_USER";
+		else resultCodeStr = "[unknown]";
+		
+		AirImagePickerExtension.log("onPickerActivityResult - requestCode = "+requestCodeStr+" - resultCode = "+resultCodeStr+" - data = "+data);
+	}
 
 	//-----------------------------------------------------//
 	//						 GALLERY					   //
 	//-----------------------------------------------------//
 
 	private String selectedImagePath;
+	private String selectedVideoPath;
 	
 	private void handleResultForGallery(Intent data)
 	{
@@ -385,18 +452,47 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
 		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
 		
-		if (_shouldCrop)
+		if ( selectedImagePath.endsWith(".3gp"))
 		{
-			_cropInputPath = getPathForProcessedPickedImage(selectedImagePath);
-			startPickerActivityForAction(CROP_ACTION);
+			selectedVideoPath = selectedImagePath; 
+			createThumbnailForVideo();
+			if ( processPickedImage(selectedImagePath) )
+				dispatchResultEvent("DID_FINISH_PICKING", "VIDEO");
 		}
 		else
 		{
-			if ( processPickedImage(selectedImagePath) )
-				dispatchResultEvent("DID_FINISH_PICKING");
+			if (_shouldCrop)
+			{
+				// stop previous activity
+				if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+					if (_pickerActivity != null) {
+						_pickerActivity.finish();
+					}
+				}
+				_cropInputPath = getPathForProcessedPickedImage(selectedImagePath);
+				startPickerActivityForAction(CROP_ACTION);
+			}
+			else
+			{
+				if ( processPickedImage(selectedImagePath) )
+					dispatchResultEvent("DID_FINISH_PICKING","IMAGE");
+			}
 		}
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery");
+	}
+	
+	private void createThumbnailForVideo()
+	{
+		Bitmap thumb = ThumbnailUtils.createVideoThumbnail(selectedVideoPath, MediaStore.Images.Thumbnails.MICRO_KIND);
+		File thumbFile = getTemporaryImageFile();
+		try {
+			FileOutputStream out = new FileOutputStream(thumbFile);
+			thumb.compress(Bitmap.CompressFormat.JPEG, 90, out);
+			selectedImagePath = thumbFile.getAbsolutePath();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private String getPath(Uri selectedImage)
@@ -447,22 +543,37 @@ public class AirImagePickerExtensionContext extends FREContext
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 	}
 
-	private void handleResultForCamera(Intent data)
+	private void handleResultForImageCamera(Intent data)
 	{
 		if (_shouldCrop)
 		{
+			// stop previous activity
+			if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+				if (_pickerActivity != null) {
+					_pickerActivity.finish();
+				}
+			}
 			_cropInputPath = getPathForProcessedPickedImage(_cameraOutputPath);
 			startPickerActivityForAction(CROP_ACTION);
 		}
 		else
 		{
 			if ( processPickedImage(_cameraOutputPath) )
-				dispatchResultEvent("DID_FINISH_PICKING");
+				dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
 		}
 
 		deleteTemporaryImageFile(_cameraOutputPath);
 	}
+	
+	@SuppressWarnings("unused")
+	private void handleResultForVideoCamera(Intent data)
+	{
+		Log.d(TAG, "Entering handleResultForVideoCamera");
 
+		Log.d(TAG, "_cameraOutputPath = "+_cameraOutputPath);
+		
+		Log.d(TAG, "Exiting handleResultForVideoCamera");
+	}
 
 	//-----------------------------------------------------//
 	//						  CROP						   //
@@ -498,14 +609,16 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForCrop(Intent data)
 	{
-		AirImagePickerExtension.log("Handle result for crop: " + data);
-
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForCrop");
+		
 		_pickedImage = BitmapFactory.decodeFile(_cropOutputPath);
-
+		
 		deleteTemporaryImageFile(_cropInputPath);
 		deleteTemporaryImageFile(_cropOutputPath);
-
-		dispatchResultEvent("DID_FINISH_PICKING");
+		
+		dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForCrop");
 	}
 
 
@@ -517,12 +630,12 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Bitmap _pickedImage;
 	private byte[] _pickedImageJPEGRepresentation;
-	private String _albumName = "airImagePicker";
+	private String _albumName;
 
 	private File getTemporaryImageFile()
 	{
 		// Get or create folder for temp files
-		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+_albumName);
+		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
 		if (!tempFolder.exists())
 		{
 			tempFolder.mkdir();
@@ -566,7 +679,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			// RETRIEVING IMAGES FROM PICASSA IS NOT SUPPORTED IN THIS VERSION
 			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
-			Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage (ret value false)");
 			return false;
 			
 //			final String picassaPath = filePath;
@@ -584,6 +697,15 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
 
+		Boolean result = _albumName != null ? didSavePictureInGallery() : true;
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage (ret value +"+result.toString()+")");
+		return result;
+	}
+	
+	private Boolean didSavePictureInGallery()
+	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering didSavePictureInGallery");
+		
 		long current = System.currentTimeMillis();
 
 		// Save image to album
@@ -594,7 +716,7 @@ public class AirImagePickerExtensionContext extends FREContext
 				new File(folder, ".nomedia").createNewFile();
 			} catch (Exception e) {
 				Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + e.getMessage());
-				Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+				Log.d(TAG, "[AirImagePickerExtensionContext] Exiting didSavePictureInGallery (ret value false)");
 				return false;
 			}
 		}
@@ -607,11 +729,11 @@ public class AirImagePickerExtensionContext extends FREContext
 			stream.close();
 		} catch (Exception exception) { 
 			Log.d(TAG, "[AirImagePickerExtensionContext] exception = " + exception.getMessage());
-			Log.d(TAG, "[AirImagePickerExtensionContext] return FALSE Exiting processPickedImage");
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting didSavePictureInGallery (ret value false)");
 			return false; 
 		}
 
-		// Notify Gallery provider that we have a new image.
+		// Notify Gallery provider that we saved a new image
 		ContentValues values = new ContentValues();
 		values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
 		values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
@@ -622,7 +744,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		Uri newUri = contentResolver.insert(base, values);
 		getActivity().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] return TRUE Exiting processPickedImage");
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting didSavePictureInGallery (ret value true)");
 		return true;
 	}
 
@@ -754,5 +876,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
 		return outputStream.toByteArray();
+	}
+
+	public String getVideoPath() {
+		return selectedVideoPath;
 	}
 }
