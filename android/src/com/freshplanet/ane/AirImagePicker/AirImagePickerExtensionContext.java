@@ -329,11 +329,11 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		if (action == CAMERA_IMAGE_ACTION)
 		{
-			prepareIntentForCamera(intent);
+			prepareIntentForPictureCamera(intent);
 		}
 		if (action == CAMERA_VIDEO_ACTION)
 		{
-			prepareIntentForCamera(intent);
+			prepareIntentForVideoCamera(intent);
 		}
 		else if (action == CROP_ACTION)
 		{
@@ -348,10 +348,13 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			handleResultForGallery(data);
 		}
-//		else if (action == CAMERA_IMAGE_ACTION || action == CAMERA_VIDEO_ACTION)
 		else if (action == CAMERA_IMAGE_ACTION )
 		{
 			handleResultForImageCamera(data);
+		}
+		else if (action == CAMERA_VIDEO_ACTION)
+		{
+			handleResultForVideoCamera(data);
 		}
 		else if (action == CROP_ACTION)
 		{
@@ -485,7 +488,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	private void createThumbnailForVideo()
 	{
 		Bitmap thumb = ThumbnailUtils.createVideoThumbnail(selectedVideoPath, MediaStore.Images.Thumbnails.MICRO_KIND);
-		File thumbFile = getTemporaryImageFile();
+		File thumbFile = getTemporaryImageFile(".jpg");
 		try {
 			FileOutputStream out = new FileOutputStream(thumbFile);
 			thumb.compress(Bitmap.CompressFormat.JPEG, 90, out);
@@ -536,9 +539,16 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private String _cameraOutputPath;
 
-	private void prepareIntentForCamera(Intent intent)
+	private void prepareIntentForPictureCamera(Intent intent)
 	{
-		File tempFile = getTemporaryImageFile();
+		File tempFile = getTemporaryImageFile(".jpg");
+		_cameraOutputPath = tempFile.getAbsolutePath();
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+	}
+	
+	private void prepareIntentForVideoCamera(Intent intent)
+	{
+		File tempFile = getTemporaryImageFile(".3gp");
 		_cameraOutputPath = tempFile.getAbsolutePath();
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 	}
@@ -565,12 +575,16 @@ public class AirImagePickerExtensionContext extends FREContext
 		deleteTemporaryImageFile(_cameraOutputPath);
 	}
 	
-	@SuppressWarnings("unused")
 	private void handleResultForVideoCamera(Intent data)
 	{
 		Log.d(TAG, "Entering handleResultForVideoCamera");
 
 		Log.d(TAG, "_cameraOutputPath = "+_cameraOutputPath);
+		
+		selectedVideoPath = _cameraOutputPath; 
+		createThumbnailForVideo();
+		if ( processPickedImage(selectedImagePath) )
+			dispatchResultEvent("DID_FINISH_PICKING", "VIDEO");
 		
 		Log.d(TAG, "Exiting handleResultForVideoCamera");
 	}
@@ -589,7 +603,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		intent.setDataAndType(Uri.fromFile(new File(_cropInputPath)), "image/*");
 
 		// Set crop output
-		File tempFile = getTemporaryImageFile();
+		File tempFile = getTemporaryImageFile(".jpg");
 		_cropOutputPath = tempFile.getAbsolutePath();
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 
@@ -632,7 +646,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	private byte[] _pickedImageJPEGRepresentation;
 	private String _albumName;
 
-	private File getTemporaryImageFile()
+	private File getTemporaryImageFile( String extension )
 	{
 		// Get or create folder for temp files
 		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
@@ -647,9 +661,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 
 		// Create temp file
-		return new File(tempFolder, String.valueOf(System.currentTimeMillis())+".jpg");
+		return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
 	}
-
+	
 	private void deleteTemporaryImageFile(String filePath)
 	{
 		new File(filePath).delete();
@@ -659,7 +673,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		processPickedImage(filePath);
 
-		File tempFile = getTemporaryImageFile();
+		File tempFile = getTemporaryImageFile(".jpg");
 		try
 		{
 			FileOutputStream stream = new FileOutputStream(tempFile);
