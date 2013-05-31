@@ -17,10 +17,12 @@
     // Obtain the NSData of the file we want
     NSData *mediaData = [[NSFileManager defaultManager] contentsAtPath:[mediaURL path]];
     
+    NSString *boundaryStr = @"---------------------------14737809831466499882746641449";
+    
     // Build a NSData containing the http post data object
     NSArray *myDictKeys = [params allKeys];
     NSMutableData *myData = [NSMutableData dataWithCapacity:1];
-    NSData *boundary = [@"" dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *boundary = [boundaryStr dataUsingEncoding:NSUTF8StringEncoding];
     NSData *lineBreak = [@"\r\n" dataUsingEncoding:NSUTF8StringEncoding];
     
     for (int i =0; i < [myDictKeys count]; i++) {
@@ -49,6 +51,7 @@
     
     // connect to Google Cloud Storage
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:uploadURL];
+    [request setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundaryStr] forHTTPHeaderField:@"Content-Type"];
     [request setHTTPMethod:@"POST"];
     [request setHTTPBody:myData];
     
@@ -89,9 +92,28 @@
     // You can parse the stuff in your instance variable now
     NSLog(@"Entering connectionDidFinishLoading");
     
+    NSLog(@"Succeeded! Received %d bytes of data",[_responseData length]);
+    
+    NSLog(@"Succeeded! response: %@", _responseData);
+
+    // Tell the native extension that we are done.
     [AirImagePicker status:@"FILE_UPLOAD_DONE" level:@"OK"];
+
+    // Release the connection and the data object
+    [connection release];
+    [_responseData release];
     
     NSLog(@"Exiting connectionDidFinishLoading");
+}
+
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten
+                                                 totalBytesWritten:(NSInteger)totalBytesWritten
+                                                 totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+    NSLog(@"Entering connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite");
+    
+    [AirImagePicker status:@"FILE_UPLOAD_PROGRESS" level:[NSString stringWithFormat:@"%d",(totalBytesWritten/totalBytesExpectedToWrite)]];
+    
+    NSLog(@"Exiting connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite");
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {

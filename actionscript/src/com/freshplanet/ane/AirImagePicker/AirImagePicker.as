@@ -386,6 +386,13 @@ package com.freshplanet.ane.AirImagePicker
 					callback(STATUS_PICASSA_NOT_SUPPORTED);
 				}
 			}
+			else if (event.code == "FILE_UPLOAD_PROGRESS")
+			{
+				if (callback != null)
+				{
+					callback("FILE_UPLOAD_PROGRESS", event.level);
+				}
+			}			
 			else if (event.code == "FILE_UPLOAD_DONE")
 			{
 				if (callback != null)
