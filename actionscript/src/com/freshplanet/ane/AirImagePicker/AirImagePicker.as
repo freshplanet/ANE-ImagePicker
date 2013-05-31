@@ -183,7 +183,10 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, 
+			allowVideo:Boolean = false, 
+			crop : Boolean = false, 
+			anchor : Rectangle = null) : void
 		{
 			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
@@ -232,7 +235,24 @@ package com.freshplanet.ane.AirImagePicker
 			
 			if (albumName != null) _context.call("displayCamera", allowVideo, crop, albumName);
 			else _context.call("displayCamera", allowVideo, crop);
-			
+		}
+
+		/**
+		*  Perform a Google Cloud Storage Upload of the media stored locally in localURL.
+		*
+		* @param localURL location on the device where the media is stored.  Usually should correspond to a video.
+		* @param uploadURL the URL returned by HelloPop backend that corresponds to the GCS upload endpoint.
+		* @param uploadParams http post parameters expected by GCS as part of the upload in JSON format.
+		* @param callback  Function to be called when the upload is completed.
+		*/
+		public function uploadToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
+		{
+			if (!isSupported) callback(STATUS_NOT_SUPPORTED, null);
+			else
+			{
+				_callback = callback;
+				_context.call("uploadToServer", localURL, uploadURL, uploadParams);
+			}
 		}
 		
 		
@@ -364,6 +384,14 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					callback(STATUS_PICASSA_NOT_SUPPORTED);
+				}
+			}
+			else if (event.code == "FILE_UPLOAD_DONE")
+			{
+				if (callback != null)
+				{
+					_callback = null;
+					callback();
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message

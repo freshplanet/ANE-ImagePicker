@@ -81,6 +81,11 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
++ (void)status:(NSString*)code level:(NSString*)level
+{
+    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)code, (const uint8_t *)level);
+}
+
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
@@ -731,13 +736,51 @@ DEFINE_ANE_FUNCTION(getVideoPath)
     return retValue;
 }
 
+DEFINE_ANE_FUNCTION(uploadToServer)
+{
+    NSLog(@"Entering uploadToServer");
+    
+    uint32_t stringLength;
+    
+    NSString *localURL = nil;
+    NSString *uploadURL = nil;
+    NSDictionary *params = nil;
+    
+    const uint8_t *localURLString;
+    if (FREGetObjectAsUTF8(argv[0], &stringLength, &localURLString) == FRE_OK) {
+        localURL = [NSString stringWithUTF8String:(const char *)localURLString];
+    }
+    
+    const uint8_t *uploadURLString;
+    if (FREGetObjectAsUTF8(argv[1], &stringLength, &uploadURLString) == FRE_OK) {
+        uploadURL = [NSString stringWithUTF8String:(const char *)uploadURLString];
+    }
+    
+    const uint8_t *uploadParamsString;
+    if (FREGetObjectAsUTF8(argv[2], &stringLength, &uploadParamsString) == FRE_OK) {
+        NSData *data = [[NSString stringWithUTF8String:(const char *)uploadParamsString] dataUsingEncoding:NSUTF8StringEncoding];
+        params = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    }
+    
+    if ( localURL != nil && uploadURL != nil && params != nil && [params count] > 0 )
+    {
+        NSURL *media = [NSURL URLWithString:localURL];
+        NSURL *upload = [NSURL URLWithString:uploadURL];
+        GoogleCloudUploader *uploader = [[GoogleCloudUploader alloc] init];
+        [uploader startUpload:media withUploadURL:upload andUploadParams:params];
+    }
+    
+    NSLog(@"Exiting uploadToServer");
+    return nil;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 12;
+    NSInteger nbFuntionsToLink = 13;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -789,6 +832,10 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[11].name = (const uint8_t*) "getVideoPath";
     func[11].functionData = NULL;
     func[11].function = &getVideoPath;
+    
+    func[12].name = (const uint8_t*) "uploadToServer";
+    func[12].functionData = NULL;
+    func[12].function = &uploadToServer;
     
     *functionsToSet = func;
     

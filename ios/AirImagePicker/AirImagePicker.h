@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "FlashRuntimeExtensions.h"
+#import "GoogleCloudUploader.h"
 
 @interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 
@@ -30,6 +31,7 @@
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
++ (void)status:(NSString*)code level:(NSString*)level;
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
 
