@@ -83,7 +83,7 @@ static AirImagePicker *sharedInstance = nil;
 
 + (void)status:(NSString*)code level:(NSString*)level
 {
-    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)code, (const uint8_t *)level);
+    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)[code UTF8String], (const uint8_t *)[level UTF8String]);
 }
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor

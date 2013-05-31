@@ -14,47 +14,39 @@
 {
     NSLog(@"Entering startUpload:withUploadURL:andUploadParams");
     
-    // Obtain the NSData of the file we want
     NSData *mediaData = [[NSFileManager defaultManager] contentsAtPath:[mediaURL path]];
     
-    NSString *boundaryStr = @"---------------------------14737809831466499882746641449";
-    
-    // Build a NSData containing the http post data object
-    NSArray *myDictKeys = [params allKeys];
-    NSMutableData *myData = [NSMutableData dataWithCapacity:1];
-    NSData *boundary = [boundaryStr dataUsingEncoding:NSUTF8StringEncoding];
-    NSData *lineBreak = [@"\r\n" dataUsingEncoding:NSUTF8StringEncoding];
-    
-    for (int i =0; i < [myDictKeys count]; i++) {
-        id myValue = [params valueForKey:[myDictKeys objectAtIndex:i]];
-        [myData appendData:boundary];
-        [myData appendData:lineBreak];
-        [myData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"", [myDictKeys objectAtIndex:i]] dataUsingEncoding:NSUTF8StringEncoding]];
-        [myData appendData:lineBreak];
-        [myData appendData:lineBreak];
-        [myData appendData:[[NSString stringWithFormat:@"%@", myValue] dataUsingEncoding:NSUTF8StringEncoding]];
-        [myData appendData:lineBreak];
-    }
-    
-    [myData appendData:boundary];
-    [myData appendData:lineBreak];
-    [myData appendData:[@"Content-Disposition: form-data; name=\"file\"; filename=\"file\"" dataUsingEncoding:NSUTF8StringEncoding]];
-    [myData appendData:lineBreak];
-    [myData appendData:lineBreak];
-    [myData appendData:mediaData];
-    [myData appendData:lineBreak];
-    [myData appendData:boundary];
-    
-    // closing boundary
-    [myData appendData:boundary];
-    [myData appendData:[@"--" dataUsingEncoding:NSUTF8StringEncoding]];
-    
-    // connect to Google Cloud Storage
+    // Create a NSMutableURLRequest
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:uploadURL];
-    [request setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundaryStr] forHTTPHeaderField:@"Content-Type"];
     [request setHTTPMethod:@"POST"];
-    [request setHTTPBody:myData];
     
+    // Define the content type and set a boundary string
+    // @check out the spec for multipart forms
+    // http://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+    NSString *boundary = @"b0undaryFP";
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
+    [request addValue:contentType forHTTPHeaderField:@"Content-Type"];
+    
+    // Build the body of the HTML form.  Its important to notice the linebreaks CLRF "\r\n" and the dashes
+    // before the boundary string; these must be included in order to build a good request.
+    NSMutableData *body = [NSMutableData data];
+    
+    NSArray *variableNames = [params allKeys];
+    for (int i = 0; i < [variableNames count]; i++) {
+        NSString *variableName = [variableNames objectAtIndex:i];
+        NSString *variableValue = [params valueForKey:variableName];
+        [body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n%@", variableName, variableValue]
+                          dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    [body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[@"Content-Disposition: form-data; name=\"file\"; filename=\"file\"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:mediaData];
+    // this is the final boundary:
+    [body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [request setHTTPBody:body];
+    
+    // make a connection to GCS and send the data
     [[NSURLConnection alloc] initWithRequest:request delegate:self];
     
     NSLog(@"Exiting startUpload:withUploadURL:andUploadParams");
@@ -92,12 +84,11 @@
     // You can parse the stuff in your instance variable now
     NSLog(@"Entering connectionDidFinishLoading");
     
-    NSLog(@"Succeeded! Received %d bytes of data",[_responseData length]);
-    
-    NSLog(@"Succeeded! response: %@", _responseData);
+    NSString *response = [[[NSString alloc] initWithData:_responseData encoding:NSUTF8StringEncoding] autorelease];
+    NSLog(@"Succeeded! response (NSString): %@", response);
 
     // Tell the native extension that we are done.
-    [AirImagePicker status:@"FILE_UPLOAD_DONE" level:@"OK"];
+    [AirImagePicker status:@"FILE_UPLOAD_DONE" level:response];
 
     // Release the connection and the data object
     [connection release];
@@ -111,7 +102,12 @@
                                                  totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
     NSLog(@"Entering connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite");
     
-    [AirImagePicker status:@"FILE_UPLOAD_PROGRESS" level:[NSString stringWithFormat:@"%d",(totalBytesWritten/totalBytesExpectedToWrite)]];
+    float uploaded = (totalBytesWritten/totalBytesExpectedToWrite);
+    NSString *uploadedStr = [NSString stringWithFormat:@"%f",uploaded];
+
+    NSLog(@"bytesWritten = %d, totalBytesWritten = %d, totalBytesExpectedToWrite = %d,uploaded: %@", bytesWritten, totalBytesWritten, totalBytesExpectedToWrite, uploadedStr);
+    
+    [AirImagePicker status:@"FILE_UPLOAD_PROGRESS" level:uploadedStr];
     
     NSLog(@"Exiting connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite");
 }

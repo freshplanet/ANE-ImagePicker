@@ -398,7 +398,7 @@ package com.freshplanet.ane.AirImagePicker
 				if (callback != null)
 				{
 					_callback = null;
-					callback();
+					callback("FILE_UPLOAD_DONE", event.level);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message
