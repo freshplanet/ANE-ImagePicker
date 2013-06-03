@@ -102,7 +102,7 @@
                                                  totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
     NSLog(@"Entering connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite");
     
-    float uploaded = (totalBytesWritten/totalBytesExpectedToWrite);
+    float uploaded = ((float)totalBytesWritten)/((float)totalBytesExpectedToWrite);
     NSString *uploadedStr = [NSString stringWithFormat:@"%f",uploaded];
 
     NSLog(@"bytesWritten = %d, totalBytesWritten = %d, totalBytesExpectedToWrite = %d,uploaded: %@", bytesWritten, totalBytesWritten, totalBytesExpectedToWrite, uploadedStr);
