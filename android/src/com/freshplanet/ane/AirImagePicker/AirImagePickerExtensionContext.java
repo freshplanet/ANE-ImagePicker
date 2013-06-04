@@ -64,6 +64,7 @@ import com.freshplanet.ane.AirImagePicker.functions.GetVideoPath;
 import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
+import com.freshplanet.ane.AirImagePicker.functions.UploadToServer;
 
 public class AirImagePickerExtensionContext extends FREContext 
 {
@@ -100,6 +101,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("getPickedImageJPEGRepresentationSize", new GetPickedImageJPEGRepresentationSizeFunction());
 		functions.put("copyPickedImageJPEGRepresentationToByteArray", new CopyPickedImageJPEGRepresentationToByteArrayFunction());
 		functions.put("getVideoPath", new GetVideoPath());
+		functions.put("uploadToServer", new UploadToServer());
 		functions.put("displayOverlay", new DisplayOverlayFunction()); // not implemented
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
 
