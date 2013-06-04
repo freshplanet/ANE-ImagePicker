@@ -23,6 +23,9 @@
     // Define the content type and set a boundary string
     // @check out the spec for multipart forms
     // http://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+    
+    // Google Cloud Storage POST Object specs:
+    // https://developers.google.com/storage/docs/reference-methods#postobject
     NSString *boundary = @"b0undaryFP";
     NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
     [request addValue:contentType forHTTPHeaderField:@"Content-Type"];
