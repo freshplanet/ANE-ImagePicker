@@ -50,7 +50,7 @@ public class UploadToGoogleCloudStorageAsyncTask extends AsyncTask<String, Void,
 		try {
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: Prepare for httpPostData");
 			// prepare for httpPost data
-			String boundary = "b0undary";
+			String boundary = "b0undaryFP";
 			
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: Get the byte[] of the media we want to upload");
 			// Get the byte[] of the media we want to upload
