@@ -38,6 +38,9 @@
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
 
+- (void) exportToMP4:(NSURL *)originalMediaURL withExportURL:(NSURL*)exportUrl;
+- (void) onVideoExported:(NSURL*)mediaURL;
+
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;
 

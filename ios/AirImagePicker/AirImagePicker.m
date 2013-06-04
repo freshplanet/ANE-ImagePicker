@@ -290,7 +290,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL
 {
-    NSLog(@"Entering onVideoPickedWithVideoPath");
+    NSLog(@"Entering onVideoPickedWithMediaURL");
     
     // For some weird reason, returning the path from the video stored on the
     // camera roll is not working.  My solution is to copy the video to the
@@ -300,12 +300,11 @@ static AirImagePicker *sharedInstance = nil;
     // this is why we do it on another thread, so we do not block execution.
     dispatch_queue_t thread = dispatch_queue_create("video processing", NULL);
     dispatch_async(thread, ^{
-        
         // Save a copy of the picked video to the app directory
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
         NSURL *toURL = [NSURL fileURLWithPath:[documentsDirectory stringByAppendingPathComponent:@"myMovie.mov"]];
-
+        
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
         
@@ -339,49 +338,94 @@ static AirImagePicker *sharedInstance = nil;
             // we are done with the file manager, release it.
             [fileManager release];
             
-            // Create or Asset Generator and task it with creating the thumbnail
-            AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:toURL options:nil];
-            AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-            [asset release];
-            CMTime time = CMTimeMakeWithSeconds(0,30);
-            CGSize maxSize = CGSizeMake(320, 180);
-            imageGenerator.maximumSize = maxSize;
             
-            // Attemp to create the CGImage of the thumbnail
-            [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]]
-                                                 completionHandler:^(CMTime requestedTime, CGImageRef image, CMTime actualTime,
-                                                                     AVAssetImageGeneratorResult result, NSError *error) {
-                // Something went wrong, log the error.
-                if (result != AVAssetImageGeneratorSucceeded) {
-                    NSLog(@"Couldn't generate thumbnail, error: %@", error);
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        FREDispatchStatusEventAsync(AirIPCtx,
-                                                    (const uint8_t *)"ERROR_GENERATING_VIDEO",
-                                                    (const uint8_t *)[[error description] UTF8String]);
-                    });
-                } else {
-                    // Success!  Store the data we will retrieve later
-                    _videoPath = [toURL path];
-                    _pickedImage = [[UIImage alloc] initWithCGImage:image];
-                    _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-                    
-                    // increase the reference count for the objects we are keeping.
-                    [_videoPath retain];
-                    [_pickedImage retain];
-                    [_pickedImageJPEGData retain];
-                    
-                    // Let the native extension know that we are done with the picking
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
-                    });
-                }
-                
-            }];
+            [self exportToMP4:toURL withExportURL:[NSURL fileURLWithPath:[documentsDirectory stringByAppendingPathComponent:@"myMovie.mp4"]]];
         }
     });
     dispatch_release(thread);
     
-    NSLog(@"Exiting onVideoPickedWithVideoPath");
+    NSLog(@"Exiting onVideoPickedWithMediaURL");
+}
+
+
+- (void) exportToMP4:(NSURL *)originalMediaURL withExportURL:(NSURL*)exportUrl
+{
+    NSLog(@"Entering - exportToMP4:originalMediaURL:withExportURL");
+    
+    AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:originalMediaURL options:nil];
+    NSArray *compatiblePresets = [AVAssetExportSession exportPresetsCompatibleWithAsset:avAsset];
+    
+    if ([compatiblePresets containsObject:AVAssetExportPresetLowQuality])
+    {
+        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:avAsset presetName:AVAssetExportPresetLowQuality];
+        exportSession.outputURL = exportUrl;
+        exportSession.outputFileType = AVFileTypeMPEG4;
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+            switch ([exportSession status]) {
+                case AVAssetExportSessionStatusFailed:
+                    NSLog(@"Export session failed: %@",[[exportSession error] localizedDescription]);
+                    break;
+                
+                case AVAssetExportSessionStatusCancelled:
+                    NSLog(@"Export cancelled");
+                    break;
+                    
+                case AVAssetExportSessionStatusCompleted:
+                    [self onVideoExported:exportUrl];
+                    break;
+                    
+                default:
+                    break;
+            }
+        }];
+    }
+    NSLog(@"Exiting - exportToMP4:originalMediaURL:withExportURL");
+}
+
+- (void) onVideoExported:(NSURL*)mediaURL
+{
+    NSLog(@"Entering - onVideoExported");
+    
+    // Create or Asset Generator and task it with creating the thumbnail
+    AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:mediaURL options:nil];
+    AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+    [asset release];
+    CMTime time = CMTimeMakeWithSeconds(0,30);
+    CGSize maxSize = CGSizeMake(320, 180);
+    imageGenerator.maximumSize = maxSize;
+    
+    // Attemp to create the CGImage of the thumbnail
+    [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]] 
+     completionHandler:^(CMTime requestedTime, CGImageRef image, CMTime actualTime,
+                         AVAssetImageGeneratorResult result, NSError *error) {
+         // Something went wrong, log the error.
+         if (result != AVAssetImageGeneratorSucceeded) {
+             NSLog(@"Couldn't generate thumbnail, error: %@", error);
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 FREDispatchStatusEventAsync(AirIPCtx,
+                                             (const uint8_t *)"ERROR_GENERATING_VIDEO",
+                                             (const uint8_t *)[[error description] UTF8String]);
+             });
+         } else {
+             // Success!  Store the data we will retrieve later
+             _videoPath = [mediaURL path];
+             _pickedImage = [[UIImage alloc] initWithCGImage:image];
+             _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+             
+             // increase the reference count for the objects we are keeping.
+             [_videoPath retain];
+             [_pickedImage retain];
+             [_pickedImageJPEGData retain];
+             
+             // Let the native extension know that we are done with the picking
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+             });
+         }
+         
+     }];
+    
+    NSLog(@"Exiting - onVideoExported");
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
