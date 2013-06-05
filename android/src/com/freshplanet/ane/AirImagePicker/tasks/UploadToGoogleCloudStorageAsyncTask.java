@@ -1,11 +1,13 @@
 package com.freshplanet.ane.AirImagePicker.tasks;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.apache.http.HttpResponse;
@@ -52,31 +54,32 @@ public class UploadToGoogleCloudStorageAsyncTask extends AsyncTask<String, Void,
 			// prepare for httpPost data
 			String boundary = "b0undaryFP";
 			
+			
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: Get the byte[] of the media we want to upload");
 			// Get the byte[] of the media we want to upload
 			byte[] mediaBytes = toByteArray(mediaPath);
 			
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: build the data");
 			// build the data 
-			StringBuffer requestBody = new StringBuffer();
+			ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
 			for (@SuppressWarnings("unchecked")
 			Iterator<String> keys = uploadParams.keys(); keys.hasNext();) {
 				String key = keys.next();
 				String value = uploadParams.getString(key);
-				requestBody.append("\r\n--%@\r\n".replace("%@", boundary));
-				requestBody.append("Content-Disposition: form-data; name=\"%@\"\r\n\r\n%@".
-						replaceFirst("%@", key).replaceFirst("%@", value));
+				requestBody.write(("\r\n--%@\r\n".replace("%@", boundary)).getBytes());
+				requestBody.write(("Content-Disposition: form-data; name=\"%@\"\r\n\r\n%@".
+						replaceFirst("%@", key).replaceFirst("%@", value)).getBytes());
 			}
-			requestBody.append("\r\n--%@\r\n".replace("%@", boundary));
-			requestBody.append("Content-Disposition: form-data; name=\"file\"; filename=\"file\"\r\n\r\n");
-			requestBody.append(new String(mediaBytes));
+			requestBody.write(("\r\n--%@\r\n".replace("%@", boundary)).getBytes());
+			requestBody.write(("Content-Disposition: form-data; name=\"file\"; filename=\"file\"\r\n\r\n").getBytes());
+			requestBody.write(mediaBytes);
 			// this is the final boundary
-			requestBody.append("\r\n--%@\r\n".replace("%@", boundary));
+			requestBody.write(("\r\n--%@\r\n".replace("%@", boundary)).getBytes());
 			
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: Set content-type and content of http post");
 			// Set content-type and content of http post
 			post.setHeader("Content-Type", "multipart/form-data; boundary="+boundary);
-			post.setEntity(new ByteArrayEntity( requestBody.toString().getBytes() ));
+			post.setEntity(new ByteArrayEntity( requestBody.toByteArray() ));
 			
 			Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: execute post.");
 			// execute post.
@@ -86,7 +89,7 @@ public class UploadToGoogleCloudStorageAsyncTask extends AsyncTask<String, Void,
 			{
 				result = EntityUtils.toByteArray(httpResponse.getEntity());
 				response = new String(result, "UTF-8");
-				Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: got a response: " + result);
+				Log.d(TAG, "[UploadToGoogleCloudStorageAsyncTask] ~~~ DBG: got a response: " + response);
 			}
 			else
 			{
