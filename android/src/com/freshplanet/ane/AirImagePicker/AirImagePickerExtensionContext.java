@@ -457,7 +457,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
 		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
 		
-		if ( selectedImagePath.endsWith(".3gp"))
+		Boolean isVideo = AirImagePickerExtension.context.getActivity().getContentResolver().getType(selectedImageUri).indexOf("video") != -1;
+		
+		if ( isVideo )
 		{
 			selectedVideoPath = selectedImagePath; 
 			createThumbnailForVideo();
