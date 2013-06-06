@@ -170,6 +170,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * @param callback A callback function of the following form:
 		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
 		 * explanation of the arguments passed to the callback.
+		 * @param maxImageWidth Maximum width of the image.  only applies to image capture, not videos. default value is -1 (ignore)
+		 * @param maxImageHeight Maximum height of the image.  only applies to image capture, not videos. default value is -1 (ignore)		 
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -184,6 +186,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * @see #isImagePickerAvailable()
 		 */
 		public function displayImagePicker( callback : Function, 
+			maxImageWidth:int = -1, 
+			maxImageHeight:int = -1,
 			allowVideo:Boolean = false, 
 			crop : Boolean = false, 
 			anchor : Rectangle = null) : void
@@ -192,8 +196,8 @@ package com.freshplanet.ane.AirImagePicker
 			
 			_callback = callback;
 			
-			if (anchor != null) _context.call("displayImagePicker", allowVideo, crop, anchor);
-			else _context.call("displayImagePicker", allowVideo, crop);
+			if (anchor != null) _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop, anchor);
+			else _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop);
 		}
 		
 		/**
@@ -218,6 +222,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * @param callback A callback function of the following form:
 		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
 		 * explanation of the arguments passed to the callback.
+		 * @param maxImageWidth Maximum width of the image.  only applies to image capture, not videos. default value is -1 (ignore)
+		 * @param maxImageHeight Maximum height of the image.  only applies to image capture, not videos. default value is -1 (ignore)
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -227,13 +233,18 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, albumName:String = null ) : void
+		public function displayCamera( callback : Function,
+			maxImageWidth:int = -1, 
+			maxImageHeight:int = -1,
+			allowVideo:Boolean = false, 
+			crop : Boolean = false, 
+			albumName:String = null ) : void
 		{
 			if (!isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			prepareToDisplayNativeUI(callback);
 			
-			if (albumName != null) _context.call("displayCamera", allowVideo, crop, albumName);
+			if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
 			else _context.call("displayCamera", allowVideo, crop);
 		}
 

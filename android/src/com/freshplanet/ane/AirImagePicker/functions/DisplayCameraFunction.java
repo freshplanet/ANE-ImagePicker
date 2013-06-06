@@ -19,15 +19,20 @@ public class DisplayCameraFunction implements FREFunction
 	{
 		Log.d(TAG, "[DisplayCameraFunction] entering call()");
 		
+		int maxImageWidth = -1;
+		int maxImageHeight = -1;
+
 		Boolean allowVideoCapture = false;
 		Boolean crop = false;
 		String albumName = null;
 		
 		try {
-			allowVideoCapture = args[0].getAsBool();
-			crop = args[1].getAsBool();
-			if (args.length > 2) {
-				albumName = args[2].getAsString();
+			maxImageWidth = args[0].getAsInt();
+			maxImageHeight = args[1].getAsInt();
+			allowVideoCapture = args[2].getAsBool();
+			crop = args[3].getAsBool();
+			if (args.length > 4) {
+				albumName = args[4].getAsString();
 			}
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
@@ -38,7 +43,7 @@ public class DisplayCameraFunction implements FREFunction
 		} catch (FREWrongThreadException e) {
 			e.printStackTrace();
 		}
-		AirImagePickerExtension.context.displayCamera(allowVideoCapture,crop,albumName);
+		AirImagePickerExtension.context.displayCamera(allowVideoCapture,crop,albumName,maxImageWidth,maxImageHeight);
 		
 		Log.d(TAG, "[DisplayCameraFunction] exiting call()");
 		return null;

@@ -30,6 +30,7 @@ FREContext AirIPCtx = nil;
 @interface AirImagePicker ()
 {
     UIView *_overlay;
+    CGSize _maxDimensions;
 }
 @end
 
@@ -86,9 +87,11 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)[code UTF8String], (const uint8_t *)[level UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    
+    _maxDimensions = maxDimensions;
     
     self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
     self.imagePicker.sourceType = sourceType;
@@ -260,6 +263,16 @@ static AirImagePicker *sharedInstance = nil;
             // Clean up
             CGContextRelease(context);
             CGImageRelease(newImageRef);
+        }
+        
+        // make sure that the image has the correct size
+        if ( (_pickedImage.size.width > _maxDimensions.width || _pickedImage.size.height > _maxDimensions.height ) &&
+            _maxDimensions.width != -1 && _maxDimensions.height != -1)
+        {
+            UIGraphicsBeginImageContext(_maxDimensions);
+            [_pickedImage drawInRect:CGRectMake(0, 0, _maxDimensions.width, _maxDimensions.height)];
+            _pickedImage = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
         }
         
         // JPEG compression
@@ -481,21 +494,29 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable)
 
 DEFINE_ANE_FUNCTION(displayImagePicker)
 {
+    FREObject imageMaxWidthObj = argv[0];
+    uint32_t imageMaxWidth;
+    FREGetObjectAsUint32(imageMaxWidthObj, &imageMaxWidth);
+    
+    FREObject imageMaxHeightObj = argv[1];
+    uint32_t imageMaxHeight;
+    FREGetObjectAsUint32(imageMaxHeightObj, &imageMaxHeight);
+    
     uint32_t allowVideoValue;
-    FREObject allowVideoObj = argv[0];
+    FREObject allowVideoObj = argv[2];
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
     BOOL allowVideo = (allowVideoValue != 0);
     
     uint32_t cropValue;
-    FREObject cropObject = argv[1];
+    FREObject cropObject = argv[3];
     FREGetObjectAsBool(cropObject, &cropValue);
-    BOOL crop = (cropValue != 0);
+    BOOL crop = (cropValue != 3);
     
     CGRect anchor;
-    if (argc > 2)
+    if (argc > 4)
     {
         // Extract anchor properties
-        FREObject anchorObject = argv[2];
+        FREObject anchorObject = argv[4];
         FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
         FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
         FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
@@ -519,7 +540,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor maxDimensions:CGSizeMake(imageMaxWidth, imageMaxHeight)];
     
     return nil;
 }
@@ -538,25 +559,33 @@ DEFINE_ANE_FUNCTION(isCameraAvailable)
 
 DEFINE_ANE_FUNCTION(displayCamera)
 {
+    FREObject imageMaxWidthObj = argv[0];
+    uint32_t imageMaxWidth;
+    FREGetObjectAsUint32(imageMaxWidthObj, &imageMaxWidth);
+    
+    FREObject imageMaxHeightObj = argv[1];
+    uint32_t imageMaxHeight;
+    FREGetObjectAsUint32(imageMaxHeightObj, &imageMaxHeight);
+    
     uint32_t allowVideoValue;
-    FREObject allowVideoObj = argv[0];
+    FREObject allowVideoObj = argv[2];
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
     BOOL allowVideo = (allowVideoValue != 0);
     
     uint32_t cropValue;
-    FREObject cropObject = argv[1];
+    FREObject cropObject = argv[3];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
  
     uint32_t stringLength;
     NSString *albumName = nil;
     const uint8_t *albumNameString;
-    if (FREGetObjectAsUTF8(argv[2], &stringLength, &albumNameString) == FRE_OK)
+    if (FREGetObjectAsUTF8(argv[4], &stringLength, &albumNameString) == FRE_OK)
     {
         albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero maxDimensions:CGSizeMake(imageMaxWidth, imageMaxHeight)];
     
     return nil;
 }

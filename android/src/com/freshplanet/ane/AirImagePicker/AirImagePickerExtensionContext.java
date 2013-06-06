@@ -113,9 +113,12 @@ public class AirImagePickerExtensionContext extends FREContext
 		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 	}
 
-	public void displayImagePicker(Boolean videosAllowed, Boolean crop)
+	public void displayImagePicker(Boolean videosAllowed, Boolean crop, int maxImgWidth, int maxImgHeight)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
+		
+		_maxSize[0] = maxImgWidth;
+		_maxSize[1] = maxImgHeight;
 		_shouldCrop = crop;
 		if (videosAllowed)
 		{
@@ -140,8 +143,10 @@ public class AirImagePickerExtensionContext extends FREContext
 		return isAvailable;
 	}
 
-	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName)
+	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName, int maxImgWidth, int maxImgHeight)
 	{
+		_maxSize[0] = maxImgWidth;
+		_maxSize[1] = maxImgHeight;
 		_shouldCrop = crop;
 		if (albumName != null) 
 			_albumName = albumName;
@@ -597,6 +602,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	//						  CROP						   //
 	//-----------------------------------------------------//
 
+	private int[] _maxSize = new int[2];
 	private Boolean _shouldCrop = false;
 	private String _cropInputPath;
 	private String _cropOutputPath;
@@ -711,6 +717,13 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else {
 			_pickedImage = getOrientedSampleBitmapFromPath(filePath);
+		}
+		
+		// make sure that the image has the correct height
+		if (_pickedImage.getWidth() > _maxSize[0] || _pickedImage.getHeight() > _maxSize[1] 
+				&& _maxSize[0] != -1 && _maxSize[1] != -1)
+		{
+			_pickedImage = Bitmap.createScaledBitmap( _pickedImage, _maxSize[0], _maxSize[1], true);
 		}
 		
 		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
