@@ -351,33 +351,39 @@ package com.freshplanet.ane.AirImagePicker
 						// Load BitmapData
 						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
 						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
+						
+						var pickedImagePath:String = _context.call("getImagePath") as String;
+						
 						var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
 						_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
 						
-						// Load JPEG-encoded ByteArray
-						var pickedImageByteArray:ByteArray = new ByteArray();
-						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
+//						// Load JPEG-encoded ByteArray
+//						var pickedImageByteArray:ByteArray = new ByteArray();
+//						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
+//						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
 						
-						callback(STATUS_OK, pickedImageBitmapData, pickedImageByteArray);
+						callback(STATUS_OK, pickedImagePath, pickedImageBitmapData);
 					}
 					else if (mediaType == "VIDEO")
 					{
 						// Video File path on device
 						var videoPath:String = _context.call("getVideoPath") as String;
-
+						
+						var thumbnailImagePath:String = _context.call("getImagePath") as String;
+						
 						// Picked Image Data corresponds to the thumbnail of the video.
 						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
 						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
+						
 						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
 						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
 
 						// Load JPEG-encoded ByteArray of the thumbnail
-						var thumbnailImageByteArray:ByteArray = new ByteArray();
-						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
+//						var thumbnailImageByteArray:ByteArray = new ByteArray();
+//						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
+//						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
 
-						callback(STATUS_OK, videoPath, thumbnailImageBitmapData, thumbnailImageByteArray);
+						callback(STATUS_OK, videoPath, thumbnailImagePath, thumbnailImageBitmapData);
 					}
 				}
 			}

@@ -10,11 +10,9 @@
 
 @implementation GoogleCloudUploader
 
-- (void) startUpload:(NSURL*)mediaURL withUploadURL:(NSURL*)uploadURL andUploadParams:(NSDictionary*)params
+- (void) startUpload:(NSData*)mediaData withUploadURL:(NSURL*)uploadURL andUploadParams:(NSDictionary*)params
 {
     NSLog(@"Entering startUpload:withUploadURL:andUploadParams");
-    
-    NSData *mediaData = [[NSFileManager defaultManager] contentsAtPath:[mediaURL path]];
     
     // Create a NSMutableURLRequest
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:uploadURL];

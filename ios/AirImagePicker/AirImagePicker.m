@@ -202,6 +202,50 @@ static AirImagePicker *sharedInstance = nil;
     NSLog(@"Exiting imagePickerController:didFinishPickingMediaWithInfo");
 }
 
+
+typedef void (^defaultBlock)();
+
+- (void) saveImageToCustomAlbumOnCompleteDo: (defaultBlock)onComplete
+{
+    NSLog(@"Entering saveImageToCustomAlbum");
+    if (_customImageAlbumName!=nil)
+    {
+        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+        [library saveImage:_pickedImage toAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset * asset) {
+            if (error!= nil) {
+                NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+            }
+        }];
+        __block defaultBlock onCompleteBlock = onComplete;
+        [library writeImageToSavedPhotosAlbum:_pickedImage.CGImage orientation:(ALAssetOrientation)_pickedImage.imageOrientation
+                              completionBlock:^(NSURL* assetURL, NSError* error) {
+                                  
+                                  //error handling
+                                  if (error!=nil) {
+                                      NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                                      return;
+                                  } else {
+                                  }
+                                  
+                                  //add the asset to the custom photo album
+                                  [library addAssetURL: assetURL
+                                               toAlbum:_customImageAlbumName
+                                   withCompletionBlock:^(NSError *error, ALAsset * asset) {
+                                       if (error!= nil) {
+                                           NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                                       } else {
+                                           _imagePath = [[[asset defaultRepresentation] url] path];
+                                           [_imagePath retain];
+                                           NSLog(@"_imagePath %@", _imagePath);
+                                           onCompleteBlock();
+                                       }
+                                   }];
+                                  
+                              }];
+    }
+    NSLog(@"Exiting saveImageToCustomAlbum");
+}
+
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage
 {
     // Process image in background thread
@@ -278,23 +322,20 @@ static AirImagePicker *sharedInstance = nil;
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
         
-        // Save Image in Custom Album
-        if (_customImageAlbumName!=nil)
-        {
-            ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-            [library saveImage:_pickedImage toAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error) {
-                if (error!= nil) {
-                    NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
-                }
-            }];
-        }
         
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
+        // Save Image in Custom Album
+        [self saveImageToCustomAlbumOnCompleteDo:^{
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+            });
+        }];
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
-        });
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+//        });
         
     });
     dispatch_release(thread);
@@ -423,6 +464,8 @@ static AirImagePicker *sharedInstance = nil;
              // Success!  Store the data we will retrieve later
              _videoPath = [mediaURL path];
              _pickedImage = [[UIImage alloc] initWithCGImage:image];
+             
+             [self saveImageToCustomAlbumOnCompleteDo:^{}];
              _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
              
              // increase the reference count for the objects we are keeping.
@@ -809,6 +852,21 @@ DEFINE_ANE_FUNCTION(getVideoPath)
     return retValue;
 }
 
+DEFINE_ANE_FUNCTION(getImagePath)
+{
+    NSLog(@"Entering getImagePath");
+    FREObject retValue = NULL;
+    
+    NSString *imagePath = [[AirImagePicker sharedInstance] imagePath];
+    NSLog(@"imagePath %@", imagePath);
+    FRENewObjectFromUTF8(strlen([imagePath UTF8String])+1,
+                         (const uint8_t *)[imagePath UTF8String],
+                         &retValue);
+    
+    NSLog(@"Exiting getImagePath");
+    return retValue;
+}
+
 DEFINE_ANE_FUNCTION(uploadToServer)
 {
     NSLog(@"Entering uploadToServer");
@@ -837,10 +895,24 @@ DEFINE_ANE_FUNCTION(uploadToServer)
     
     if ( localURL != nil && uploadURL != nil && params != nil && [params count] > 0 )
     {
-        NSURL *media = [NSURL URLWithString:localURL];
+        NSURL *mediaURL = [NSURL URLWithString:localURL];
         NSURL *upload = [NSURL URLWithString:uploadURL];
         GoogleCloudUploader *uploader = [[GoogleCloudUploader alloc] init];
-        [uploader startUpload:media withUploadURL:upload andUploadParams:params];
+        
+        NSData *mediaData;
+        if([[AirImagePicker sharedInstance] imagePath] != nil && [[[AirImagePicker sharedInstance] imagePath] isEqualToString:localURL])
+        {
+            mediaData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
+//            [[[AirImagePicker sharedInstance] pickedImageJPEGData] release];
+//            [[AirImagePicker sharedInstance] setPickedImageJPEGData:nil];
+//            [[[AirImagePicker sharedInstance] pickedImage] release];
+//            [[AirImagePicker sharedInstance] setPickedImage:nil];
+        }
+        else
+        {
+            mediaData = [[NSFileManager defaultManager] contentsAtPath:[mediaURL path]];
+        }
+        [uploader startUpload:mediaData withUploadURL:upload andUploadParams:params];
     }
     
     NSLog(@"Exiting uploadToServer");
@@ -853,7 +925,7 @@ DEFINE_ANE_FUNCTION(uploadToServer)
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 13;
+    NSInteger nbFuntionsToLink = 12;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -886,29 +958,33 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[6].functionData = NULL;
     func[6].function = &drawPickedImageToBitmapData;
     
-    func[7].name = (const uint8_t*) "getPickedImageJPEGRepresentationSize";
+//    func[7].name = (const uint8_t*) "getPickedImageJPEGRepresentationSize";
+//    func[7].functionData = NULL;
+//    func[7].function = &getPickedImageJPEGRepresentationSize;
+//    
+//    func[8].name = (const uint8_t*) "copyPickedImageJPEGRepresentationToByteArray";
+//    func[8].functionData = NULL;
+//    func[8].function = &copyPickedImageJPEGRepresentationToByteArray;
+    
+    func[7].name = (const uint8_t*) "displayOverlay";
     func[7].functionData = NULL;
-    func[7].function = &getPickedImageJPEGRepresentationSize;
+    func[7].function = &displayOverlay;
     
-    func[8].name = (const uint8_t*) "copyPickedImageJPEGRepresentationToByteArray";
+    func[8].name = (const uint8_t*) "removeOverlay";
     func[8].functionData = NULL;
-    func[8].function = &copyPickedImageJPEGRepresentationToByteArray;
+    func[8].function = &removeOverlay;
     
-    func[9].name = (const uint8_t*) "displayOverlay";
+    func[9].name = (const uint8_t*) "getVideoPath";
     func[9].functionData = NULL;
-    func[9].function = &displayOverlay;
+    func[9].function = &getVideoPath;
     
-    func[10].name = (const uint8_t*) "removeOverlay";
+    func[10].name = (const uint8_t*) "getImagePath";
     func[10].functionData = NULL;
-    func[10].function = &removeOverlay;
+    func[10].function = &getImagePath;
     
-    func[11].name = (const uint8_t*) "getVideoPath";
+    func[11].name = (const uint8_t*) "uploadToServer";
     func[11].functionData = NULL;
-    func[11].function = &getVideoPath;
-    
-    func[12].name = (const uint8_t*) "uploadToServer";
-    func[12].functionData = NULL;
-    func[12].function = &uploadToServer;
+    func[11].function = &uploadToServer;
     
     *functionsToSet = func;
     

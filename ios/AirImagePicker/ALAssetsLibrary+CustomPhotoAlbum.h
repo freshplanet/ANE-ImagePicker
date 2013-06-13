@@ -8,7 +8,7 @@
 
 #import <AssetsLibrary/AssetsLibrary.h>
 
-typedef void(^SaveImageCompletion)(NSError* error);
+typedef void(^SaveImageCompletion)(NSError* error, ALAsset *asset);
 
 @interface ALAssetsLibrary (CustomPhotoAlbum)
 

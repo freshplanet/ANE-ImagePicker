@@ -23,10 +23,11 @@
 
 @property (nonatomic, retain) UIImagePickerController *imagePicker;
 @property (nonatomic, retain) UIPopoverController *popover;
-@property (nonatomic, readonly) UIImage *pickedImage;
-@property (nonatomic, readonly) NSData *pickedImageJPEGData;
+@property (nonatomic, retain) UIImage *pickedImage;
+@property (nonatomic, retain) NSData *pickedImageJPEGData;
 @property (nonatomic, strong) NSString *customImageAlbumName;
 @property (nonatomic, strong) NSString *videoPath;
+@property (nonatomic, strong) NSString *imagePath;
 
 + (id)sharedInstance;
 
@@ -52,14 +53,30 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable);
 DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
+
+//DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
+//DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+
+DEFINE_ANE_FUNCTION(displayOverlay);
+DEFINE_ANE_FUNCTION(removeOverlay);
+
+//image
+DEFINE_ANE_FUNCTION(getImagePath);
 DEFINE_ANE_FUNCTION(getPickedImageWidth);
 DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
-DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
-DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+
+//video
 DEFINE_ANE_FUNCTION(getVideoPath);
-DEFINE_ANE_FUNCTION(displayOverlay);
-DEFINE_ANE_FUNCTION(removeOverlay);
+
+// video thumnail
+//DEFINE_ANE_FUNCTION(getImagePath);
+//DEFINE_ANE_FUNCTION(getPickedImageWidth);
+//DEFINE_ANE_FUNCTION(getPickedImageHeight);
+//DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
+
+// upload
+DEFINE_ANE_FUNCTION(uploadToServer);
 
 
 // ANE Setup

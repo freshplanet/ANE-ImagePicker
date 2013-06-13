@@ -14,6 +14,6 @@
     NSMutableData *_responseData;
 }
 
-- (void) startUpload:(NSURL*)mediaURL withUploadURL:(NSURL*)uploadURL andUploadParams:(NSDictionary*)params;
+- (void) startUpload:(NSData*)mediaData withUploadURL:(NSURL*)uploadURL andUploadParams:(NSDictionary*)params;
 
 @end
