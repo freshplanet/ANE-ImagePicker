@@ -214,34 +214,43 @@ typedef void (^defaultBlock)();
         [library saveImage:_pickedImage toAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset * asset) {
             if (error!= nil) {
                 NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)[error description]);
+                });
             }
         }];
         __block defaultBlock onCompleteBlock = onComplete;
         [library writeImageToSavedPhotosAlbum:_pickedImage.CGImage orientation:(ALAssetOrientation)_pickedImage.imageOrientation
-                              completionBlock:^(NSURL* assetURL, NSError* error) {
-                                  
-                                  //error handling
-                                  if (error!=nil) {
-                                      NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
-                                      return;
-                                  } else {
-                                  }
-                                  
-                                  //add the asset to the custom photo album
-                                  [library addAssetURL: assetURL
-                                               toAlbum:_customImageAlbumName
-                                   withCompletionBlock:^(NSError *error, ALAsset * asset) {
-                                       if (error!= nil) {
-                                           NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
-                                       } else {
-                                           _imagePath = [[[asset defaultRepresentation] url] path];
-                                           [_imagePath retain];
-                                           NSLog(@"_imagePath %@", _imagePath);
-                                           onCompleteBlock();
-                                       }
-                                   }];
-                                  
-                              }];
+                              completionBlock:
+         ^(NSURL* assetURL, NSError* error) {
+             
+             //error handling
+             if (error!=nil) {
+                 NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)"error getting custom ");
+                 });
+             } else {
+                 
+                 //add the asset to the custom photo album
+                 [library addAssetURL: assetURL
+                              toAlbum:_customImageAlbumName
+                  withCompletionBlock:^(NSError *error, ALAsset * asset) {
+                      if (error!= nil) {
+                          NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
+                          dispatch_async(dispatch_get_main_queue(), ^{
+                              FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)"error adding to custome photo album");
+                          });
+                      } else {
+                          _imagePath = [[[asset defaultRepresentation] url] path];
+                          [_imagePath retain];
+                          NSLog(@"_imagePath %@", _imagePath);
+                          onCompleteBlock();
+                      }
+                  }];
+             }
+             
+         }];
     }
     NSLog(@"Exiting saveImageToCustomAlbum");
 }
@@ -418,10 +427,16 @@ typedef void (^defaultBlock)();
             switch ([exportSession status]) {
                 case AVAssetExportSessionStatusFailed:
                     NSLog(@"Export session failed: %@",[[exportSession error] localizedDescription]);
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)"Export session failed");
+                    });
                     break;
                 
                 case AVAssetExportSessionStatusCancelled:
                     NSLog(@"Export cancelled");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"ERROR_GENERATING_VIDEO", (const uint8_t *)"Export cancelled");
+                    });
                     break;
                     
                 case AVAssetExportSessionStatusCompleted:
@@ -465,18 +480,19 @@ typedef void (^defaultBlock)();
              _videoPath = [mediaURL path];
              _pickedImage = [[UIImage alloc] initWithCGImage:image];
              
-             [self saveImageToCustomAlbumOnCompleteDo:^{}];
              _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
+             
              
              // increase the reference count for the objects we are keeping.
              [_videoPath retain];
              [_pickedImage retain];
              [_pickedImageJPEGData retain];
              
-             // Let the native extension know that we are done with the picking
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
-             });
+             [self saveImageToCustomAlbumOnCompleteDo:^{
+                 dispatch_async(dispatch_get_main_queue(), ^{
+                     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+                 });
+             }];
          }
          
      }];
@@ -846,6 +862,8 @@ DEFINE_ANE_FUNCTION(getVideoPath)
                          (const uint8_t *)[videoPath UTF8String],
                          &retValue);
     
+    NSLog(@"videoPath %@", videoPath);
+    
     [videoPath release];
     
     NSLog(@"Exiting getVideoPath");
@@ -899,9 +917,12 @@ DEFINE_ANE_FUNCTION(uploadToServer)
         NSURL *upload = [NSURL URLWithString:uploadURL];
         GoogleCloudUploader *uploader = [[GoogleCloudUploader alloc] init];
         
+        NSLog(@"localURL %@", localURL);
+        NSLog(@"mediaURL.path %@", mediaURL.path);
         NSData *mediaData;
         if([[AirImagePicker sharedInstance] imagePath] != nil && [[[AirImagePicker sharedInstance] imagePath] isEqualToString:localURL])
         {
+            NSLog(@"localURL matches image, using pickedImageJPEGData");
             mediaData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
 //            [[[AirImagePicker sharedInstance] pickedImageJPEGData] release];
 //            [[AirImagePicker sharedInstance] setPickedImageJPEGData:nil];
@@ -910,8 +931,18 @@ DEFINE_ANE_FUNCTION(uploadToServer)
         }
         else
         {
-            mediaData = [[NSFileManager defaultManager] contentsAtPath:[mediaURL path]];
+            if([[NSFileManager defaultManager] fileExistsAtPath:mediaURL.path])
+            {
+                NSLog(@"File exits at %@", mediaURL.path);
+                mediaData = [[NSFileManager defaultManager] contentsAtPath:mediaURL.path];
+            }
+            else
+            {
+                NSLog(@"File does not exits at %@", mediaURL.path);
+                return nil;
+            }
         }
+        NSLog(@"Starting upload");
         [uploader startUpload:mediaData withUploadURL:upload andUploadParams:params];
     }
     
