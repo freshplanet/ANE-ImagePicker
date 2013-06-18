@@ -85,15 +85,13 @@
     // You can parse the stuff in your instance variable now
     NSLog(@"Entering connectionDidFinishLoading");
     
-    NSString *response = [[[NSString alloc] initWithData:_responseData encoding:NSUTF8StringEncoding] autorelease];
+    NSString *response = [[NSString alloc] initWithData:_responseData encoding:NSUTF8StringEncoding];
     NSLog(@"Succeeded! response (NSString): %@", response);
 
     // Tell the native extension that we are done.
     [AirImagePicker status:@"FILE_UPLOAD_DONE" level:response];
 
     // Release the connection and the data object
-    [connection release];
-    [_responseData release];
     
     NSLog(@"Exiting connectionDidFinishLoading");
 }

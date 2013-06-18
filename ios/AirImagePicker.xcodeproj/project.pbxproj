@@ -14,8 +14,8 @@
 		653ADDE6175843C70048E70F /* GoogleCloudUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = 653ADDE5175843C70048E70F /* GoogleCloudUploader.m */; };
 		65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */; };
 		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
-		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; };
-		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; };
+		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -238,6 +238,7 @@
 		39898E6C166E6B43004888F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/AirImagePicker.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
@@ -250,6 +251,7 @@
 		39898E6D166E6B43004888F4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/AirImagePicker.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";

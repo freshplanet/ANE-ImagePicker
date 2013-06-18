@@ -256,13 +256,23 @@ package com.freshplanet.ane.AirImagePicker
 		* @param uploadParams http post parameters expected by GCS as part of the upload in JSON format.
 		* @param callback  Function to be called when the upload is completed.
 		*/
-		public function uploadToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
+		public function uploadImageToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
 		{
 			if (!isSupported) callback(STATUS_NOT_SUPPORTED, null);
 			else
 			{
 				_callback = callback;
-				_context.call("uploadToServer", localURL, uploadURL, uploadParams);
+				_context.call("uploadImageToServer", localURL, uploadURL, uploadParams);
+			}
+		}
+		
+		public function uploadVideoToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
+		{
+			if (!isSupported) callback(STATUS_NOT_SUPPORTED, null);
+			else
+			{
+				_callback = callback;
+				_context.call("uploadVideoToServer", localURL, uploadURL, uploadParams);
 			}
 		}
 		

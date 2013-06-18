@@ -21,11 +21,10 @@
 
 @interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 
-@property (nonatomic, retain) UIImagePickerController *imagePicker;
-@property (nonatomic, retain) UIPopoverController *popover;
-@property (nonatomic, retain) UIImage *pickedImage;
-@property (nonatomic, retain) NSData *pickedImageJPEGData;
-@property (nonatomic, strong) NSString *customImageAlbumName;
+//@property (nonatomic, retain) UIImagePickerController *imagePicker;
+//@property (nonatomic, retain) UIPopoverController *popover;
+//@property (nonatomic, retain) UIImage *pickedImage;
+//@property (nonatomic, retain) NSData *pickedImageJPEGData;
 @property (nonatomic, strong) NSString *videoPath;
 @property (nonatomic, strong) NSString *imagePath;
 
@@ -34,16 +33,16 @@
 + (void)log:(NSString *)message;
 + (void)status:(NSString*)code level:(NSString*)level;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions;
-
-- (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
-- (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
-
-- (void) exportToMP4:(NSURL *)originalMediaURL withExportURL:(NSURL*)exportUrl;
-- (void) onVideoExported:(NSURL*)mediaURL;
-
-- (void)displayOverlay:(UIImage *)overlay;
-- (void)removeOverlay;
+//- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions;
+//
+//- (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
+//- (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
+//
+//- (void) exportToMP4:(NSURL *)originalMediaURL withExportURL:(NSURL*)exportUrl;
+//- (void) onVideoExported:(NSURL*)mediaURL;
+//
+//- (void)displayOverlay:(UIImage *)overlay;
+//- (void)removeOverlay;
 
 @end
 
@@ -76,7 +75,8 @@ DEFINE_ANE_FUNCTION(getVideoPath);
 //DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 
 // upload
-DEFINE_ANE_FUNCTION(uploadToServer);
+DEFINE_ANE_FUNCTION(uploadImageToServer);
+DEFINE_ANE_FUNCTION(uploadVideoToServer);
 
 
 // ANE Setup

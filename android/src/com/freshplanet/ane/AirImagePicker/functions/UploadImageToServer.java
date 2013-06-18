@@ -13,14 +13,14 @@ import com.adobe.fre.FRETypeMismatchException;
 import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.tasks.UploadToGoogleCloudStorageAsyncTask;
 
-public class UploadToServer implements FREFunction {
+public class UploadImageToServer implements FREFunction {
 
 	private static String TAG = "AirImagePicker";
 	
 	@Override
 	public FREObject call(FREContext ctx, FREObject[] args) 
 	{
-		Log.d(TAG, "[UploadToServer] Entering call()");
+		Log.d(TAG, "[UploadImageToServer] Entering call()");
 		
 		String localURL = null;
 		String uploadURL = null;
@@ -47,7 +47,7 @@ public class UploadToServer implements FREFunction {
 			new UploadToGoogleCloudStorageAsyncTask(uploadParamsJSON, localURL).execute(uploadURL);
 		}
 		
-		Log.d(TAG, "[UploadToServer] Exiting call()");
+		Log.d(TAG, "[UploadImageToServer] Exiting call()");
 		return null;
 	}
 	
