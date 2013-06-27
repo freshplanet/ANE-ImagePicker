@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "FlashRuntimeExtensions.h"
-#import "GoogleCloudUploader.h"
 
 @interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 
@@ -74,9 +73,6 @@ DEFINE_ANE_FUNCTION(getVideoPath);
 //DEFINE_ANE_FUNCTION(getPickedImageHeight);
 //DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 
-// upload
-DEFINE_ANE_FUNCTION(uploadImageToServer);
-DEFINE_ANE_FUNCTION(uploadVideoToServer);
 
 
 // ANE Setup

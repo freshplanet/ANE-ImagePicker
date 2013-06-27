@@ -11,9 +11,9 @@ public class CopyPickedImageJPEGRepresentationToByteArrayFunction implements FRE
 	@Override
 	public FREObject call(FREContext context, FREObject[] args)
 	{
-		FREByteArray byteArray = (FREByteArray)args[0];
+//		FREByteArray byteArray = (FREByteArray)args[0];
 		
-		AirImagePickerExtension.context.copyPickedImageJPEGRepresentationToByteArray(byteArray);
+//		AirImagePickerExtension.context.copyPickedImageJPEGRepresentationToByteArray(byteArray);
 		
 		return null;
 	}

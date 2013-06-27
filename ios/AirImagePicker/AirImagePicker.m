@@ -17,20 +17,22 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "AirImagePicker.h"
-#import <QuartzCore/QuartzCore.h>
-#import <OpenGLES/ES1/gl.h>
-#import <OpenGLES/ES1/glext.h>
+#include <MobileCoreServices/MobileCoreServices.h>
+#import <AVFoundation/AVFoundation.h>
+#import <MediaPlayer/MediaPlayer.h>
 #import "UIImage+Resize.h"
 
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
+
+//#define MAX_IMAGE_SIZE 500
+#define MAX_VIDEO_DURATION 30.0
 
 FREContext AirIPCtx = nil;
 
 @interface AirImagePicker ()
 {
     UIView *_overlay;
-    CGSize _maxDimensions;
 }
 @property (nonatomic, strong) UIImage *pickedImage;
 @property (nonatomic, strong) UIImagePickerController *imagePicker;
@@ -48,6 +50,7 @@ FREContext AirIPCtx = nil;
 @synthesize videoPath = _videoPath;
 
 static AirImagePicker *sharedInstance = nil;
+static CGSize _maxDimensions;
 
 + (AirImagePicker *)sharedInstance
 {
@@ -92,10 +95,7 @@ static AirImagePicker *sharedInstance = nil;
     self.imagePicker.delegate = self;
     if (allowVideo == true) {
         // there are memory leaks that are not occuring if we use CoreFoundation C code
-        CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
-        CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
-        self.imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *)kUTTypeImage, (NSString *)kUTTypeMovie, nil];
-        CFRelease(mTypesArray);
+        self.imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *)kUTTypeMovie, nil];
     }
     
     self.customImageAlbumName = albumName;
@@ -257,7 +257,12 @@ static AirImagePicker *sharedInstance = nil;
         
         
         // Save Image in Custom Album
-        [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName];
+        if(self.customImageAlbumName) {
+            [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName];
+            self.customImageAlbumName = nil;
+        }
+        self.pickedImage = [AirImagePicker resizeImage:self.pickedImage toMaxDimension:_maxDimensions];
+        
         self.imagePath = [[self saveImageToTemporaryDirectory:self.pickedImage] path];
         
         
@@ -266,6 +271,22 @@ static AirImagePicker *sharedInstance = nil;
         });
         
     });
+}
+
+
++ (UIImage *) resizeImage:(UIImage *)image toMaxDimension:(CGSize)maxDimensions {
+    
+    // make sure that the image has the correct size
+    if ( (image.size.width > maxDimensions.width || image.size.height > maxDimensions.height ) &&
+        maxDimensions.width > 0 && maxDimensions.height > 0)
+    {
+        float reductionFactor = MAX(image.size.width / maxDimensions.width, image.size.height / maxDimensions.height);
+        CGSize newSize = CGSizeMake(image.size.width/reductionFactor, image.size.height/reductionFactor);
+        
+        image = [image resizedImage:newSize interpolationQuality:kCGInterpolationMedium];
+        NSLog(@"resized image to %f x %f", newSize.width, newSize.height);
+    }
+    return image;
 }
 
 - (void) saveImageToCameraRoll:(UIImage *)image inAlbum:(NSString *)albumName {
@@ -279,12 +300,13 @@ static AirImagePicker *sharedInstance = nil;
 
 
 - (NSURL *) saveImageToTemporaryDirectory:(UIImage *)image {
+    
     // JPEG compression
-    NSData *imageJPEGData = UIImageJPEGRepresentation(image, 1.0);
+    NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
     
     // Save a copy of the picked video to the app directory
     NSURL *tmpFolderURL =[[NSURL alloc] initFileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
-    NSURL *toURL = [tmpFolderURL URLByAppendingPathComponent:@"uploadImage.jpg"];
+    NSURL *toURL = [tmpFolderURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%duploadImage.jpg", arc4random()]];
     
     [imageJPEGData writeToURL:toURL atomically:YES];
     NSLog(@"Saved image %@ in %@", image, toURL);
@@ -323,6 +345,7 @@ static AirImagePicker *sharedInstance = nil;
              // Success!  Store the data we will retrieve later
              self.pickedImage = [[UIImage alloc] initWithCGImage:image];
              
+             self.pickedImage = [AirImagePicker resizeImage:self.pickedImage toMaxDimension:_maxDimensions];
              self.imagePath = [[self saveImageToTemporaryDirectory:self.pickedImage] path];
              
              dispatch_async(dispatch_get_main_queue(), ^{
@@ -335,53 +358,6 @@ static AirImagePicker *sharedInstance = nil;
     
     NSLog(@"Exiting - onVideoPickedWithMediaURL");
 }
-
-//- (void) onVideoExported:(NSURL*)mediaURL
-//{
-//    NSLog(@"Entering - onVideoExported");
-//    
-//    // Create or Asset Generator and task it with creating the thumbnail
-//    AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:mediaURL options:nil];
-//    AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-//    [asset release];
-//    CMTime time = CMTimeMakeWithSeconds(0,30);
-//    CGSize maxSize = CGSizeMake(320, 180);
-//    imageGenerator.maximumSize = maxSize;
-//    
-//    // Attemp to create the CGImage of the thumbnail
-//    [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]] 
-//     completionHandler:^(CMTime requestedTime, CGImageRef image, CMTime actualTime,
-//                         AVAssetImageGeneratorResult result, NSError *error) {
-//         // Something went wrong, log the error.
-//         if (result != AVAssetImageGeneratorSucceeded) {
-//             NSLog(@"Couldn't generate thumbnail, error: %@", error);
-//             dispatch_async(dispatch_get_main_queue(), ^{
-//                 FREDispatchStatusEventAsync(AirIPCtx,
-//                                             (const uint8_t *)"ERROR_GENERATING_VIDEO",
-//                                             (const uint8_t *)[[error description] UTF8String]);
-//             });
-//         } else {
-//             // Success!  Store the data we will retrieve later
-//             _videoPath = [mediaURL path];
-//             _pickedImage = [[UIImage alloc] initWithCGImage:image];
-//             
-//             
-//             
-//             // increase the reference count for the objects we are keeping.
-//             [_videoPath retain];
-//             //             [pickedImage retain];
-//             [self saveImageToCameraRoll:_pickedImage inAlbum:_customImageAlbumName];
-//             [self saveImageToTemporaryDirectory:_pickedImage];
-//             
-//             dispatch_async(dispatch_get_main_queue(), ^{
-//                 FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
-//             });
-//         }
-//         
-//     }];
-//    
-//    NSLog(@"Exiting - onVideoExported");
-//}
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
@@ -417,104 +393,6 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// upload
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-+ (NSData *) getBytesForImageAt:(NSString *)imageJPEGPath withMaxImageSize:(float) maxSize {
-    
-    // Load the image from the disk
-    NSData *imageJPEGData = [NSData dataWithContentsOfFile:imageJPEGPath];
-    UIImage *image = [UIImage imageWithData:imageJPEGData];
-    
-    NSLog(@"Loaded image from %@", imageJPEGPath);
-    
-    // make sure that the image has the correct size
-    if ( (image.size.width > maxSize || image.size.height > maxSize ) &&
-        maxSize != -1 && maxSize != -1)
-    {
-        CGSize newSize;
-        if(image.size.width > maxSize) newSize = CGSizeMake(maxSize, maxSize/image.size.width*image.size.height);
-        else newSize = CGSizeMake(maxSize/image.size.height*image.size.width, maxSize);
-            
-        // resize the image
-        UIGraphicsBeginImageContext(newSize);
-        [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        
-        // JPEG compression
-        imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
-        
-        NSLog(@"resized image to %f x %f", newSize.width, newSize.height);
-    }
-    
-    return imageJPEGData;
-}
-
-typedef void(^exportToMP4Completion)(NSString* error, NSURL *toURL);
-
-+ (void) exportToMP4:(NSURL *)originalMediaURL withMaxDuration:(double) maxDuration onComplete:(exportToMP4Completion)onComplete
-{
-    NSLog(@"Entering - exportToMP4:originalMediaURL:withExportURL originalMediaURL: %@", originalMediaURL);
-    
-    // create a temp url for the mp4 video
-    NSURL *tmpFolderURL =[[NSURL alloc] initFileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
-    NSURL *toURL = [tmpFolderURL URLByAppendingPathComponent:@"uploadVideo.mp4"];
-    
-    // check if there was already a video at this url
-    if( [[NSFileManager defaultManager] fileExistsAtPath:[toURL path]] ) {
-        // remove existing video
-        [[NSFileManager defaultManager] removeItemAtPath:[toURL path] error:NULL];
-    }
-    
-    // check if the device can compress to low quality
-    AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:originalMediaURL options:nil];
-    NSArray *compatiblePresets = [AVAssetExportSession exportPresetsCompatibleWithAsset:avAsset];
-    
-    if ([compatiblePresets containsObject:AVAssetExportPresetLowQuality])
-    {
-        // prepare the compression session
-        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:avAsset presetName:AVAssetExportPresetLowQuality];
-        exportSession.outputURL = toURL;
-        exportSession.outputFileType = AVFileTypeMPEG4;
-        
-        exportSession.shouldOptimizeForNetworkUse = YES;
-        
-        // trim the video to 30s max
-        CMTime start = CMTimeMakeWithSeconds(0.0, 1);
-        CMTime duration = CMTimeMakeWithSeconds(maxDuration, 1);
-        CMTimeRange range = CMTimeRangeMake(start, duration);
-        exportSession.timeRange = range;
-        
-        // export the video asynchronously
-        [exportSession exportAsynchronouslyWithCompletionHandler:^{
-            switch ([exportSession status]) {
-                case AVAssetExportSessionStatusFailed:
-                    NSLog(@"Export session failed: %@",[[exportSession error] localizedDescription]);
-                    onComplete(@"Export session failed", toURL);
-                    break;
-                    
-                case AVAssetExportSessionStatusCancelled:
-                    NSLog(@"Export cancelled");
-                    onComplete(@"Export cancelled", toURL);
-                    break;
-                    
-                case AVAssetExportSessionStatusCompleted:
-                    NSLog(@"Export successful");
-                    onComplete(nil, toURL);
-                    break;
-                    
-                default:
-                    break;
-            }
-            
-            // remove the original video
-            [[NSFileManager defaultManager] removeItemAtPath:[originalMediaURL path] error:NULL];
-        }];
-    }
-    NSLog(@"Exiting - exportToMP4 toURL %@", toURL);
-}
 
 
 
@@ -868,136 +746,12 @@ DEFINE_ANE_FUNCTION(getImagePath)
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// upload
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-DEFINE_ANE_FUNCTION(uploadImageToServer)
-{
-    NSLog(@"Entering uploadImageToServer");
-    
-    uint32_t stringLength;
-    
-    NSString *localURLPath = nil;
-    NSString *uploadURLPath = nil;
-    NSDictionary *params = nil;
-    float maxSize = 500;//TODO Param
-    
-    const uint8_t *localURLString;
-    if (FREGetObjectAsUTF8(argv[0], &stringLength, &localURLString) == FRE_OK) {
-        localURLPath = [NSString stringWithUTF8String:(const char *)localURLString];
-    }
-    
-    const uint8_t *uploadURLString;
-    if (FREGetObjectAsUTF8(argv[1], &stringLength, &uploadURLString) == FRE_OK) {
-        uploadURLPath = [NSString stringWithUTF8String:(const char *)uploadURLString];
-    }
-    
-    const uint8_t *uploadParamsString;
-    if (FREGetObjectAsUTF8(argv[2], &stringLength, &uploadParamsString) == FRE_OK) {
-        NSData *data = [[NSString stringWithUTF8String:(const char *)uploadParamsString] dataUsingEncoding:NSUTF8StringEncoding];
-        params = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-    }
-    
-    if ( localURLPath != nil && uploadURLPath != nil && params != nil && [params count] > 0 )
-    {
-        NSURL *mediaURL = [NSURL URLWithString:localURLPath];
-        
-        if([[NSFileManager defaultManager] fileExistsAtPath:mediaURL.path])
-        {
-            NSLog(@"File exits at %@", mediaURL.path);
-            
-            dispatch_queue_t queue = dispatch_queue_create("com.freshplanet.apps.MegaPop.resizeImage", NULL);
-            dispatch_async(queue, ^{
-                NSURL *uploadURL = [NSURL URLWithString:uploadURLPath];
-                NSData *mediaData = [AirImagePicker getBytesForImageAt:mediaURL.path withMaxImageSize:maxSize];
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    NSLog(@"Starting upload");
-                    GoogleCloudUploader *uploader = [[GoogleCloudUploader alloc] init];
-                    [uploader startUpload:mediaData withUploadURL:uploadURL andUploadParams:params];
-                });
-            });
-        }
-        else
-        {
-            NSLog(@"File does not exits at %@", mediaURL.path);
-        }
-    }
-    
-    NSLog(@"Exiting uploadToServer");
-    return nil;
-}
-
-DEFINE_ANE_FUNCTION(uploadVideoToServer)
-{
-    NSLog(@"Entering uploadImageToServer");
-    
-    uint32_t stringLength;
-    
-    NSString *localURLPath = nil;
-    NSString *uploadURLPath = nil;
-    NSDictionary *params = nil;
-    float maxDuration = 30.0;//TODO Param
-    
-    const uint8_t *localURLString;
-    if (FREGetObjectAsUTF8(argv[0], &stringLength, &localURLString) == FRE_OK) {
-        localURLPath = [NSString stringWithUTF8String:(const char *)localURLString];
-    }
-    
-    const uint8_t *uploadURLString;
-    if (FREGetObjectAsUTF8(argv[1], &stringLength, &uploadURLString) == FRE_OK) {
-        uploadURLPath = [NSString stringWithUTF8String:(const char *)uploadURLString];
-    }
-    
-    const uint8_t *uploadParamsString;
-    if (FREGetObjectAsUTF8(argv[2], &stringLength, &uploadParamsString) == FRE_OK) {
-        NSData *data = [[NSString stringWithUTF8String:(const char *)uploadParamsString] dataUsingEncoding:NSUTF8StringEncoding];
-        params = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-    }
-    
-    if ( localURLPath != nil && uploadURLPath != nil && params != nil && [params count] > 0 )
-    {
-        NSURL *mediaURL = [NSURL URLWithString:localURLPath];
-        
-        if([[NSFileManager defaultManager] fileExistsAtPath:mediaURL.path])
-        {
-            NSLog(@"File exits at %@", mediaURL.path);
-            
-            dispatch_queue_t queue = dispatch_queue_create("com.freshplanet.apps.MegaPop.resizeVideo", NULL);
-            dispatch_async(queue, ^{
-                
-                [AirImagePicker exportToMP4:mediaURL withMaxDuration:maxDuration onComplete:^(NSString *error, NSURL *toURL) {
-                    if (error) NSLog(@"export failed");
-                    else
-                    {
-                        NSURL *uploadURL = [NSURL URLWithString:uploadURLPath];
-                        NSData *mediaData = [[NSFileManager defaultManager] contentsAtPath:toURL.path];
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            NSLog(@"Starting upload");
-                            GoogleCloudUploader *uploader = [[GoogleCloudUploader alloc] init];
-                            [uploader startUpload:mediaData withUploadURL:uploadURL andUploadParams:params];
-                        });
-                    }
-                }];
-            });
-            
-        }
-        else
-        {
-            NSLog(@"File does not exits at %@", mediaURL.path);
-        }
-    }
-    
-    NSLog(@"Exiting uploadToServer");
-    return nil;
-}
-
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 13;
+    NSInteger nbFuntionsToLink = 11;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -1053,14 +807,6 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[10].name = (const uint8_t*) "getImagePath";
     func[10].functionData = NULL;
     func[10].function = &getImagePath;
-    
-    func[11].name = (const uint8_t*) "uploadImageToServer";
-    func[11].functionData = NULL;
-    func[11].function = &uploadImageToServer;
-    
-    func[12].name = (const uint8_t*) "uploadVideoToServer";
-    func[12].functionData = NULL;
-    func[12].function = &uploadVideoToServer;
     
     *functionsToSet = func;
     

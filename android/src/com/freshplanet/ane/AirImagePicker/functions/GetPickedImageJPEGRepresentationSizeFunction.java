@@ -10,14 +10,15 @@ public class GetPickedImageJPEGRepresentationSizeFunction implements FREFunction
 	@Override
 	public FREObject call(FREContext context, FREObject[] args)
 	{
-		try
-		{
-			return FREObject.newObject(AirImagePickerExtension.context.getPickedImageJPEGRepresentationSize());
-		}
-		catch (Exception exception)
-		{
-			AirImagePickerExtension.log(exception.getMessage());
-			return null;
-		}
+//		try
+//		{
+//			return FREObject.newObject(AirImagePickerExtension.context.getPickedImageJPEGRepresentationSize());
+//		}
+//		catch (Exception exception)
+//		{
+//			AirImagePickerExtension.log(exception.getMessage());
+//			return null;
+//		}
+		return null;
 	}
 }

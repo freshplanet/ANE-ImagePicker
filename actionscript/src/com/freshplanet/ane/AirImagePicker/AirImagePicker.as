@@ -247,34 +247,6 @@ package com.freshplanet.ane.AirImagePicker
 			if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
 			else _context.call("displayCamera", allowVideo, crop);
 		}
-
-		/**
-		*  Perform a Google Cloud Storage Upload of the media stored locally in localURL.
-		*
-		* @param localURL location on the device where the media is stored.  Usually should correspond to a video.
-		* @param uploadURL the URL returned by HelloPop backend that corresponds to the GCS upload endpoint.
-		* @param uploadParams http post parameters expected by GCS as part of the upload in JSON format.
-		* @param callback  Function to be called when the upload is completed.
-		*/
-		public function uploadImageToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
-		{
-			if (!isSupported) callback(STATUS_NOT_SUPPORTED, null);
-			else
-			{
-				_callback = callback;
-				_context.call("uploadImageToServer", localURL, uploadURL, uploadParams);
-			}
-		}
-		
-		public function uploadVideoToServer( localURL:String, uploadURL:String, uploadParams:String, callback:Function ):void
-		{
-			if (!isSupported) callback(STATUS_NOT_SUPPORTED, null);
-			else
-			{
-				_callback = callback;
-				_context.call("uploadVideoToServer", localURL, uploadURL, uploadParams);
-			}
-		}
 		
 		
 		// --------------------------------------------------------------------------------------//
@@ -411,21 +383,6 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					callback(STATUS_PICASSA_NOT_SUPPORTED);
-				}
-			}
-			else if (event.code == "FILE_UPLOAD_PROGRESS")
-			{
-				if (callback != null)
-				{
-					callback("FILE_UPLOAD_PROGRESS", event.level);
-				}
-			}			
-			else if (event.code == "FILE_UPLOAD_DONE")
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback("FILE_UPLOAD_DONE", event.level);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message
