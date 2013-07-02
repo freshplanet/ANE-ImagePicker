@@ -51,6 +51,7 @@ FREContext AirIPCtx = nil;
 
 static AirImagePicker *sharedInstance = nil;
 static CGSize _maxDimensions;
+static BOOL _crop;
 
 + (AirImagePicker *)sharedInstance
 {
@@ -88,6 +89,7 @@ static CGSize _maxDimensions;
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
     _maxDimensions = maxDimensions;
+    _crop =crop;
     
     self.imagePicker = [[UIImagePickerController alloc] init];
     self.imagePicker.sourceType = sourceType;
@@ -205,7 +207,7 @@ static CGSize _maxDimensions;
         
         
         // Retrieve image
-        BOOL crop = YES;
+        BOOL crop = _crop;
         if (editedImage)
         {
             self.pickedImage = editedImage;
@@ -430,7 +432,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     uint32_t cropValue;
     FREObject cropObject = argv[3];
     FREGetObjectAsBool(cropObject, &cropValue);
-    BOOL crop = (cropValue != 3);
+    BOOL crop = (cropValue != 0);
     
     CGRect anchor;
     if (argc > 4)
