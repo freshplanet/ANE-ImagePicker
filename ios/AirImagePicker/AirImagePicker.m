@@ -307,12 +307,35 @@ static BOOL _crop;
     NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
     
     // Save a copy of the picked video to the app directory
-    NSURL *tmpFolderURL =[[NSURL alloc] initFileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
-    NSURL *toURL = [tmpFolderURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%duploadImage.jpg", arc4random()]];
+    NSURL *toURL = [[AirImagePicker getTemporaryDirectory] URLByAppendingPathComponent:[NSString stringWithFormat:@"%duploadImage.jpg", arc4random()]];
     
     [imageJPEGData writeToURL:toURL atomically:YES];
     NSLog(@"Saved image %@ in %@", image, toURL);
     return toURL;
+}
+
+- (BOOL) cleanUpTemporaryDirectoryContent {
+    NSLog(@"Entering - cleanUpTemporaryDirectoryContent");
+    
+    NSURL *directory = [AirImagePicker getTemporaryDirectory];
+    NSError *error = nil;
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL allSuccess = YES;
+    
+    for (NSString *file in [fm contentsOfDirectoryAtPath:[directory path] error:&error]) {
+        BOOL success = [fm removeItemAtPath:[NSString stringWithFormat:@"%@%@", directory, file] error:&error];
+        if (!success || error) {
+            allSuccess = NO;
+            NSLog(@"cleanUpTemporaryDirectoryContent failed to remove %@", file);
+        }
+    }
+    NSLog(@"Exiting - cleanUpTemporaryDirectoryContent");
+    return allSuccess;
+}
+
++ (NSURL *) getTemporaryDirectory {
+    
+    return [[[NSURL alloc] initFileURLWithPath:NSTemporaryDirectory() isDirectory:YES] URLByAppendingPathComponent:@"imagePicker" isDirectory:YES];
 }
 
 - (void) onVideoPickedWithMediaURL:(NSURL *)originalMediaURL {
@@ -747,13 +770,29 @@ DEFINE_ANE_FUNCTION(getImagePath)
     return retValue;
 }
 
+DEFINE_ANE_FUNCTION(cleanUpTemporaryDirectoryContent)
+{
+    NSLog(@"EnteringcleanUpTemporaryDirectoryContent");
+    FREObject retValue = NULL;
+    
+    BOOL success = [[AirImagePicker sharedInstance] cleanUpTemporaryDirectoryContent];
+    if(success)
+        NSLog(@"cleanUpTemporaryDirectoryContent success");
+    else
+        NSLog(@"cleanUpTemporaryDirectoryContent failed");
+    
+    NSLog(@"Exiting cleanUpTemporaryDirectoryContent");
+    FRENewObjectFromBool(success, &retValue);
+    return retValue;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 11;
+    NSInteger nbFuntionsToLink = 12;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -809,6 +848,10 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[10].name = (const uint8_t*) "getImagePath";
     func[10].functionData = NULL;
     func[10].function = &getImagePath;
+    
+    func[11].name = (const uint8_t*) "cleanUpTemporaryDirectoryContent";
+    func[11].functionData = NULL;
+    func[11].function = &cleanUpTemporaryDirectoryContent;
     
     *functionsToSet = func;
     

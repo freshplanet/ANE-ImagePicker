@@ -247,6 +247,11 @@ package com.freshplanet.ane.AirImagePicker
 			if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
 			else _context.call("displayCamera", allowVideo, crop);
 		}
+
+		public function cleanUpTemporaryDirectoryContent () : Boolean
+		{
+			return _context.call("cleanUpTemporaryDirectoryContent");
+		}
 		
 		
 		// --------------------------------------------------------------------------------------//

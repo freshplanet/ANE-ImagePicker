@@ -49,6 +49,8 @@ import android.util.Log;
 import com.adobe.fre.FREBitmapData;
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREFunction;
+
+import com.freshplanet.ane.AirImagePicker.functions.CleanUpTemporaryDirectoryContent;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayCameraFunction;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayImagePickerFunction;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayOverlayFunction;
@@ -99,6 +101,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("getImagePath", new GetImagePath());
 		functions.put("displayOverlay", new DisplayOverlayFunction()); // not implemented
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
+		functions.put("cleanUpTemporaryDirectoryContent", new CleanUpTemporaryDirectoryContent());
 
 		return functions;	
 	}
@@ -664,6 +667,20 @@ public class AirImagePickerExtensionContext extends FREContext
 
 		// Create temp file
 		return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+	}
+
+	public Boolean cleanUpTemporaryDirectoryContent()
+	{
+		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
+		if (tempFolder.exists())
+		{
+			File[] files = tempFolder.listFiles();
+			for(int i=0; i<files.length; i++) {
+                    files[i].delete();
+            }
+		}
+		Log.d(TAG, "[AirImagePickerExtensionContext] cleanUpTemporaryDirectoryContent");
+		return true;
 	}
 	
 	private void deleteTemporaryImageFile(String filePath)
