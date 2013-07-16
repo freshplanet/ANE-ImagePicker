@@ -269,7 +269,11 @@ static BOOL _crop;
         
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+            if ( self.imagePath ) {
+                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+            } else {
+                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"PICKING_ERROR", (const uint8_t *)"COULD_NOT_SAVE");
+            }
         });
         
     });
@@ -306,11 +310,23 @@ static BOOL _crop;
     // JPEG compression
     NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
     
-    // Save a copy of the picked video to the app directory
-    NSURL *toURL = [[AirImagePicker getTemporaryDirectory] URLByAppendingPathComponent:[NSString stringWithFormat:@"%duploadImage.jpg", arc4random()]];
+    NSError *error = nil;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:[[AirImagePicker getTemporaryDirectory] path] isDirectory:YES]) {
+        if(![[NSFileManager defaultManager] createDirectoryAtPath:[[AirImagePicker getTemporaryDirectory] path] withIntermediateDirectories:YES attributes:nil error:&error])
+        {
+            NSLog(@"Could not create directory %@, error: %@", [AirImagePicker getTemporaryDirectory], error);
+            return nil;
+        }
+    }
     
-    [imageJPEGData writeToURL:toURL atomically:YES];
-    NSLog(@"Saved image %@ in %@", image, toURL);
+    // Save a copy of the picked video to the app tmp directory
+    NSURL *toURL = [[AirImagePicker getTemporaryDirectory] URLByAppendingPathComponent:[NSString stringWithFormat:@"%duploadImage.jpg", arc4random()] isDirectory:NO];
+    if([imageJPEGData writeToURL:toURL options:NSAtomicWrite error:&error]) {
+        NSLog(@"Saved image %@ in %@", image, toURL);
+    } else {
+        NSLog(@"Could not save image %@ in %@, error: %@", image, toURL, error);
+        return nil;
+    }
     return toURL;
 }
 
@@ -374,8 +390,11 @@ static BOOL _crop;
              self.imagePath = [[self saveImageToTemporaryDirectory:self.pickedImage] path];
              
              dispatch_async(dispatch_get_main_queue(), ^{
-                 NSLog(@"self.imageView.image = self.pickedImage");
-                 FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+                 if ( self.imagePath ) {
+                     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+                 } else {
+                     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"PICKING_ERROR", (const uint8_t *)"COULD_NOT_SAVE");
+                 }
              });
          }
          
