@@ -26,7 +26,7 @@
 #define LOG_TAG     @"AirImagePicker"
 
 //#define MAX_IMAGE_SIZE 500
-#define MAX_VIDEO_DURATION 30.0
+//#define MAX_VIDEO_DURATION 30.0
 
 FREContext AirIPCtx = nil;
 
@@ -87,7 +87,7 @@ static BOOL _crop;
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    
+    NSLog(@"displayImagePickerWithSourceType allowVideo:%d crop:%d albumName:%@ anchor:%f %f %f %f maxDimensions:%f %f", allowVideo, crop, albumName, anchor.origin.x, anchor.origin.y, anchor.size.width, anchor.size.height, maxDimensions.width, maxDimensions.height);
     _maxDimensions = maxDimensions;
     _crop =crop;
     
@@ -440,13 +440,13 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable)
 DEFINE_ANE_FUNCTION(displayImagePicker)
 {
     FREObject imageMaxWidthObj = argv[0];
-    uint32_t imageMaxWidth;
-    FREGetObjectAsUint32(imageMaxWidthObj, &imageMaxWidth);
+    int32_t imageMaxWidth;
+    FREGetObjectAsInt32(imageMaxWidthObj, &imageMaxWidth);
     
     FREObject imageMaxHeightObj = argv[1];
-    uint32_t imageMaxHeight;
-    FREGetObjectAsUint32(imageMaxHeightObj, &imageMaxHeight);
-    
+    int32_t imageMaxHeight;
+    FREGetObjectAsInt32(imageMaxHeightObj, &imageMaxHeight);
+    NSLog(@"displayImagePicker imageMaxWidth:%d imageMaxHeight:%d", imageMaxWidth, imageMaxHeight);
     uint32_t allowVideoValue;
     FREObject allowVideoObj = argv[2];
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
@@ -485,7 +485,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor maxDimensions:CGSizeMake(imageMaxWidth, imageMaxHeight)];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor maxDimensions:CGSizeMake((float)imageMaxWidth, (float)imageMaxHeight)];
     
     return nil;
 }
@@ -505,12 +505,12 @@ DEFINE_ANE_FUNCTION(isCameraAvailable)
 DEFINE_ANE_FUNCTION(displayCamera)
 {
     FREObject imageMaxWidthObj = argv[0];
-    uint32_t imageMaxWidth;
-    FREGetObjectAsUint32(imageMaxWidthObj, &imageMaxWidth);
+    int32_t imageMaxWidth;
+    FREGetObjectAsInt32(imageMaxWidthObj, &imageMaxWidth);
     
     FREObject imageMaxHeightObj = argv[1];
-    uint32_t imageMaxHeight;
-    FREGetObjectAsUint32(imageMaxHeightObj, &imageMaxHeight);
+    int32_t imageMaxHeight;
+    FREGetObjectAsInt32(imageMaxHeightObj, &imageMaxHeight);
     
     uint32_t allowVideoValue;
     FREObject allowVideoObj = argv[2];
@@ -530,7 +530,7 @@ DEFINE_ANE_FUNCTION(displayCamera)
         albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero maxDimensions:CGSizeMake(imageMaxWidth, imageMaxHeight)];
+    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero maxDimensions:CGSizeMake((float)imageMaxWidth, (float)imageMaxHeight)];
     
     return nil;
 }
