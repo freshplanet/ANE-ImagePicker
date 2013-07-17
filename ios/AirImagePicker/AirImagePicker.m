@@ -312,10 +312,11 @@ static BOOL _crop;
     NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
     
     NSURL *tempDir = [AirImagePicker getTemporaryDirectory];
-    BOOL isDirectory;
     NSError *error = nil;
-    if (![[NSFileManager defaultManager] fileExistsAtPath:[tempDir path] isDirectory:&isDirectory] || !isDirectory) {
-        if(!isDirectory) {
+    BOOL isDirectory = YES;
+    BOOL tempDirExist = [[NSFileManager defaultManager] fileExistsAtPath:[tempDir path] isDirectory:&isDirectory];
+    if (!tempDirExist || !isDirectory) {
+        if(tempDirExist && !isDirectory) {
             NSLog(@"Removing file %@", tempDir);
             if(![[NSFileManager defaultManager] removeItemAtURL:tempDir error:&error]) {
                 NSLog(@"Could not remove existing file %@, error: %@", tempDir, error);
