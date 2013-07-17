@@ -306,15 +306,28 @@ static BOOL _crop;
 
 
 - (NSURL *) saveImageToTemporaryDirectory:(UIImage *)image {
+    NSLog(@"Entering - saveImageToTemporaryDirectory");
     
     // JPEG compression
     NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
     
+    NSURL *tempDir = [AirImagePicker getTemporaryDirectory];
+    BOOL isDirectory;
     NSError *error = nil;
-    if (![[NSFileManager defaultManager] fileExistsAtPath:[[AirImagePicker getTemporaryDirectory] path] isDirectory:YES]) {
-        if(![[NSFileManager defaultManager] createDirectoryAtPath:[[AirImagePicker getTemporaryDirectory] path] withIntermediateDirectories:YES attributes:nil error:&error])
+    if (![[NSFileManager defaultManager] fileExistsAtPath:[tempDir path] isDirectory:&isDirectory] || !isDirectory) {
+        if(!isDirectory) {
+            NSLog(@"Removing file %@", tempDir);
+            if(![[NSFileManager defaultManager] removeItemAtURL:tempDir error:&error]) {
+                NSLog(@"Could not remove existing file %@, error: %@", tempDir, error);
+                NSLog(@"Exiting - saveImageToTemporaryDirectory");
+                return nil;
+            }
+        }
+        NSLog(@"Creating directory %@", tempDir);
+        if(![[NSFileManager defaultManager] createDirectoryAtPath:[tempDir path] withIntermediateDirectories:YES attributes:nil error:&error])
         {
-            NSLog(@"Could not create directory %@, error: %@", [AirImagePicker getTemporaryDirectory], error);
+            NSLog(@"Could not create directory %@, error: %@", tempDir, error);
+            NSLog(@"Exiting - saveImageToTemporaryDirectory");
             return nil;
         }
     }
@@ -325,8 +338,10 @@ static BOOL _crop;
         NSLog(@"Saved image %@ in %@", image, toURL);
     } else {
         NSLog(@"Could not save image %@ in %@, error: %@", image, toURL, error);
+        NSLog(@"Exiting - saveImageToTemporaryDirectory");
         return nil;
     }
+    NSLog(@"Exiting - saveImageToTemporaryDirectory");
     return toURL;
 }
 
