@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -36,11 +37,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
@@ -179,8 +182,9 @@ public class AirImagePickerExtensionContext extends FREContext
 			try
 			{
 				ByteBuffer pickedImageBits = ByteBuffer.allocate(4*_pickedImage.getWidth()*_pickedImage.getHeight());
-				_pickedImage.copyPixelsToBuffer(pickedImageBits);
-
+				Bitmap copyImage = _pickedImage.copy(Config.ARGB_8888, true);
+				copyImage.copyPixelsToBuffer(pickedImageBits);
+				
 				// Copy image in BitmapData and convert from RGBA to BGRA
 				int i;
 				byte a, r, g, b;
