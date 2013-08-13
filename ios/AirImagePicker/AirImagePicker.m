@@ -95,6 +95,7 @@ static BOOL _crop;
     self.imagePicker.sourceType = sourceType;
     self.imagePicker.allowsEditing = crop;
     self.imagePicker.delegate = self;
+    self.imagePicker.videoQuality = UIImagePickerControllerQualityTypeMedium;//recompression will be done later
     if (allowVideo == true) {
         // there are memory leaks that are not occuring if we use CoreFoundation C code
         self.imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *)kUTTypeMovie, nil];
