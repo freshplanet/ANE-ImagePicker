@@ -5,7 +5,7 @@
     <property file="build.config"/>
 
     <!-- All -->
-    <target name="all" depends="ios,ios-simulator,android,swc,package" description="Full build of extension"/>
+    <target name="all" depends="ios,android,swc,package" description="Full build of extension"/>
 
     <!-- iOS -->
     <target name="ios" description="Build iOS Library">
@@ -27,29 +27,6 @@
         <copy file="../temp/ios/build/Release-iphoneos/lib${name}.a" todir="../temp/ios" overwrite="true"/>
 
         <delete dir="../temp/ios/build/"/>
-    </target>
-
-    <!-- iOS Simulator -->
-    <target name="ios-simulator" description="Build iOS Simulator Library">
-        <mkdir dir="../temp/ios-simulator/build/"/>
-
-        <exec executable="xcodebuild" failonerror="true" dir="../ios/">
-            <arg line="-project ${name}.xcodeproj"/>
-            <arg line="-alltargets clean"/>
-        </exec>
-
-        <exec executable="xcodebuild" failonerror="true" dir="../ios/">
-            <arg line="-project ${name}.xcodeproj"/>
-            <arg line="-arch i386"/>
-            <arg line="-sdk ${ios.simulatorsdkversion}"/>
-            <arg line="-alltargets"/>
-            <arg line="-configuration Release"/>
-            <arg line="SYMROOT=../temp/ios-simulator/build/"/>
-        </exec>
-
-        <copy file="../temp/ios-simulator/build/Release-iphonesimulator/lib${name}.a" todir="../temp/ios-simulator" overwrite="true"/>
-
-        <delete dir="../temp/ios-simulator/build/"/>
     </target>
 
     <!-- Android -->
@@ -110,7 +87,6 @@
             <arg value="../build/extension.xml"/>
             <arg line="-swc swc/${name}.swc"/>
             <arg line="-platform iPhone-ARM -platformoptions ../build/platform.xml -C ios/ ."/>
-            <arg line="-platform iPhone-x86 -C ios-simulator/ ."/>
             <arg line="-platform Android-ARM -C android/ ."/>
             <arg line="-platform default -C default/ ."/>
         </exec>

@@ -29,14 +29,6 @@
         </applicationDeployment>
     </platform>
 
-    <platform name="iPhone-x86">
-        <applicationDeployment>
-            <nativeLibrary>libAirImagePicker.a</nativeLibrary>
-            <initializer>AirImagePickerInitializer</initializer> 
-            <finalizer>AirImagePickerFinalizer</finalizer>
-        </applicationDeployment>
-    </platform>
-
     <platform name="Android-ARM"> 
         <applicationDeployment> 
             <nativeLibrary>libAirImagePicker.jar</nativeLibrary> 

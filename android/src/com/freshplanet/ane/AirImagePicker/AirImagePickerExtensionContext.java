@@ -473,6 +473,13 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		if ( isVideo )
 		{
+			if (selectedImagePath.toString().startsWith("content://com.google.android.gallery3d"))
+			{
+				dispatchResultEvent("PICASSA_NOT_SUPPORTED");
+				Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery (ret value false)");
+				return;
+			}
+			
 			selectedVideoPath = selectedImagePath; 
 			_pickedImage = createThumbnailForVideo(selectedVideoPath);
 			selectedImagePath = saveImageToTemporaryDirectory(_pickedImage);
