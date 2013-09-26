@@ -41,11 +41,11 @@
             </classpath>
         </javac>
 
-        <mkdir dir="../temp/android/"/>
+        <mkdir dir="../temp/android"/>
         <jar basedir="../android/temp/classes" destfile="../temp/android/lib${name}.jar"/>
-        <copy todir="../temp/android/res/">
+<!--         <copy todir="../temp/android/res/">
             <fileset dir="../android/res"/>
-        </copy>
+        </copy> -->
         <delete dir="../android/temp"/>
     </target>
 
