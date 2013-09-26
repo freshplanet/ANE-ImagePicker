@@ -24,6 +24,16 @@ Usage
         });
     }
     ```
+    
+In the manifestAdditions section of your AIR app manifest, include this in the application element:
+  ```xml
+  <activity
+    android:name="com.freshplanet.ane.AirImagePicker.AirImagePickerActivity"
+    android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|fontScale"
+  />
+  ```
+
+The "configChanges" attribute fixes crashes when returning to the app on some Samsung devices.
 
 Advanced features available: square cropping, custom positioning for the gallery image picker on iPad, custom overlay to avoid white screen when loosing Stage3D context.
 
