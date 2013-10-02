@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.content.res.Configuration;
 
 public class AirImagePickerActivity extends Activity
 {
@@ -14,7 +15,13 @@ public class AirImagePickerActivity extends Activity
 	{
 		Log.d(TAG, "[AirImagePickerActivity] Entering onCreate");
 		
-		super.onCreate(savedInstanceState);		
+		super.onCreate(savedInstanceState);
+
+		if(AirImagePickerExtension.context != null) {
+			Log.d(TAG, "[AirImagePickerActivity] extension context exists");
+		} else {
+			Log.e(TAG, "[AirImagePickerActivity] extension context is NULL !!");
+		}
 		
 		AirImagePickerExtension.context.onCreatePickerActivity(this);
 		
@@ -42,5 +49,23 @@ public class AirImagePickerActivity extends Activity
 		
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onDestroy");
 	}
+
+	@Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "[AirImagePickerActivity] onSaveInstanceState" );
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(TAG, "[AirImagePickerActivity] onRestoreInstanceState" );
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+    	Log.d(TAG, "[AirImagePickerActivity] onConfigurationChanged" );
+    }
 	
 }
