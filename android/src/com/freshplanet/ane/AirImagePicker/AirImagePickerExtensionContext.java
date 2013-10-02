@@ -622,6 +622,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		// Set crop output
 		File tempFile = getTemporaryFile(".jpg");
 		_cropOutputPath = tempFile.getAbsolutePath();
+		Log.d(TAG, "[AirImagePickerExtensionContext] line 625 " + _cropOutputPath);
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 
 		// Cropped image should be square (aspect ratio 1:1)
@@ -644,8 +645,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		_pickedImage = BitmapFactory.decodeFile(_cropOutputPath);
 		
-		deleteTemporaryImageFile(_cropInputPath);
-		deleteTemporaryImageFile(_cropOutputPath);
+		//deleteTemporaryImageFile(_cropInputPath);
+		//deleteTemporaryImageFile(_cropOutputPath);
 		
 		dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
 		
@@ -668,16 +669,23 @@ public class AirImagePickerExtensionContext extends FREContext
 		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
 		if (!tempFolder.exists())
 		{
-			tempFolder.mkdir();
+			tempFolder.mkdirs();
 			try
 			{
 				new File(tempFolder, ".nomedia").createNewFile();
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+				Log.e(TAG, "Couldn't create temporary file with extension '" + extension + "'");
+			}
 		}
 
 		// Create temp file
-		return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+		try {
+		    return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+		} catch (Exception e) {
+			Log.e(TAG, "Coudn't create temp file");
+		}
+		return null;
 	}
 
 	public Boolean cleanUpTemporaryDirectoryContent()
@@ -687,6 +695,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			File[] files = tempFolder.listFiles();
 			for(int i=0; i<files.length; i++) {
+				Log.d(TAG, "[AirImagePickerExtensionContext] deleting file:" + files[i].getAbsolutePath());
                     files[i].delete();
             }
 		}
@@ -696,6 +705,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	
 	private void deleteTemporaryImageFile(String filePath)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] deleting file:" + filePath);
 		new File(filePath).delete();
 	}
 
