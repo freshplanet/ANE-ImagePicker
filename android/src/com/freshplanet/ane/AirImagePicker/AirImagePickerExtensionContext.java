@@ -651,12 +651,10 @@ public class AirImagePickerExtensionContext extends FREContext
 			}
 		}
 		
-		_pickedImage = BitmapFactory.decodeFile(_cropOutputPath);
+		_albumName = null;
 		
-		//deleteTemporaryImageFile(_cropInputPath);
-		//deleteTemporaryImageFile(_cropOutputPath);
-		
-		dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
+		if(orientAndSaveImage(_cropOutputPath))
+			dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForCrop");
 	}
