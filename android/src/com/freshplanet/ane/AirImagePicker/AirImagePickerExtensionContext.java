@@ -32,6 +32,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -69,6 +70,17 @@ import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 public class AirImagePickerExtensionContext extends FREContext 
 {
 	private static String TAG = "AirImagePicker";
+	
+	private Boolean _canDoCrop;
+	
+	public AirImagePickerExtensionContext() 
+	{
+		//Some devices don't support the CROP activity - for now we'll just skip cropping on those
+		Intent intent = new Intent("com.android.camera.action.CROP");
+        intent.setType("image/*");
+        List<ResolveInfo> list = this.getActivity().getPackageManager().queryIntentActivities( intent, 0 );
+        _canDoCrop = (list.size() > 0);
+	}
 	
 	@Override
 	public void dispose() 
@@ -120,7 +132,12 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
-		_shouldCrop = crop;
+		if(crop && !_canDoCrop) {
+			Log.w(TAG, "[AirImagePickerExtensionContext] Requested cropped image, but this device doesn't support it");
+			_shouldCrop = false;
+		} else {
+			_shouldCrop = crop;
+		}
 		if (videosAllowed)
 		{
 			startPickerActivityForAction(GALLERY_IMAGES_AND_VIDEOS_ACTION);
