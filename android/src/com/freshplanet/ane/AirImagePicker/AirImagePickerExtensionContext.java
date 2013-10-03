@@ -469,17 +469,17 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
 		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
 		
+		if (selectedImagePath.toString().startsWith("content://com.google.android.gallery3d"))
+		{
+			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery (ret value false)");
+			return;
+		}
+		
 		Boolean isVideo = getActivity().getContentResolver().getType(selectedImageUri).indexOf("video") != -1;
 		
 		if ( isVideo )
 		{
-			if (selectedImagePath.toString().startsWith("content://com.google.android.gallery3d"))
-			{
-				dispatchResultEvent("PICASSA_NOT_SUPPORTED");
-				Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery (ret value false)");
-				return;
-			}
-			
 			selectedVideoPath = selectedImagePath; 
 			_pickedImage = createThumbnailForVideo(selectedVideoPath);
 			selectedImagePath = saveImageToTemporaryDirectory(_pickedImage);
@@ -571,6 +571,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForImageCamera(Intent data)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] entering handleResultForImageCamera");
 		if (_shouldCrop)
 		{
 			// stop previous activity
@@ -618,6 +619,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	private void prepareIntentForCrop(Intent intent)
 	{
 		// Set crop input
+		
 		intent.setDataAndType(Uri.fromFile(new File(_cropInputPath)), "image/*");
 
 		// Set crop output
@@ -928,6 +930,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Bitmap getOrientedBitmapFromBitmapAndPath(Bitmap bitmap, String filePath)
 	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedBitmapFromBitmapAndPath");
 		try
 		{
 			// Get orientation from EXIF
@@ -952,12 +955,13 @@ public class AirImagePickerExtensionContext extends FREContext
 			}
 
 			// Return new bitmap
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedBitmapFromBitmapAndPath");
 			return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), rotation, true);
 		}
 		catch (Exception exception)
 		{
 			Log.d(TAG, "Couldn't fix bitmap orientation: " + exception.getMessage());
-
+			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedBitmapFromBitmapAndPath");
 			return bitmap;
 		}
 	}
