@@ -643,6 +643,14 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForCrop");
 		
+		if(data.hasExtra(MediaStore.EXTRA_OUTPUT)) {
+			Uri extraImageUri = (Uri)data.getExtras().get(MediaStore.EXTRA_OUTPUT);
+			if(extraImageUri != null) {
+				selectedImagePath = extraImageUri.getPath();
+				Log.d(TAG, "[AirImagePickerExtensionContext] changing selectedImagePath to: " + selectedImagePath);
+			}
+		}
+		
 		_pickedImage = BitmapFactory.decodeFile(_cropOutputPath);
 		
 		//deleteTemporaryImageFile(_cropInputPath);
