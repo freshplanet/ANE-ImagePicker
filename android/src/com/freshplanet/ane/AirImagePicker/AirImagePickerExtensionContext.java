@@ -588,7 +588,8 @@ public class AirImagePickerExtensionContext extends FREContext
 				dispatchResultEvent("DID_FINISH_PICKING", "IMAGE");
 		}
 
-		deleteTemporaryImageFile(_cameraOutputPath);
+		Log.d(TAG, "[AirImagePickerExtensionContext] exiting handleResultForImageCamera");
+		//deleteTemporaryImageFile(_cameraOutputPath);
 	}
 	
 	private void handleResultForVideoCamera(Intent data)
