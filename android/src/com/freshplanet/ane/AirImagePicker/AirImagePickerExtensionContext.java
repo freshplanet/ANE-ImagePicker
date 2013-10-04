@@ -63,6 +63,7 @@ import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageHeightFunction
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageWidthFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetVideoPath;
 import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
+import com.freshplanet.ane.AirImagePicker.functions.IsCropAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 
@@ -105,6 +106,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("displayOverlay", new DisplayOverlayFunction()); // not implemented
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
 		functions.put("cleanUpTemporaryDirectoryContent", new CleanUpTemporaryDirectoryContent());
+		functions.put("isCropAvailable", new IsCropAvailableFunction());
 
 		return functions;	
 	}
@@ -142,6 +144,21 @@ public class AirImagePickerExtensionContext extends FREContext
 
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCameraAvailable");
 		return isAvailable;
+	}
+	
+	public Boolean isCropAvailable()
+	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] isCropAvailable");
+
+		final PackageManager packageManager = getActivity().getPackageManager();
+		Intent intent = getIntentForAction(CROP_ACTION);
+		intent.setType("image/*");
+		List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isActionAvailable");
+		
+		return list.size() > 0;
+		
 	}
 
 	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName, int maxImgWidth, int maxImgHeight)

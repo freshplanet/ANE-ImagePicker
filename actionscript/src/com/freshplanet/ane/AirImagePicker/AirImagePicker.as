@@ -253,6 +253,11 @@ package com.freshplanet.ane.AirImagePicker
 			return _context.call("cleanUpTemporaryDirectoryContent");
 		}
 		
+		public function isCropAvailable(): Boolean 
+		{
+			return _context.call("isCropAvailable");
+		}
+		
 		
 		// --------------------------------------------------------------------------------------//
 		//																						 //
