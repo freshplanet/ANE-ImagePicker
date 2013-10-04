@@ -155,7 +155,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		intent.setType("image/*");
 		List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isActionAvailable");
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCropAvailable");
 		
 		return list.size() > 0;
 		
@@ -165,7 +165,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
-		_shouldCrop = crop && isActionAvailable(CROP_ACTION);
+		_shouldCrop = crop && isCropAvailable();
 		if (albumName != null) 
 			_albumName = albumName;
 		
@@ -304,6 +304,9 @@ public class AirImagePickerExtensionContext extends FREContext
 	private Boolean isActionAvailable(int action)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isActionAvailable");
+		if(action == CROP_ACTION) {
+			return isCropAvailable();
+		}
 		
 		final PackageManager packageManager = getActivity().getPackageManager();
 		List<ResolveInfo> list = packageManager.queryIntentActivities(getIntentForAction(action), PackageManager.MATCH_DEFAULT_ONLY);
