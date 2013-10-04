@@ -148,7 +148,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
-		_shouldCrop = crop;
+		_shouldCrop = crop && isActionAvailable(CROP_ACTION);
 		if (albumName != null) 
 			_albumName = albumName;
 		
