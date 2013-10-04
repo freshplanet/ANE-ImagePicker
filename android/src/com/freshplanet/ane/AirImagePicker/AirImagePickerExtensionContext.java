@@ -165,7 +165,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
-		_shouldCrop = crop && isCropAvailable();
+		_shouldCrop = crop;
 		if (albumName != null) 
 			_albumName = albumName;
 		
@@ -508,7 +508,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			if (_shouldCrop)
+			if (_shouldCrop && isCropAvailable())
 			{
 				// stop previous activity
 				if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
@@ -592,7 +592,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	private void handleResultForImageCamera(Intent data)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] entering handleResultForImageCamera");
-		if (_shouldCrop)
+		if (_shouldCrop && isCropAvailable())
 		{
 			// stop previous activity
 			if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
