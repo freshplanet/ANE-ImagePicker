@@ -474,6 +474,13 @@ public class AirImagePickerExtensionContext extends FREContext
 	private String selectedImagePath;
 	private String selectedVideoPath;
 	
+
+	private static Boolean isPicasa(String path) 
+	{
+		return path.contains("com.google.android.gallery3d") || 
+				path.contains("com.sec.android.gallery3d");
+	}
+	
 	private void handleResultForGallery(Intent data)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForGallery");
@@ -489,7 +496,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
 		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
 		
-		if (selectedImagePath.toString().startsWith("content://com.google.android.gallery3d"))
+		if (isPicasa(selectedImagePath))
 		{
 			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery (ret value false)");
@@ -551,7 +558,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			int columnIndex = cursor.getColumnIndex(MediaColumns.DATA);
 			
 			// if it is a picassa image on newer devices with OS 3.0 and up
-			if (selectedImage.toString().startsWith("content://com.google.android.gallery3d"))
+			if (isPicasa(selectedImage.toString()))
 			{
 				columnIndex = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME);
 				return selectedImage.toString();
@@ -758,7 +765,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
 		
-		if ( filePath.startsWith("content://com.google.android.gallery3d.provider") )
+		if ( isPicasa(filePath) )
 		{
 			// RETRIEVING IMAGES FROM PICASSA IS NOT SUPPORTED IN THIS VERSION
 			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
