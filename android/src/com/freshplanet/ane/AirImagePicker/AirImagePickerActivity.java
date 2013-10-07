@@ -19,12 +19,10 @@ public class AirImagePickerActivity extends Activity
 
 		if(AirImagePickerExtension.context != null) {
 			Log.d(TAG, "[AirImagePickerActivity] extension context exists");
+			AirImagePickerExtension.context.onCreatePickerActivity(this);
 		} else {
 			Log.e(TAG, "[AirImagePickerActivity] extension context is NULL !!");
 		}
-		
-		AirImagePickerExtension.context.onCreatePickerActivity(this);
-		
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onCreate");
 	}
 	
@@ -35,7 +33,8 @@ public class AirImagePickerActivity extends Activity
 		
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		AirImagePickerExtension.context.onPickerActivityResult(requestCode, resultCode, data);
+		if(AirImagePickerExtension.context != null)
+			AirImagePickerExtension.context.onPickerActivityResult(requestCode, resultCode, data);
 		
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onActivityResult");
 	}
