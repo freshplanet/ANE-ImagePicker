@@ -822,13 +822,24 @@ DEFINE_ANE_FUNCTION(cleanUpTemporaryDirectoryContent)
     return retValue;
 }
 
+DEFINE_ANE_FUNCTION(isCropAvailable)
+{
+    NSLog(@"Entering isCropAvailable");
+    FREObject retValue = NULL;
+    
+    BOOL success = true;
+    NSLog(@"Exiting isCropAvailable");
+    FRENewObjectFromBool(success, &retValue);
+    return retValue;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 12;
+    NSInteger nbFuntionsToLink = 13;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -888,6 +899,10 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[11].name = (const uint8_t*) "cleanUpTemporaryDirectoryContent";
     func[11].functionData = NULL;
     func[11].function = &cleanUpTemporaryDirectoryContent;
+    
+    func[12].name = (const uint8_t*) "isCropAvailable";
+    func[12].functionData = NULL;
+    func[12].function = &isCropAvailable;
     
     *functionsToSet = func;
     

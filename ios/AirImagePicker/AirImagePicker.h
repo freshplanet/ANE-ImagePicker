@@ -73,6 +73,7 @@ DEFINE_ANE_FUNCTION(getVideoPath);
 //DEFINE_ANE_FUNCTION(getPickedImageHeight);
 //DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 DEFINE_ANE_FUNCTION(cleanUpTemporaryDirectoryContent);
+DEFINE_ANE_FUNCTION(isCropAvailable);
 
 
 // ANE Setup
