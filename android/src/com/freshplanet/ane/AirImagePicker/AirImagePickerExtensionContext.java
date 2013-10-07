@@ -21,6 +21,7 @@ package com.freshplanet.ane.AirImagePicker;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -35,6 +36,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -593,7 +595,8 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		File tempFile = getTemporaryFile(".3gp");
 		_cameraOutputPath = tempFile.getAbsolutePath();
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 	}
 
 	private void handleResultForImageCamera(Intent data)
@@ -620,17 +623,51 @@ public class AirImagePickerExtensionContext extends FREContext
 		//deleteTemporaryImageFile(_cameraOutputPath);
 	}
 	
-	private void handleResultForVideoCamera(Intent data)
-	{
+	private void handleResultForVideoCamera(Intent data) {
+
 		Log.d(TAG, "Entering handleResultForVideoCamera");
 
-		Log.d(TAG, "_cameraOutputPath = "+_cameraOutputPath);
+		// EXTRA_OUTPUT doesn't work on some 2.x phones, copy manually to the
+		// desired path
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			FileInputStream inputstr = null;
+			FileOutputStream outputstr = null;
+			File outputFile = null;
+			try {
+				outputFile = new File(_cameraOutputPath);
+				AssetFileDescriptor videoAsset = getActivity()
+						.getContentResolver().openAssetFileDescriptor(
+								data.getData(), "r");
+				inputstr = videoAsset.createInputStream();
+				outputstr = new FileOutputStream(outputFile);
+
+				byte[] buffer = new byte[1024];
+				int length;
+				while ((length = inputstr.read(buffer)) > 0) {
+					outputstr.write(buffer, 0, length);
+				}
+			} catch (IOException e) {
+				// TODO: handle error
+				Log.e(TAG, e.getMessage());
+			} finally {
+				try {
+					if (inputstr != null)
+						inputstr.close();
+					if (outputstr != null)
+						outputstr.close();
+				} catch (Exception e2) {
+					// TODO: handle exception
+					Log.e(TAG, e2.getMessage());
+				}
+			}
+		}
 		
+		Log.d(TAG, "_cameraOutputPath = "+_cameraOutputPath);
 		selectedVideoPath = _cameraOutputPath; 
 		_pickedImage = createThumbnailForVideo(selectedVideoPath);
 		selectedImagePath = saveImageToTemporaryDirectory(_pickedImage);
 		dispatchResultEvent("DID_FINISH_PICKING", "VIDEO");
-		
+
 		Log.d(TAG, "Exiting handleResultForVideoCamera");
 	}
 
