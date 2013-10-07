@@ -115,7 +115,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	
 	public Boolean isImagePickerAvailable()
 	{
-		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
+		return isActionAvailable(GALLERY_VIDEOS_ONLY_ACTION);
 	}
 
 	public void displayImagePicker(Boolean videosAllowed, Boolean crop, int maxImgWidth, int maxImgHeight)
@@ -127,7 +127,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		_shouldCrop = crop;
 		if (videosAllowed)
 		{
-			startPickerActivityForAction(GALLERY_IMAGES_AND_VIDEOS_ACTION);
+			startPickerActivityForAction(GALLERY_VIDEOS_ONLY_ACTION);
 		} 
 		else
 		{
@@ -296,7 +296,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	public static final int NO_ACTION = -1;
 	public static final int GALLERY_IMAGES_ONLY_ACTION = 0;
-	public static final int GALLERY_IMAGES_AND_VIDEOS_ACTION = 1;
+	public static final int GALLERY_VIDEOS_ONLY_ACTION = 1;
 	public static final int CAMERA_IMAGE_ACTION = 2;
 	public static final int CAMERA_VIDEO_ACTION = 3;
 	public static final int CROP_ACTION = 4;
@@ -330,9 +330,9 @@ public class AirImagePickerExtensionContext extends FREContext
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
-		case GALLERY_IMAGES_AND_VIDEOS_ACTION:
+		case GALLERY_VIDEOS_ONLY_ACTION:
 			intent = new Intent(Intent.ACTION_GET_CONTENT);
-			intent.setType("video/*, images/*");
+			intent.setType("video/*");
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
@@ -375,7 +375,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForAction(Intent data, int action)
 	{
-		if (action == GALLERY_IMAGES_ONLY_ACTION || action == GALLERY_IMAGES_AND_VIDEOS_ACTION)
+		if (action == GALLERY_IMAGES_ONLY_ACTION || action == GALLERY_VIDEOS_ONLY_ACTION)
 		{
 			handleResultForGallery(data);
 		}
@@ -454,7 +454,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		String requestCodeStr;
 		if ( requestCode == NO_ACTION )	requestCodeStr = "NO_ACTION";
 		else if ( requestCode == GALLERY_IMAGES_ONLY_ACTION )	requestCodeStr = "GALLERY_IMAGES_ONLY_ACTION";
-		else if ( requestCode == GALLERY_IMAGES_AND_VIDEOS_ACTION )	requestCodeStr = "GALLERY_IMAGES_AND_VIDEOS_ACTION";
+		else if ( requestCode == GALLERY_VIDEOS_ONLY_ACTION )	requestCodeStr = "GALLERY_IMAGES_AND_VIDEOS_ACTION";
 		else if ( requestCode == CAMERA_IMAGE_ACTION )	requestCodeStr = "CAMERA_IMAGE_ACTION";
 		else if ( requestCode == CAMERA_VIDEO_ACTION )	requestCodeStr = "CAMERA_VIDEO_ACTION";
 		else if ( requestCode == CROP_ACTION )	requestCodeStr = "CROP_ACTION";
@@ -520,7 +520,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			if (_shouldCrop && isCropAvailable())
 			{
 				// stop previous activity
-				if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+				if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_VIDEOS_ONLY_ACTION ) {
 					if (_pickerActivity != null) {
 						_pickerActivity.finish();
 					}
@@ -605,7 +605,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		if (_shouldCrop && isCropAvailable())
 		{
 			// stop previous activity
-			if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+			if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_VIDEOS_ONLY_ACTION ) {
 				if (_pickerActivity != null) {
 					_pickerActivity.finish();
 				}
