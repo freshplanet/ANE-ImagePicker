@@ -80,6 +80,7 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (!_instance)
 			{
+				_isAndroid = Capabilities.manufacturer.indexOf("Android") > -1;
 				_context = ExtensionContext.createExtensionContext(EXTENSION_ID, null);
 				if (!_context)
 				{
@@ -198,6 +199,8 @@ package com.freshplanet.ane.AirImagePicker
 			
 			if (anchor != null) _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop, anchor);
 			else _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop);
+			
+			
 		}
 		
 		/**
@@ -238,14 +241,19 @@ package com.freshplanet.ane.AirImagePicker
 			maxImageHeight:int = -1,
 			allowVideo:Boolean = false, 
 			crop : Boolean = false, 
-			albumName:String = null ) : void
+			albumName:String = null,
+		    chatLink:String = null) : void
 		{
 			if (!isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			prepareToDisplayNativeUI(callback);
-			
-			if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
-			else _context.call("displayCamera", allowVideo, crop);
+			if(_isAndroid) {
+				if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName, chatLink);
+				else _context.call("displayCamera", allowVideo, crop);
+			} else {
+				if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
+				else _context.call("displayCamera", allowVideo, crop);
+			}
 		}
 
 		public function cleanUpTemporaryDirectoryContent () : Boolean
@@ -276,6 +284,7 @@ package com.freshplanet.ane.AirImagePicker
 		private var _stage3D : Stage3D;
 		private var _overlay : BitmapData;
 		private var _context3DLost : Boolean = false;
+		private var _isAndroid:Boolean;
 		
 		private function prepareToDisplayNativeUI( callback : Function ) : void
 		{

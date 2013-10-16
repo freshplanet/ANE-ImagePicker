@@ -25,6 +25,7 @@ public class DisplayCameraFunction implements FREFunction
 		Boolean allowVideoCapture = false;
 		Boolean crop = false;
 		String albumName = null;
+		String chatLink = "";
 		
 		try {
 			maxImageWidth = args[0].getAsInt();
@@ -33,6 +34,9 @@ public class DisplayCameraFunction implements FREFunction
 			crop = args[3].getAsBool();
 			if (args.length > 4) {
 				albumName = args[4].getAsString();
+			}
+			if (args.length > 5) {
+				chatLink = args[5].getAsString();
 			}
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
@@ -43,7 +47,7 @@ public class DisplayCameraFunction implements FREFunction
 		} catch (FREWrongThreadException e) {
 			e.printStackTrace();
 		}
-		AirImagePickerExtension.context.displayCamera(allowVideoCapture,crop,albumName,maxImageWidth,maxImageHeight);
+		AirImagePickerExtension.context.displayCamera(allowVideoCapture,crop,albumName,maxImageWidth,maxImageHeight, chatLink);
 		
 		Log.d(TAG, "[DisplayCameraFunction] exiting call()");
 		return null;
