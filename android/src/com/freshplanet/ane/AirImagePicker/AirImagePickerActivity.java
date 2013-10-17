@@ -96,7 +96,7 @@ public class AirImagePickerActivity extends Activity
 		if(launchIntent != null) {
 			launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			Uri.Builder builder = new Uri.Builder();
-			builder.scheme("hellopop");
+			builder.scheme("airimagepicker");
 			builder.path(chatLink);
 			builder.appendQueryParameter("chatLink", chatLink);
 			builder.appendQueryParameter("mediaType", mediaType);
