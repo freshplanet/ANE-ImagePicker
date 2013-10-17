@@ -116,14 +116,14 @@ public class AirImagePickerExtensionContext extends FREContext
 	}
 
 	//FRE
-	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName, int maxImgWidth, int maxImgHeight, String chatLink)
+	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName, int maxImgWidth, int maxImgHeight, String baseUri)
 	{
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
 		_shouldCrop = crop;
 		if (albumName != null) 
 			_albumName = albumName;
-		_chatLink = chatLink;
+		_baseUri = baseUri;
 		if (allowVideoCaptures)
 		{
 			startPickerActivityForAction(AirImagePickerUtils.CAMERA_VIDEO_ACTION);
@@ -417,8 +417,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		File tempFile = AirImagePickerUtils.getTemporaryFile(".jpg");
 		_cameraOutputPath = tempFile.getAbsolutePath();
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
-		if(_chatLink != null) {
-			intent.putExtra(this.getActivity().getPackageName() + ":CHAT_LINK", _chatLink);
+		if(_baseUri != null) {
+			intent.putExtra(this.getActivity().getPackageName() + ":BASE_URI", _baseUri);
 		}
 	}
 	
@@ -428,8 +428,8 @@ public class AirImagePickerExtensionContext extends FREContext
 		_cameraOutputPath = tempFile.getAbsolutePath();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
-		if(_chatLink != null) {
-			intent.putExtra(this.getActivity().getPackageName() + ":CHAT_LINK", _chatLink);
+		if(_baseUri != null) {
+			intent.putExtra(this.getActivity().getPackageName() + ":BASE_URI", _baseUri);
 		}
 	}
 
@@ -516,7 +516,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private int[] _maxSize = new int[2];
 	private Boolean _shouldCrop = false;
-	private String _chatLink;
+	private String _baseUri;
 	private String _cropInputPath;
 	private String _cropOutputPath;
 

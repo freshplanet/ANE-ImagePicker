@@ -15,29 +15,23 @@ public class AirImagePickerActivity extends Activity
 	public static final String TAG = "AirImagePicker";
 	
 	protected String airPackageName;
-	protected String chatLink;
-	protected String mediaType;
-	protected String thumbnailPath;
-	protected String mediaPath;
+	
+	protected ImagePickerResult result;
 	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		Log.d(TAG, "[AirImagePickerActivity] Entering onCreate");
-		
 		if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
-			chatLink = savedInstanceState.getString("chatLink");
-			mediaType = savedInstanceState.getString("mediaType");
-			thumbnailPath = savedInstanceState.getString("thumbnailPath");
-			mediaPath = savedInstanceState.getString("mediaPath");
+			result = savedInstanceState.getParcelable("result");
 		}
 		
 		if(airPackageName == null) {                                
 			airPackageName = AirImagePickerExtension.context.getActivity().getPackageName();	
-			thumbnailPath = "/path/to/my/thumbnail.png";
-			mediaPath = "/path/to/my/media.3gp";
+			result.imagePath = "/path/to/my/thumbnail.png";
+			result.videoPath = "/path/to/my/media.3gp";
 		}
 		
 		super.onCreate(savedInstanceState);
@@ -53,12 +47,13 @@ public class AirImagePickerActivity extends Activity
 	
 	@Override public void startActivityForResult(Intent intent, int requestCode) 
 	{
+		
 		if(requestCode == AirImagePickerUtils.CAMERA_IMAGE_ACTION) {
-			mediaType = "image";
+			result.mediaType = "image";
 		} else if (requestCode == AirImagePickerUtils.CAMERA_VIDEO_ACTION) {
-			mediaType = "video";
+			result.mediaType = "video";
 		}
-		mediaPath = AirImagePickerExtension.context.getImagePath();
+		result.videoPath = AirImagePickerExtension.context.getImagePath();
 		super.startActivityForResult(intent, requestCode);
 	}
 	
@@ -86,8 +81,18 @@ public class AirImagePickerActivity extends Activity
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onActivityResult");
 	}
 	
-	public void handleProcessedResult(String mediaPath, Bitmap imageOrThumbnail) {
-		
+	protected void dispatchResultEvent(String code) 
+	{
+		if(AirImagePickerExtension.context != null) {
+			AirImagePickerExtension.context.dispatchResultEvent(code);
+		}
+	}
+	
+	protected void dispatchResultEvent(String code, String level)
+	{
+		if(AirImagePickerExtension.context != null) {
+			AirImagePickerExtension.context.dispatchResultEvent(code, level);
+		}
 	}
 	
 	protected void restartApp(int requestCode, int resultCode, Intent data) throws URISyntaxException
@@ -95,14 +100,7 @@ public class AirImagePickerActivity extends Activity
 		Intent launchIntent = this.getPackageManager().getLaunchIntentForPackage(airPackageName);
 		if(launchIntent != null) {
 			launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			Uri.Builder builder = new Uri.Builder();
-			builder.scheme("airimagepicker");
-			builder.path(chatLink);
-			builder.appendQueryParameter("chatLink", chatLink);
-			builder.appendQueryParameter("mediaType", mediaType);
-			builder.appendQueryParameter("thumbnailPath", thumbnailPath);
-			builder.appendQueryParameter("mediaPath", mediaPath);
-			launchIntent.setData(builder.build());
+			launchIntent.setData(result.toUri());
 	        startActivity(launchIntent);
 		} else {
 			Log.e(TAG, "[AirImagePickerActivity] couldn't get intent to restart app");
@@ -122,10 +120,7 @@ public class AirImagePickerActivity extends Activity
 	@Override
     protected void onSaveInstanceState(Bundle outState) {
 		outState.putString("airPackageName", airPackageName);
-		outState.putString("chatLink", chatLink);
-		outState.putString("mediaType", mediaType);
-		outState.putString("thumbnailPath", thumbnailPath);
-		outState.putString("mediaPath", mediaPath);
+		outState.putParcelable("result", result);
         super.onSaveInstanceState(outState);
         Log.d(TAG, "[AirImagePickerActivity] onSaveInstanceState" );
 
@@ -136,10 +131,7 @@ public class AirImagePickerActivity extends Activity
         super.onRestoreInstanceState(savedInstanceState);
         if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
-			chatLink = savedInstanceState.getString("chatLink");
-			mediaType = savedInstanceState.getString("mediaType");
-			thumbnailPath = savedInstanceState.getString("thumbnailPath");
-			mediaPath = savedInstanceState.getString("mediaPath");
+			result = savedInstanceState.getParcelable("result");
 		}
         Log.d(TAG, "[AirImagePickerActivity] onRestoreInstanceState" );
     }
