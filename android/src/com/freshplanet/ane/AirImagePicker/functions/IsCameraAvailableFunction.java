@@ -7,6 +7,7 @@ import com.adobe.fre.FREFunction;
 import com.adobe.fre.FREObject;
 import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 
 public class IsCameraAvailableFunction implements FREFunction
 {
@@ -18,7 +19,7 @@ public class IsCameraAvailableFunction implements FREFunction
 		Log.d(TAG, "[IsCameraAvailableFunction] entering call()");
 		try
 		{
-			Boolean isAvailable = AirImagePickerExtension.context.isCameraAvailable();
+			Boolean isAvailable = AirImagePickerUtils.isCameraAvailable(context.getActivity());
 			FREObject retValue = FREObject.newObject(isAvailable);
 			
 			Log.d(TAG, "[IsCameraAvailableFunction] exiting call()");

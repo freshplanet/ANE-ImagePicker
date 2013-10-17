@@ -4,20 +4,22 @@ import java.net.URISyntaxException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.content.res.Configuration;
 
 public class AirImagePickerActivity extends Activity
 {
-	private static String TAG = "AirImagePicker";
-	private String airPackageName;
-	private String chatLink;
-	private String mediaType;
-	private String thumbnailPath;
-	private String mediaPath;
+	public static final String TAG = "AirImagePicker";
+	
+	protected String airPackageName;
+	protected String chatLink;
+	protected String mediaType;
+	protected String thumbnailPath;
+	protected String mediaPath;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -49,17 +51,25 @@ public class AirImagePickerActivity extends Activity
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onCreate");
 	}
 	
+	@Override public void startActivityForResult(Intent intent, int requestCode) 
+	{
+		if(requestCode == AirImagePickerUtils.CAMERA_IMAGE_ACTION) {
+			mediaType = "image";
+		} else if (requestCode == AirImagePickerUtils.CAMERA_VIDEO_ACTION) {
+			mediaType = "video";
+		}
+		mediaPath = AirImagePickerExtension.context.getImagePath();
+		super.startActivityForResult(intent, requestCode);
+	}
+	
+	protected AirImagePickerExtensionContext getExtensionContext() {
+		return AirImagePickerExtension.context;
+	}
+	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		Log.d(TAG, "[AirImagePickerActivity] Entering onActivityResult");
-		
-		String action = data.getAction();
-		if (action == MediaStore.ACTION_IMAGE_CAPTURE) {
-			mediaType = "image";
-		} else if (action == MediaStore.ACTION_VIDEO_CAPTURE) {
-			mediaType = "video";
-		}
 		
 		if(AirImagePickerExtension.context != null) {
 			super.onActivityResult(requestCode, resultCode, data);
@@ -76,7 +86,11 @@ public class AirImagePickerActivity extends Activity
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onActivityResult");
 	}
 	
-	private void restartApp(int requestCode, int resultCode, Intent data) throws URISyntaxException
+	public void handleProcessedResult(String mediaPath, Bitmap imageOrThumbnail) {
+		
+	}
+	
+	protected void restartApp(int requestCode, int resultCode, Intent data) throws URISyntaxException
 	{
 		Intent launchIntent = this.getPackageManager().getLaunchIntentForPackage(airPackageName);
 		if(launchIntent != null) {

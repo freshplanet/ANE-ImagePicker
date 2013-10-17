@@ -7,7 +7,7 @@ import com.adobe.fre.FREFunction;
 import com.adobe.fre.FREObject;
 import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 
 public class IsCropAvailableFunction implements FREFunction {
 
@@ -17,7 +17,7 @@ public class IsCropAvailableFunction implements FREFunction {
 		Log.d(TAG, "[IsCropAvailableFunction] entering call()");
 		try
 		{
-			Boolean isAvailable = AirImagePickerExtension.context.isCropAvailable();
+			Boolean isAvailable = AirImagePickerUtils.isCropAvailable(context.getActivity());
 			FREObject retValue = FREObject.newObject(isAvailable);
 			
 			Log.d(TAG, "[IsCropAvailableFunction] exiting call(), available == " + (isAvailable ? "true" : "false"));
