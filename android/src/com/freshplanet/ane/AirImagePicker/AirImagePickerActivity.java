@@ -53,37 +53,10 @@ public class AirImagePickerActivity extends Activity
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onCreate");
 	}
 	
-	@Override public void startActivityForResult(Intent intent, int requestCode) 
-	{
-		
-		if(requestCode == AirImagePickerUtils.CAMERA_IMAGE_ACTION) {
-			result.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
-		} else if (requestCode == AirImagePickerUtils.CAMERA_VIDEO_ACTION) {
-			result.mediaType = ImagePickerResult.MEDIA_TYPE_VIDEO;
-		}
-		result.videoPath = AirImagePickerExtension.context.getImagePath();
-		super.startActivityForResult(intent, requestCode);
-	}
-	
 	protected AirImagePickerExtensionContext getExtensionContext() {
 		return AirImagePickerExtension.context;
 	}
 	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		Log.d(TAG, "[AirImagePickerActivity] Entering onActivityResult");
-		
-		if(AirImagePickerExtension.context != null) {
-			super.onActivityResult(requestCode, resultCode, data);
-			AirImagePickerExtension.context.onPickerActivityResult(requestCode, resultCode, data);
-		} else {
-			Log.e(TAG, "[AirImagePickerActivity] got result but context is gone: " + airPackageName);
-			restartApp();
-		}
-		
-		Log.d(TAG, "[AirImagePickerActivity] Exiting onActivityResult");
-	}
 	
 	protected Boolean sendResultToContext(String code) 
 	{
@@ -114,6 +87,7 @@ public class AirImagePickerActivity extends Activity
 			launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			launchIntent.setData(result.toUri());
 	        startActivity(launchIntent);
+	        finish();
 		} else {
 			Log.e(TAG, "[AirImagePickerActivity] couldn't get intent to restart app");
 		}
