@@ -1,15 +1,18 @@
 package com.freshplanet.ane.AirImagePicker;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
 
-import com.freshplanet.ane.AirImagePicker.AirImagePickerActivity;
+import com.freshplanet.ane.AirImagePicker.ImagePickerActivityBase;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 
-public class GalleryActivity extends AirImagePickerActivity {
+public class GalleryActivity extends ImagePickerActivityBase {
 	
 	
 	@Override
@@ -33,22 +36,19 @@ public class GalleryActivity extends AirImagePickerActivity {
 	
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	protected void handleResult(Intent data)
 	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering handleResultForGallery");
+		Log.d(TAG, "[GalleryActivity] Entering handleResultForGallery");
 		
 		Uri selectedImageUri = data.getData();
 		
-		result.imagePath = AirImagePickerUtils.getPath(this, selectedImageUri);
+		result.imagePath = getPath(selectedImageUri);
 		
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + result.imagePath);
+		Log.d(TAG, "[GalleryActivity] selectedImagePath = " + result.imagePath);
 		
 		if (AirImagePickerUtils.isPicasa(result.imagePath))
 		{
-			if(!sendResultToContext("PICASSA_NOT_SUPPORTED")) 
-			{
-				restartApp();
-			}
+			sendErrorToContext("PICASSA_NOT_SUPPORTED");
 			return;
 		}
 		
@@ -56,37 +56,82 @@ public class GalleryActivity extends AirImagePickerActivity {
 		
 		if ( isVideo )
 		{
-			result.videoPath = result.imagePath; 
-			result.pickedImage = AirImagePickerUtils.createThumbnailForVideo(result.imagePath);
-			result.imagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(result.pickedImage);
-			if(!sendResultToContext("DID_FINISH_PICKING", "VIDEO")) {
-				restartApp();
+			try {
+				result.videoPath = result.imagePath; 
+				result.setPickedImage(AirImagePickerUtils.createThumbnailForVideo(result.imagePath));
+				result.imagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(result.getPickedImage());
+				if((result.videoPath != null) && (result.imagePath != null) && (result.getPickedImage() != null)) {
+					sendResultToContext("DID_FINISH_PICKING", "VIDEO");
+				} else {
+					sendErrorToContext("PICKING_ERROR", "Error picking video: path or thumbnail wasn't set");
+				}
+			} catch (Exception e) {
+				Log.e(TAG, "[GalleryActivity] error picking video: " + e.getMessage());
+				e.printStackTrace();
+				sendErrorToContext("PICKING_ERROR", "Error picking video: " + e.getMessage() );
 			}
+			
 		}
 		else
 		{
-			if ((result.imagePath != null) && parameters.shouldCrop && AirImagePickerUtils.isCropAvailable(this))
-			{
-				finish();
-				doCrop();
-			}
-			else
-			{
-				SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(this, result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
-				
-				if(savedImage != null) {
-					result.pickedImage = savedImage.bitmap;
-					result.imagePath = savedImage.path;
-					if (sendResultToContext("DID_FINISH_PICKING", "IMAGE")) {
-						super.onActivityResult(requestCode, resultCode, data);
+			if (result.imagePath != null) {
+				if(parameters.shouldCrop && AirImagePickerUtils.isCropAvailable(this)) {
+					finish();
+					doCrop();
+				}
+				else
+				{
+					SavedBitmap savedImage = orientAndSaveImage(result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
+					
+					if(savedImage != null) {
+						result.setPickedImage(savedImage.bitmap);
+						result.imagePath = savedImage.path;
+						sendResultToContext("DID_FINISH_PICKING", "IMAGE");
 					} else {
-						restartApp();
+						sendErrorToContext("PICKING_ERROR", "Failed to crop image");
 					}
 				}
+			} else {
+				sendErrorToContext("PICKING_ERROR", "Image picker didn't return a path");
 			}
 		}
 		
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery");
+		Log.d(TAG, "[GalleryActivity] Exiting handleResultForGallery");
+	}
+
+
+	private String getPath(Uri selectedImage)
+	{
+		final String[] filePathColumn = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
+		Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+		
+		// Some devices return an URI of com.android instead of com.google.android
+		if (selectedImage.toString().startsWith("content://com.android.gallery3d.provider"))
+		{
+			selectedImage = Uri.parse( selectedImage.toString().replace("com.android.gallery3d", "com.google.android.gallery3d") );
+		}
+	
+		if (cursor != null)
+		{
+			cursor.moveToFirst();
+			int columnIndex = cursor.getColumnIndex(MediaColumns.DATA);
+			
+			// if it is a picassa image on newer devices with OS 3.0 and up
+			if (AirImagePickerUtils.isPicasa(selectedImage.toString()))
+			{
+				columnIndex = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME);
+				return selectedImage.toString();
+			}
+			else
+			{
+				return cursor.getString(columnIndex);
+			}
+		}
+		else if ( selectedImage != null && selectedImage.toString().length() > 0 )
+		{
+			return selectedImage.toString();
+		}
+		else return null;
 	}
 
 }

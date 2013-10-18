@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-//TODO add success/error info fields
+
 public class ImagePickerResult implements Parcelable {
 	
 	public static final String MEDIA_TYPE_IMAGE = "image";
@@ -16,20 +16,22 @@ public class ImagePickerResult implements Parcelable {
 	public String baseUri;
 	public String mediaType;
 	public String source;
-	public int imageWidth;
-	public int imageHeight;
+	private int imageWidth;
+	private int imageHeight;
 	public String imagePath;
 	public String videoPath;
+	public String errorType;
+	public String errorMessage;
 	
 	//This member is not serialized
-	public Bitmap pickedImage;
+	private Bitmap pickedImage;
 	
 	public static final Parcelable.Creator<ImagePickerResult> CREATOR = new Parcelable.Creator<ImagePickerResult>() {
 		public ImagePickerResult createFromParcel(Parcel in) {
 		    return new ImagePickerResult(in);
 		}
 		
-		public ImagePickerResult[] newArray(int size) {
+		public ImagePickerResult[] newArray(int size) { 
 		    return new ImagePickerResult[size];
 		}
 	};
@@ -43,6 +45,8 @@ public class ImagePickerResult implements Parcelable {
 		imageHeight = in.readInt();
 		imagePath = in.readString();
 		videoPath = in.readString();
+		errorType = in.readString();
+		errorMessage = in.readString();
 	}
 	
 	public ImagePickerResult(String scheme, String baseUri, String mediaType, String source, int imageWidth, int imageHeight) {
@@ -74,6 +78,17 @@ public class ImagePickerResult implements Parcelable {
 		dest.writeInt(imageHeight);
 		dest.writeString(imagePath);
 		dest.writeString(videoPath);
+		dest.writeString(errorType);
+		dest.writeString(errorMessage);
+	}
+	
+	public Bitmap getPickedImage() { return pickedImage; }
+	
+	public void setPickedImage(Bitmap image) 
+	{
+		pickedImage = image;
+		imageWidth = image.getWidth();
+		imageHeight = image.getHeight();
 	}
 	
 	public Uri toUri() 
@@ -81,13 +96,29 @@ public class ImagePickerResult implements Parcelable {
 		Uri.Builder builder = new Uri.Builder();
 		builder.scheme(scheme);
 		builder.path(baseUri);
-		builder.appendQueryParameter("mediaType", mediaType);
-		builder.appendQueryParameter("source", source);
-		builder.appendQueryParameter("imageWidth", String.valueOf(imageWidth));
-		builder.appendQueryParameter("imageHeight", String.valueOf(imageHeight));
-		builder.appendQueryParameter("imagePath", imagePath);
+		if(mediaType != null) {
+			builder.appendQueryParameter("mediaType", mediaType);
+		}
+		if(source != null) {
+			builder.appendQueryParameter("source", source);
+		}
+		if(imageWidth != -1) {
+			builder.appendQueryParameter("imageWidth", String.valueOf(imageWidth));
+		}
+		if(imageHeight != -1) {
+			builder.appendQueryParameter("imageHeight", String.valueOf(imageHeight));
+		}
+		if(imagePath != null) {
+			builder.appendQueryParameter("imagePath", imagePath);
+		}
 		if(videoPath != null) {
 			builder.appendQueryParameter("videoPath", videoPath);
+		}
+		if(errorType != null) {
+			builder.appendQueryParameter("videoPath", errorType);
+		}
+		if(errorMessage != null) {
+			builder.appendQueryParameter("videoPath", errorMessage);
 		}
 		return builder.build();
 	}

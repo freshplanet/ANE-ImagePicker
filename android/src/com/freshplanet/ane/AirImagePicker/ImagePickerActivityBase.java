@@ -20,6 +20,8 @@ import android.util.Log;
 public abstract class ImagePickerActivityBase extends Activity
 {
 	public static final String TAG = "AirImagePicker";
+	public static final String PARAMETERS = ":parameters";
+	public static final String RESULT = ":result";
 	
 	protected String airPackageName;
 	
@@ -29,23 +31,27 @@ public abstract class ImagePickerActivityBase extends Activity
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		Log.d(TAG, "[AirImagePickerActivity] Entering onCreate");
+		Log.d(TAG, "[ImagePickerActivityBase] Entering onCreate");
 		if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
 			parameters = savedInstanceState.getParcelable("parameters");
 			result = savedInstanceState.getParcelable("result");
 		}
 		
-		if(airPackageName == null) {                                
-			airPackageName = AirImagePickerExtension.context.getActivity().getPackageName();	
+		if(airPackageName == null) {
+			if(AirImagePickerExtension.context == null) {
+				Log.e(TAG, "[ImagePickerActivityBase] context was gone before I could get the package name! can't restart the app now...");
+			}
+			airPackageName = AirImagePickerExtension.context.getActivity().getPackageName();
+			Log.d(TAG, "[ImagePickerActivityBase] my package name:" + getPackageName());
 		}
 		
 		if(parameters == null) {
-			parameters = this.getIntent().getParcelableExtra(this.airPackageName + ":parameters");
+			parameters = this.getIntent().getParcelableExtra(airPackageName + PARAMETERS);
 		}
 		
 		if(result == null) {
-			String resultKey = airPackageName + ":result";
+			String resultKey = airPackageName + RESULT;
 			if(getIntent().hasExtra(resultKey)) {
 				result = getIntent().getParcelableExtra(resultKey);
 			} else {
@@ -56,18 +62,19 @@ public abstract class ImagePickerActivityBase extends Activity
 		super.onCreate(savedInstanceState);
 
 		if(AirImagePickerExtension.context == null) {
-			Log.e(TAG, "[AirImagePickerActivity] extension context has died");
-		}
+			Log.w(TAG, "[ImagePickerActivityBase] extension context has died. My package name now: '" + this.getPackageName() + "'");
+		} 
 		
 		
-		Log.d(TAG, "[AirImagePickerActivity] Exiting onCreate");
+		Log.d(TAG, "[ImagePickerActivityBase] Exiting onCreate");
 	}
+	
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		if(resultCode == RESULT_CANCELED) {
-			this.finish();
+			sendResultToContext("DID_CANCEL");
 		} else {
 			handleResult(data);
 		}
@@ -79,21 +86,35 @@ public abstract class ImagePickerActivityBase extends Activity
 		return AirImagePickerExtension.context;
 	}
 	
+	protected void sendErrorToContext(String code) 
+	{
+		sendErrorToContext(code, null);
+	}
+	
 	
 	protected void sendResultToContext(String code) 
 	{
 		sendResultToContext(code, null);
 	}
 	
+	protected void sendErrorToContext(String code, String level) 
+	{
+		result.errorType = code;
+		result.errorMessage = level;
+		sendResultToContext(code, level);
+	}
+	
 	protected void sendResultToContext(String code, String level)
 	{
 		if(AirImagePickerExtension.context == null) {
 			restartApp();
-		} else if (result.getPickedImage() != null) {
+		} else {
 			AirImagePickerExtensionContext context = AirImagePickerExtension.context;
-			context.setImagePath(result.imagePath);
-			context.setVideoPath(result.videoPath);
-			context.setPickedImage(result.getPickedImage());
+			if(result.getPickedImage() != null) {
+				context.setImagePath(result.imagePath);
+				context.setVideoPath(result.videoPath);
+				context.setPickedImage(result.getPickedImage());
+			}
 			context.dispatchResultEvent(code, level);
 		}
 		finish();
@@ -105,7 +126,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		Intent launchIntent = this.getPackageManager().getLaunchIntentForPackage(airPackageName);
 		if(launchIntent != null) {
 			launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			if(result.getPickedImage() != null) {
+			if(result.getPickedImage() != null || result.errorType != null) {
 				launchIntent.setData(result.toUri());
 			}
 	        startActivity(launchIntent);
@@ -114,17 +135,6 @@ public abstract class ImagePickerActivityBase extends Activity
 			Log.e(TAG, "[AirImagePickerActivity] couldn't get intent to restart app");
 		}
 	}
-	
-	
-	@Override
-	protected void onDestroy()
-	{
-		Log.d(TAG, "[AirImagePickerActivity] Entering onDestroy");
-		
-		super.onDestroy();
-		
-		Log.d(TAG, "[AirImagePickerActivity] Exiting onDestroy");
-	}
 
 	@Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -132,7 +142,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		outState.putParcelable("parameters", parameters);
 		outState.putParcelable("result", result);
         super.onSaveInstanceState(outState);
-        Log.d(TAG, "[AirImagePickerActivity] onSaveInstanceState" );
+        Log.d(TAG, "[ImagePickerActivityBase] onSaveInstanceState" );
     }
 
     @Override
@@ -142,27 +152,22 @@ public abstract class ImagePickerActivityBase extends Activity
 			airPackageName = savedInstanceState.getString("airPackageName");
 			result = savedInstanceState.getParcelable("result");
 		}
-        Log.d(TAG, "[AirImagePickerActivity] onRestoreInstanceState" );
+        Log.d(TAG, "[ImagePickerActivityBase] onRestoreInstanceState" );
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration config) {
-    	super.onConfigurationChanged(config);
-    	Log.d(TAG, "[AirImagePickerActivity] onConfigurationChanged" );
-    }
     
     protected void doCrop() {
     	if(parameters.shouldCrop && (result.imagePath != null) && AirImagePickerUtils.isCropAvailable(this)) {
 	    	Intent intent = new Intent(getApplicationContext(), CropActivity.class);
-	    	intent.putExtra(airPackageName + ":parameters", parameters);
-	    	intent.putExtra(airPackageName = ":result", result);
+	    	intent.putExtra(airPackageName + PARAMETERS, parameters);
+	    	intent.putExtra(airPackageName + RESULT, result);
 			startActivity(intent);
     	}
     }
 
 	protected SavedBitmap orientAndSaveImage(String filePath, int maxWidth, int maxHeight, String albumName )
 	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
+		Log.d(TAG, "[ImagePickerActivityBase] Entering orientAndSaveImage");
 		
 	
 		Bitmap image = AirImagePickerUtils.getOrientedSampleBitmapFromPath(filePath);
@@ -177,15 +182,15 @@ public abstract class ImagePickerActivityBase extends Activity
 		image = AirImagePickerUtils.resizeImage(image, maxWidth, maxHeight);
 		String outputPath = AirImagePickerUtils.saveImageToTemporaryDirectory(image);
 		
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
+		Log.d(TAG, "[ImagePickerActivityBase] Exiting orientAndSaveImage");
 		
-		return new AirImagePickerUtils.SavedBitmap(image, outputPath);
+		return new SavedBitmap(image, outputPath);
 	}
 
 	protected void notifyGalleryOfNewImage(File picture)
 	{
 		long current = System.currentTimeMillis();
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering notifyGalleryOfNewImage");
+		Log.d(TAG, "[ImagePickerActivityBase] Entering notifyGalleryOfNewImage");
 		ContentValues values = new ContentValues();
 		values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
 		values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
@@ -195,7 +200,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		Uri base = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 		Uri newUri = contentResolver.insert(base, values);
 		sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, newUri));
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting notifyGalleryOfNewImage");
+		Log.d(TAG, "[ImagePickerActivityBase] Exiting notifyGalleryOfNewImage");
 	}
 	
 }

@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
-public class VideoCameraActivity extends AirImagePickerActivity {
+public class VideoCameraActivity extends ImagePickerActivityBase {
 	
 	
 	@Override
@@ -29,14 +29,12 @@ public class VideoCameraActivity extends AirImagePickerActivity {
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 
 		startActivityForResult(intent, AirImagePickerUtils.CAMERA_VIDEO_ACTION);
-		
-		
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	protected void handleResult(Intent data)
 	{
-		Log.d(AirImagePickerUtils.TAG, "Entering handleResultForVideoCamera");
+		Log.d(TAG, "Entering handleResultForVideoCamera");
 
 		// EXTRA_OUTPUT doesn't work on some 2.x phones, copy manually to the
 		// desired path
@@ -56,8 +54,8 @@ public class VideoCameraActivity extends AirImagePickerActivity {
 					outputstr.write(buffer, 0, length);
 				}
 			} catch (IOException e) {
-				// TODO: handle error
-				Log.e(AirImagePickerUtils.TAG, e.getMessage());
+				Log.e(TAG, e.getMessage());
+				sendErrorToContext("ERROR_GENERATING_VIDEO", e.getMessage());
 			} finally {
 				try {
 					if (inputstr != null)
@@ -65,24 +63,29 @@ public class VideoCameraActivity extends AirImagePickerActivity {
 					if (outputstr != null)
 						outputstr.close();
 				} catch (Exception e2) {
-					// TODO: handle exception
-					Log.e(AirImagePickerUtils.TAG, e2.getMessage());
+					Log.e(TAG, e2.getMessage());
+					sendErrorToContext("ERROR_GENERATING_VIDEO", e2.getMessage());
 				}
 			}
 		}
 		
-		Log.d(AirImagePickerUtils.TAG, "_cameraOutputPath = "+ result.videoPath);
-
-		result.pickedImage = AirImagePickerUtils.createThumbnailForVideo(result.videoPath);
-		result.imagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(result.pickedImage);
-		
-		if(sendResultToContext("DID_FINISH_PICKING", "VIDEO")) {
-			super.onActivityResult(requestCode, resultCode, data);
-		} else {
-			restartApp();
+		Log.d(TAG, "_cameraOutputPath = "+ result.videoPath);
+		try {
+			result.setPickedImage(AirImagePickerUtils.createThumbnailForVideo(result.videoPath));
+			result.imagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(result.getPickedImage());
+			if((result.videoPath != null) && (result.imagePath != null) && (result.getPickedImage() != null)) {
+				sendResultToContext("DID_FINISH_PICKING", "VIDEO");
+			} else {
+				sendErrorToContext("ERROR_GENERATING_VIDEO", "Result of taking video was missing a path or thumbnail");
+			}
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage());
+			e.printStackTrace();
+			sendErrorToContext("ERROR_GENERATING_VIDEO", "Error taking video: " + e.getMessage());
 		}
+		
 
-		Log.d(AirImagePickerUtils.TAG, "Exiting handleResultForVideoCamera");
+		Log.d(TAG, "Exiting handleResultForVideoCamera");
 	}
 
 }

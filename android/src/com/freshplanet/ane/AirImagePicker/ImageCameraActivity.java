@@ -8,10 +8,10 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.freshplanet.ane.AirImagePicker.AirImagePickerActivity;
+import com.freshplanet.ane.AirImagePicker.ImagePickerActivityBase;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 
-public class ImageCameraActivity extends AirImagePickerActivity {
+public class ImageCameraActivity extends ImagePickerActivityBase {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
@@ -32,9 +32,9 @@ public class ImageCameraActivity extends AirImagePickerActivity {
 	
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	protected void handleResult(Intent data)
 	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] entering handleResultForImageCamera");
+		Log.d(TAG, "[ImageCameraActivity] entering handleResult");
 		if (parameters.shouldCrop && AirImagePickerUtils.isCropAvailable(this))
 		{
 			finish();
@@ -42,20 +42,16 @@ public class ImageCameraActivity extends AirImagePickerActivity {
 		}
 		else
 		{
-			SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(this, result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
+			SavedBitmap savedImage = orientAndSaveImage(result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
 			
 			if(savedImage != null) {
-				result.pickedImage = savedImage.bitmap;
+				result.setPickedImage(savedImage.bitmap);
 				result.imagePath = savedImage.path;
-				if(sendResultToContext("DID_FINISH_PICKING", "IMAGE")) {
-					super.onActivityResult(requestCode, resultCode, data);
-				} else {
-					restartApp();
-				}
+				sendResultToContext("DID_FINISH_PICKING", "IMAGE");
 			}
 		}
 
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] exiting handleResultForImageCamera");
+		Log.d(TAG, "[ImageCameraActivity] exiting handleResultForImageCamera");
 		//deleteTemporaryImageFile(_cameraOutputPath);
 	}
 

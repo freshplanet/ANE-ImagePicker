@@ -11,7 +11,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
-public class CropActivity extends AirImagePickerActivity {
+public class CropActivity extends ImagePickerActivityBase {
 	
 
 	@Override
@@ -21,7 +21,7 @@ public class CropActivity extends AirImagePickerActivity {
 
 		// Set crop input
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+		Log.d(TAG, "[CropActivity] Exiting getIntentForAction");
 		Intent intent = new Intent("com.android.camera.action.CROP");
 		
 		String cropInputPath = result.imagePath;
@@ -29,7 +29,7 @@ public class CropActivity extends AirImagePickerActivity {
 
 		// Set crop output
 		File tempFile = AirImagePickerUtils.getTemporaryFile(".jpg");
-		String cropOutputPath = tempFile.getAbsolutePath();
+		result.imagePath = tempFile.getAbsolutePath();
 
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 
@@ -49,33 +49,31 @@ public class CropActivity extends AirImagePickerActivity {
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	protected void handleResult(Intent data)
 	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering handleResultForCrop");
+		Log.d(TAG, "[CropActivity] Entering handleResultForCrop");
 		
 		if(data.hasExtra(MediaStore.EXTRA_OUTPUT)) {
 			Uri extraImageUri = (Uri)data.getExtras().get(MediaStore.EXTRA_OUTPUT);
 			if(extraImageUri != null) {
 				result.imagePath = extraImageUri.getPath();
-				Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] changing selectedImagePath to: " + result.imagePath);
+				Log.d(TAG, "[CropActivity] changing selectedImagePath to: " + result.imagePath);
 			}
 		}
 		
 		parameters.albumName = null;
 		
-		SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(this, result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
+		SavedBitmap savedImage = orientAndSaveImage(result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
 		
 		if(savedImage != null) {
-			result.pickedImage = savedImage.bitmap;
+			result.setPickedImage(savedImage.bitmap);
 			result.imagePath = savedImage.path;
-			if(sendResultToContext("DID_FINISH_PICKING", "IMAGE"))  {
-				super.onActivityResult(requestCode, resultCode, data);
-			} else {
-				restartApp();
-			}
+			sendResultToContext("DID_FINISH_PICKING", "IMAGE");
+		} else {
+			sendErrorToContext("PICKING_ERROR", "Failed to crop image");
 		}
 
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting handleResultForCrop");
+		Log.d(TAG, "[CropActivity] Exiting handleResultForCrop");
 	}
 
 }

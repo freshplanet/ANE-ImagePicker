@@ -102,7 +102,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		ImagePickerParameters params = new ImagePickerParameters("airImagePicker", null, crop, maxImgWidth, maxImgWidth, null);
 		Intent intent = new Intent(getActivity().getApplicationContext(), GalleryActivity.class);
 		params.mediaType = videosAllowed ? ImagePickerResult.MEDIA_TYPE_VIDEO : ImagePickerResult.MEDIA_TYPE_IMAGE;
-		intent.putExtra(airPackageName + ":parameters", params);
+		intent.putExtra(airPackageName + ImagePickerActivityBase.PARAMETERS, params);
 		getActivity().startActivity(intent);
 		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
@@ -122,7 +122,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			params.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
 			intent = new Intent(getActivity().getApplicationContext(), ImageCameraActivity.class);
 		}
-		intent.putExtra(airPackageName + ":parameters", params);
+		intent.putExtra(airPackageName + ImagePickerActivityBase.PARAMETERS, params);
 		getActivity().startActivity(intent);
 	}
 
