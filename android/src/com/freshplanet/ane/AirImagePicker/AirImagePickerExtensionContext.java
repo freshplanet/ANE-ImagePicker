@@ -48,15 +48,11 @@ import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 public class AirImagePickerExtensionContext extends FREContext 
 {
 	
-	public static String airPackageName;
+
 	
 	private String selectedImagePath;
 	private String selectedVideoPath;
 	private Bitmap _pickedImage;
-	
-	public AirImagePickerExtensionContext() {
-		airPackageName = getActivity().getPackageName();
-	}
 	
 	@Override
 	public void dispose() 
@@ -102,7 +98,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		ImagePickerParameters params = new ImagePickerParameters("airImagePicker", null, crop, maxImgWidth, maxImgWidth, null);
 		Intent intent = new Intent(getActivity().getApplicationContext(), GalleryActivity.class);
 		params.mediaType = videosAllowed ? ImagePickerResult.MEDIA_TYPE_VIDEO : ImagePickerResult.MEDIA_TYPE_IMAGE;
-		intent.putExtra(airPackageName + ImagePickerActivityBase.PARAMETERS, params);
+		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, params);
 		getActivity().startActivity(intent);
 		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
@@ -122,7 +118,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			params.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
 			intent = new Intent(getActivity().getApplicationContext(), ImageCameraActivity.class);
 		}
-		intent.putExtra(airPackageName + ImagePickerActivityBase.PARAMETERS, params);
+		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, params);
 		getActivity().startActivity(intent);
 	}
 
