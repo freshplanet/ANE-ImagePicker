@@ -5,10 +5,11 @@ import android.os.Parcelable;
 
 public class ImagePickerParameters implements Parcelable {
 	
+	public String scheme;
+	public String baseUri;
 	public Boolean shouldCrop;
 	public int maxWidth;
 	public int maxHeight;
-	public String baseUri;
 	public String albumName;
 
 	public static final Parcelable.Creator<ImagePickerParameters> CREATOR = new Parcelable.Creator<ImagePickerParameters>() {
@@ -22,12 +23,24 @@ public class ImagePickerParameters implements Parcelable {
 	};
 	
 	private ImagePickerParameters(Parcel in) {
-		shouldCrop = in.readInt() > 0 ? true : false;
+		scheme = in.readString();
+		baseUri = in.readString();
+		shouldCrop = in.readByte() > (byte)0 ? true : false;
 		maxWidth = in.readInt();
 		maxHeight = in.readInt();
-		baseUri = in.readString();
 		albumName = in.readString();
 	}
+	
+	
+	public ImagePickerParameters(String scheme, String baseUri, Boolean shouldCrop, int maxWidth, int maxHeight, String albumName) {
+		this.scheme = scheme;
+		this.baseUri = baseUri;
+		this.shouldCrop = shouldCrop;
+		this.maxWidth = maxWidth;
+		this.maxHeight = maxHeight;
+		this.albumName = albumName;
+	}
+	
 
 	@Override
 	public int describeContents() {
@@ -36,10 +49,11 @@ public class ImagePickerParameters implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeInt(shouldCrop ? 1 : 0);
+		dest.writeString(scheme);
+		dest.writeString(baseUri);
+		dest.writeByte(shouldCrop ? (byte)1 : (byte)0);
 		dest.writeInt(maxWidth);
 		dest.writeInt(maxHeight);
-		dest.writeString(baseUri);
 		dest.writeString(albumName);
 	}
 
