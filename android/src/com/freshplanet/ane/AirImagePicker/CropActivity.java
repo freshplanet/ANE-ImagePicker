@@ -2,6 +2,8 @@ package com.freshplanet.ane.AirImagePicker;
 
 import java.io.File;
 
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
+
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -43,6 +45,37 @@ public class CropActivity extends AirImagePickerActivity {
 		int smallestEdge = Math.min(options.outWidth, options.outHeight);
 		intent.putExtra("outputX", smallestEdge);
 		intent.putExtra("outputY", smallestEdge);
+		startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering handleResultForCrop");
+		
+		if(data.hasExtra(MediaStore.EXTRA_OUTPUT)) {
+			Uri extraImageUri = (Uri)data.getExtras().get(MediaStore.EXTRA_OUTPUT);
+			if(extraImageUri != null) {
+				result.imagePath = extraImageUri.getPath();
+				Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] changing selectedImagePath to: " + result.imagePath);
+			}
+		}
+		
+		parameters.albumName = null;
+		
+		SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(this, result.imagePath, parameters.maxWidth, parameters.maxHeight, parameters.albumName);
+		
+		if(savedImage != null) {
+			result.pickedImage = savedImage.bitmap;
+			result.imagePath = savedImage.path;
+			if(sendResultToContext("DID_FINISH_PICKING", "IMAGE"))  {
+				super.onActivityResult(requestCode, resultCode, data);
+			} else {
+				restartApp();
+			}
+		}
+
+		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting handleResultForCrop");
 	}
 
 }

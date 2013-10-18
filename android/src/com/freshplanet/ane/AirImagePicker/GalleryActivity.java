@@ -3,6 +3,7 @@ package com.freshplanet.ane.AirImagePicker;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.freshplanet.ane.AirImagePicker.AirImagePickerActivity;
@@ -10,7 +11,29 @@ import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 
 public class GalleryActivity extends AirImagePickerActivity {
 	
-	private void handleResultForGallery(Intent data)
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) 
+	{
+		super.onCreate(savedInstanceState);
+		
+		Intent intent;
+		int action;
+		if(result.mediaType == ImagePickerResult.MEDIA_TYPE_IMAGE) {
+			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
+		} else {
+			intent = new Intent(Intent.ACTION_GET_CONTENT);
+			intent.setType("video/*");
+			action = AirImagePickerUtils.GALLERY_VIDEOS_ONLY_ACTION;
+		}
+		startActivityForResult(intent, action);
+			
+	}
+	
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering handleResultForGallery");
 		
@@ -54,7 +77,11 @@ public class GalleryActivity extends AirImagePickerActivity {
 				if(savedImage != null) {
 					result.pickedImage = savedImage.bitmap;
 					result.imagePath = savedImage.path;
-					sendResultToContext("DID_FINISH_PICKING", "IMAGE");
+					if (sendResultToContext("DID_FINISH_PICKING", "IMAGE")) {
+						super.onActivityResult(requestCode, resultCode, data);
+					} else {
+						restartApp();
+					}
 				}
 			}
 		}
