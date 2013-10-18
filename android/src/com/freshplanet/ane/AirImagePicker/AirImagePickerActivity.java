@@ -38,7 +38,7 @@ public class AirImagePickerActivity extends Activity
 			if(getIntent().hasExtra(resultKey)) {
 				result = getIntent().getParcelableExtra(resultKey);
 			} else {
-				result = new ImagePickerResult(parameters.scheme, parameters.baseUri);
+				result = new ImagePickerResult(parameters.scheme, parameters.baseUri, parameters.mediaType);
 			}
 		}
 		

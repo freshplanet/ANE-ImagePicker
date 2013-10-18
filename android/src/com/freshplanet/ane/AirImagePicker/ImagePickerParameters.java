@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 public class ImagePickerParameters implements Parcelable {
 	
+	public String mediaType;
 	public String scheme;
 	public String baseUri;
 	public Boolean shouldCrop;
@@ -23,6 +24,7 @@ public class ImagePickerParameters implements Parcelable {
 	};
 	
 	private ImagePickerParameters(Parcel in) {
+		mediaType = in.readString();
 		scheme = in.readString();
 		baseUri = in.readString();
 		shouldCrop = in.readByte() > (byte)0 ? true : false;
@@ -49,6 +51,7 @@ public class ImagePickerParameters implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(mediaType);
 		dest.writeString(scheme);
 		dest.writeString(baseUri);
 		dest.writeByte(shouldCrop ? (byte)1 : (byte)0);

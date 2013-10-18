@@ -54,8 +54,8 @@ public class ImagePickerResult implements Parcelable {
 		this.imageHeight = imageHeight;
 	}
 	
-	public ImagePickerResult(String scheme, String baseUri) {
-		this(scheme, baseUri, null, null, -1, -1);
+	public ImagePickerResult(String scheme, String baseUri, String mediaType) {
+		this(scheme, baseUri, mediaType, null, -1, -1);
 	}
 	
 	@Override
