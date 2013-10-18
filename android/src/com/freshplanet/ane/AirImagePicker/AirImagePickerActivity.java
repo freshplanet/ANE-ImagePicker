@@ -1,12 +1,8 @@
 package com.freshplanet.ane.AirImagePicker;
 
-import java.net.URISyntaxException;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -16,8 +12,8 @@ public class AirImagePickerActivity extends Activity
 	
 	protected String airPackageName;
 	
+	protected ImagePickerParameters parameters;
 	protected ImagePickerResult result;
-	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -25,13 +21,25 @@ public class AirImagePickerActivity extends Activity
 		Log.d(TAG, "[AirImagePickerActivity] Entering onCreate");
 		if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
+			parameters = savedInstanceState.getParcelable("parameters");
 			result = savedInstanceState.getParcelable("result");
 		}
 		
 		if(airPackageName == null) {                                
 			airPackageName = AirImagePickerExtension.context.getActivity().getPackageName();	
-			result.imagePath = "/path/to/my/thumbnail.png";
-			result.videoPath = "/path/to/my/media.3gp";
+		}
+		
+		if(parameters == null) {
+			parameters = this.getIntent().getParcelableExtra(this.airPackageName + ":parameters");
+		}
+		
+		if(result == null) {
+			String resultKey = airPackageName + ":result";
+			if(getIntent().hasExtra(resultKey)) {
+				result = getIntent().getParcelableExtra(resultKey);
+			} else {
+				result = new ImagePickerResult(parameters.scheme, parameters.baseUri);
+			}
 		}
 		
 		super.onCreate(savedInstanceState);
@@ -49,9 +57,9 @@ public class AirImagePickerActivity extends Activity
 	{
 		
 		if(requestCode == AirImagePickerUtils.CAMERA_IMAGE_ACTION) {
-			result.mediaType = "image";
+			result.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
 		} else if (requestCode == AirImagePickerUtils.CAMERA_VIDEO_ACTION) {
-			result.mediaType = "video";
+			result.mediaType = ImagePickerResult.MEDIA_TYPE_VIDEO;
 		}
 		result.videoPath = AirImagePickerExtension.context.getImagePath();
 		super.startActivityForResult(intent, requestCode);
@@ -71,31 +79,35 @@ public class AirImagePickerActivity extends Activity
 			AirImagePickerExtension.context.onPickerActivityResult(requestCode, resultCode, data);
 		} else {
 			Log.e(TAG, "[AirImagePickerActivity] got result but context is gone: " + airPackageName);
-			try {
-				restartApp(requestCode, resultCode, data);
-			} catch (URISyntaxException e) {
-				Log.e(TAG, e.toString());
-			}
+			restartApp();
 		}
 		
 		Log.d(TAG, "[AirImagePickerActivity] Exiting onActivityResult");
 	}
 	
-	protected void dispatchResultEvent(String code) 
+	protected Boolean sendResultToContext(String code) 
 	{
-		if(AirImagePickerExtension.context != null) {
-			AirImagePickerExtension.context.dispatchResultEvent(code);
-		}
+		return sendResultToContext(code, null);
 	}
 	
-	protected void dispatchResultEvent(String code, String level)
+	protected Boolean sendResultToContext(String code, String level)
 	{
 		if(AirImagePickerExtension.context != null) {
+			//TODO transfer properties of "result" to context here
 			AirImagePickerExtension.context.dispatchResultEvent(code, level);
+			return true;
+		}
+		return false;
+	}
+	
+	protected void setFieldsOnContext() 
+	{
+		if(AirImagePickerExtension.context != null) {
+			
 		}
 	}
 	
-	protected void restartApp(int requestCode, int resultCode, Intent data) throws URISyntaxException
+	protected void restartApp()
 	{
 		Intent launchIntent = this.getPackageManager().getLaunchIntentForPackage(airPackageName);
 		if(launchIntent != null) {
@@ -106,6 +118,7 @@ public class AirImagePickerActivity extends Activity
 			Log.e(TAG, "[AirImagePickerActivity] couldn't get intent to restart app");
 		}
 	}
+	
 	
 	@Override
 	protected void onDestroy()
@@ -120,10 +133,10 @@ public class AirImagePickerActivity extends Activity
 	@Override
     protected void onSaveInstanceState(Bundle outState) {
 		outState.putString("airPackageName", airPackageName);
+		outState.putParcelable("parameters", parameters);
 		outState.putParcelable("result", result);
         super.onSaveInstanceState(outState);
         Log.d(TAG, "[AirImagePickerActivity] onSaveInstanceState" );
-
     }
 
     @Override
@@ -142,5 +155,13 @@ public class AirImagePickerActivity extends Activity
     	Log.d(TAG, "[AirImagePickerActivity] onConfigurationChanged" );
     }
     
+    protected void doCrop() {
+    	if(parameters.shouldCrop && (result.imagePath != null) && AirImagePickerUtils.isCropAvailable(this)) {
+	    	Intent intent = new Intent(getApplicationContext(), CropActivity.class);
+	    	intent.putExtra(airPackageName + ":parameters", parameters);
+	    	intent.putExtra(airPackageName = ":result", result);
+			startActivity(intent);
+    	}
+    }
 	
 }

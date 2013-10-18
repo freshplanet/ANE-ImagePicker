@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-
+//TODO add success/error info fields
 public class ImagePickerResult implements Parcelable {
 	
 	public static final String MEDIA_TYPE_IMAGE = "image";
