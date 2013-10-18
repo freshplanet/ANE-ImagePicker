@@ -92,7 +92,7 @@ public class AirImagePickerUtils {
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(filePath, options);
 		int sampleSize = 1;
-		while (options.outWidth/sampleSize * options.outHeight/sampleSize * 4 > AirImagePickerExtensionContext.BITMAP_MEMORY_LIMIT)
+		while (options.outWidth/sampleSize * options.outHeight/sampleSize * 4 > AirImagePickerUtils.BITMAP_MEMORY_LIMIT)
 			sampleSize *= 2;
 	
 		// Decode the image
@@ -376,6 +376,8 @@ public class AirImagePickerUtils {
 		
 		return new SavedBitmap(image, outputPath);
 	}
+
+	static final int BITMAP_MEMORY_LIMIT = 5 * 1024 * 1024; // 5MB
 	
 	
 	
