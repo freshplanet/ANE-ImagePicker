@@ -205,10 +205,8 @@ public class AirImagePickerUtils {
 	    return path;
 	}
 
-	public static Bitmap resizeImage(Bitmap image, int[] maxSize) {
+	public static Bitmap resizeImage(Bitmap image, int maxWidth, int maxHeight) {
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering resizeImage");
-		int maxWidth = maxSize[0];
-		int maxHeight = maxSize[1];
 		Bitmap result = image;
 		// make sure that the image has the correct height
 		if (image.getWidth() > maxWidth || image.getHeight() > maxHeight
@@ -355,6 +353,28 @@ public class AirImagePickerUtils {
 	public static Boolean isImagePickerAvailable(Activity activity)
 	{
 		return isActionAvailable(activity, GALLERY_IMAGES_ONLY_ACTION);
+	}
+
+	public static SavedBitmap orientAndSaveImage(Activity activity, String filePath, int maxWidth, int maxHeight, String albumName )
+	{
+		Log.d(TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
+		
+	
+		Bitmap image = getOrientedSampleBitmapFromPath(filePath);
+	
+		if(albumName != null) {
+			File savedPicture = savePictureInGallery(albumName, getJPEGRepresentationFromBitmap(image));
+			if(savedPicture != null) {
+				notifyGalleryOfNewImage(activity, savedPicture);
+			}
+		}
+		
+		image = resizeImage(image, maxWidth, maxHeight);
+		String outputPath = saveImageToTemporaryDirectory(image);
+		
+		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
+		
+		return new SavedBitmap(image, outputPath);
 	}
 	
 	

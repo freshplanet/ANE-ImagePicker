@@ -116,7 +116,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	}
 
 	//FRE
-	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName, int maxImgWidth, int maxImgHeight, String baseUri)
+	public void displayCamera(Boolean allowVideoCaptures, Boolean crop, String albumName, int maxImgWidth, int maxImgHeight, String baseUri)
 	{
 		_maxSize[0] = maxImgWidth;
 		_maxSize[1] = maxImgHeight;
@@ -393,7 +393,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			}
 			else
 			{
-				SavedBitmap savedImage = orientAndSaveImage(selectedImagePath, _maxSize, _albumName);
+				SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(getActivity(), selectedImagePath, _maxSize[0], _maxSize[1], _albumName);
 				
 				if(savedImage != null) {
 					_pickedImage = savedImage.bitmap;
@@ -449,7 +449,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			SavedBitmap savedImage = orientAndSaveImage(_cameraOutputPath, _maxSize, _albumName);
+			SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(getActivity(), _cameraOutputPath, _maxSize[0], _maxSize[1], _albumName);
 			
 			if(savedImage != null) {
 				_pickedImage = savedImage.bitmap;
@@ -560,7 +560,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		_albumName = null;
 		
-		SavedBitmap savedImage = orientAndSaveImage(_cropOutputPath, _maxSize, _albumName);
+		SavedBitmap savedImage = AirImagePickerUtils.orientAndSaveImage(getActivity(), _cropOutputPath, _maxSize[0], _maxSize[1], _albumName);
 		
 		if(savedImage != null) {
 			_pickedImage = savedImage.bitmap;
@@ -580,63 +580,26 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Bitmap _pickedImage;
 	private String _albumName;
-
-	public Boolean orientAndSaveImage(String filePath)
-	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
-		
-		if ( AirImagePickerUtils.isPicasa(filePath) )
-		{
-			//This should never happen, but we'll leave the log here and make it an error
-			Log.e(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage (ret value false) - shouldn't have tried to save a Picasa image!");
-			return false;
-		}
-		else {
-			_pickedImage = AirImagePickerUtils.getOrientedSampleBitmapFromPath(filePath);
-		}
-		if(_albumName != null) {
-			File savedPicture = AirImagePickerUtils.savePictureInGallery(_albumName, AirImagePickerUtils.getJPEGRepresentationFromBitmap(_pickedImage));
-			if(savedPicture != null) {
-				AirImagePickerUtils.notifyGalleryOfNewImage(getActivity(), savedPicture);
-			}
-		}
-		
-		_pickedImage = AirImagePickerUtils.resizeImage(_pickedImage, _maxSize);
-		selectedImagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(_pickedImage);
-		
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
-		return true;
-	}
 	
-	public SavedBitmap orientAndSaveImage(String filePath, int[] maxSize, String albumName )
-	{
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Entering processPickedImage");
-		
-
-		Bitmap image = AirImagePickerUtils.getOrientedSampleBitmapFromPath(filePath);
-
-		if(albumName != null) {
-			File savedPicture = AirImagePickerUtils.savePictureInGallery(albumName, AirImagePickerUtils.getJPEGRepresentationFromBitmap(image));
-			if(savedPicture != null) {
-				AirImagePickerUtils.notifyGalleryOfNewImage(getActivity(), savedPicture);
-			}
-		}
-		
-		image = AirImagePickerUtils.resizeImage(image, _maxSize);
-		String outputPath = AirImagePickerUtils.saveImageToTemporaryDirectory(image);
-		
-		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage");
-		
-		return new SavedBitmap(image, outputPath);
+	public Bitmap getPickedImage() {
+		return _pickedImage; 
 	}
-	
+	public void setPickedImage(Bitmap bitmap) {
+		_pickedImage = bitmap;
+	}
 	
 	
 	public String getVideoPath() {
 		return selectedVideoPath;
 	}
+	public void setVideoPath(String path) {
+		selectedVideoPath = path;
+	}
 
 	public String getImagePath() {
 		return selectedImagePath;
+	}
+	public void setImagePath(String path) {
+		selectedImagePath = path;
 	}
 }
