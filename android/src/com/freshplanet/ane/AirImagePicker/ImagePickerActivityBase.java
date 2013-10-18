@@ -73,11 +73,13 @@ public abstract class ImagePickerActivityBase extends Activity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == RESULT_CANCELED) {
 			sendResultToContext("DID_CANCEL");
 		} else {
 			handleResult(data);
 		}
+		
 	}
 	
 	protected abstract void handleResult(Intent data);
@@ -117,7 +119,6 @@ public abstract class ImagePickerActivityBase extends Activity
 			}
 			context.dispatchResultEvent(code, level);
 		}
-		finish();
 	}
 	
 	
@@ -130,7 +131,6 @@ public abstract class ImagePickerActivityBase extends Activity
 				launchIntent.setData(result.toUri());
 			}
 	        startActivity(launchIntent);
-	        finish();
 		} else {
 			Log.e(TAG, "[AirImagePickerActivity] couldn't get intent to restart app");
 		}
