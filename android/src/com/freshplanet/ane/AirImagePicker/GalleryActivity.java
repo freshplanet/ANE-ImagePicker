@@ -22,7 +22,7 @@ public class GalleryActivity extends ImagePickerActivityBase {
 		
 		Intent intent;
 		int action;
-		if(result.mediaType == ImagePickerResult.MEDIA_TYPE_IMAGE) {
+		if(result.mediaType.equals(ImagePickerResult.MEDIA_TYPE_IMAGE)) {
 			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 			action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
 		} else {
