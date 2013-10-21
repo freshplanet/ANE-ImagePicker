@@ -28,6 +28,8 @@ public abstract class ImagePickerActivityBase extends Activity
 	protected ImagePickerParameters parameters;
 	protected ImagePickerResult result;
 	
+	protected int currentAction = AirImagePickerUtils.NO_ACTION;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -74,12 +76,27 @@ public abstract class ImagePickerActivityBase extends Activity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		super.onActivityResult(requestCode, resultCode, data);
-		if(resultCode == RESULT_CANCELED) {
-			sendResultToContext("DID_CANCEL");
-		} else {
+		
+		if (resultCode == Activity.RESULT_OK)
+		{
 			handleResult(data);
 		}
+		else
+		{
+			sendResultToContext("DID_CANCEL", "asdf");
+		}
 		
+		if(!this.isFinishing()) {
+			this.finish();
+		}
+		 
+	}
+	
+	@Override
+	public void startActivityForResult(Intent intent, int requestCode) 
+	{
+		currentAction = requestCode;
+		super.startActivityForResult(intent, requestCode);
 	}
 	
 	protected abstract void handleResult(Intent data);
@@ -90,13 +107,13 @@ public abstract class ImagePickerActivityBase extends Activity
 	
 	protected void sendErrorToContext(String code) 
 	{
-		sendErrorToContext(code, null);
+		sendErrorToContext(code, "");
 	}
 	
 	
 	protected void sendResultToContext(String code) 
 	{
-		sendResultToContext(code, null);
+		sendResultToContext(code, "");
 	}
 	
 	protected void sendErrorToContext(String code, String level) 
