@@ -94,6 +94,11 @@ public class AirImagePickerUtils {
 		options.inJustDecodeBounds = false;
 		options.inSampleSize = sampleSize;
 		Bitmap sampleBitmap = BitmapFactory.decodeFile(filePath, options);
+		
+		if(sampleBitmap == null) {
+			Log.e(TAG, "[AirImagePickerUtils] Couldn't decode file:" + filePath);
+			return null;
+		}
 	
 		// Fix orientation
 		Bitmap orientedSampleBitmap = getOrientedBitmapFromBitmapAndPath(sampleBitmap, filePath);

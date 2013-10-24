@@ -48,6 +48,8 @@ public class ImageCameraActivity extends ImagePickerActivityBase {
 				result.setPickedImage(savedImage.bitmap);
 				result.imagePath = savedImage.path;
 				sendResultToContext("DID_FINISH_PICKING", "IMAGE");
+			} else {
+				sendErrorToContext("PICKING_ERROR", "Failed to load image");
 			}
 		}
 

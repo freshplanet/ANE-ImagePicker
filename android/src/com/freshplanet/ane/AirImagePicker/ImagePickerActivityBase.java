@@ -188,7 +188,11 @@ public abstract class ImagePickerActivityBase extends Activity
 		
 	
 		Bitmap image = AirImagePickerUtils.getOrientedSampleBitmapFromPath(filePath);
-	
+		if(image == null) {
+			Log.e(TAG, "[ImagePickerActivityBase] getOrientedSampleBitmapFromPath() returned null for " + filePath);
+			return null;
+		}
+		
 		if(albumName != null) {
 			File savedPicture = AirImagePickerUtils.savePictureInGallery(albumName, AirImagePickerUtils.getJPEGRepresentationFromBitmap(image));
 			if(savedPicture != null) {

@@ -88,7 +88,7 @@ public class GalleryActivity extends ImagePickerActivityBase {
 						result.imagePath = savedImage.path;
 						sendResultToContext("DID_FINISH_PICKING", "IMAGE");
 					} else {
-						sendErrorToContext("PICKING_ERROR", "Failed to crop image");
+						sendErrorToContext("PICKING_ERROR", "Failed to load image");
 					}
 				}
 			} else {
