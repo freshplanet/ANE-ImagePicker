@@ -2,20 +2,17 @@ package com.freshplanet.ane.AirImagePicker;
 
 import java.io.File;
 
-import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
-import android.provider.MediaStore.Images.Media;
 import android.util.Log;
+
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 
 public abstract class ImagePickerActivityBase extends Activity
 {
@@ -41,10 +38,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		}
 		
 		if(airPackageName == null) {
-			if(AirImagePickerExtension.context == null) {
-				Log.e(TAG, "[ImagePickerActivityBase] context was gone before I could get the package name! can't restart the app now...");
-			}
-			airPackageName = AirImagePickerExtension.context.getActivity().getPackageName();
+			airPackageName = this.getPackageName();
 			Log.d(TAG, "[ImagePickerActivityBase] my package name:" + getPackageName());
 		}
 		
@@ -62,11 +56,6 @@ public abstract class ImagePickerActivityBase extends Activity
 		}
 		
 		super.onCreate(savedInstanceState);
-
-		if(AirImagePickerExtension.context == null) {
-			Log.w(TAG, "[ImagePickerActivityBase] extension context has died. My package name now: '" + this.getPackageName() + "'");
-		} 
-		
 		
 		Log.d(TAG, "[ImagePickerActivityBase] Exiting onCreate");
 	}
