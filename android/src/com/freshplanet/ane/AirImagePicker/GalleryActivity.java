@@ -1,15 +1,12 @@
 package com.freshplanet.ane.AirImagePicker;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
 
-import com.freshplanet.ane.AirImagePicker.ImagePickerActivityBase;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 
 public class GalleryActivity extends ImagePickerActivityBase {
