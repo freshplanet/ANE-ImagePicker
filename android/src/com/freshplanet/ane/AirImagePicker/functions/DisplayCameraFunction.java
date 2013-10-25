@@ -36,7 +36,8 @@ public class DisplayCameraFunction implements FREFunction
 				albumName = args[4].getAsString();
 			}
 			if (args.length > 5) {
-				chatLink = args[5].getAsString();
+				if(args[5] != null)
+					chatLink = args[5].getAsString();
 			}
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
