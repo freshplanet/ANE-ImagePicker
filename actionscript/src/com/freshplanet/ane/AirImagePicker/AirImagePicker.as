@@ -363,8 +363,11 @@ package com.freshplanet.ane.AirImagePicker
 						
 						var pickedImagePath:String = _context.call("getImagePath") as String;
 						
-						var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
-						_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
+						var pickedImageBitmapData:BitmapData;
+						if(Capabilities.manufacturer.indexOf("Android") == -1) {
+							pickedImageBitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
+							_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
+						}
 						
 //						// Load JPEG-encoded ByteArray
 //						var pickedImageByteArray:ByteArray = new ByteArray();
@@ -384,8 +387,11 @@ package com.freshplanet.ane.AirImagePicker
 						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
 						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
 						
-						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
-						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
+						var thumbnailImageBitmapData:BitmapData;
+						if(Capabilities.manufacturer.indexOf("Android") == -1) {
+							thumbnailImageBitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
+							_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
+						}
 
 						// Load JPEG-encoded ByteArray of the thumbnail
 //						var thumbnailImageByteArray:ByteArray = new ByteArray();
