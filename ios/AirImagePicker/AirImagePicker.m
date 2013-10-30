@@ -34,10 +34,14 @@ FREContext AirIPCtx = nil;
 {
     UIView *_overlay;
 }
+
+
 @property (nonatomic, strong) UIImage *pickedImage;
 @property (nonatomic, strong) UIImagePickerController *imagePicker;
 @property (nonatomic, strong) UIPopoverController *popover;
 @property (nonatomic, strong) NSString *customImageAlbumName;
+@property (nonatomic) UIImagePickerControllerCameraFlashMode *myFlashMode;
+
 @end
 
 @implementation AirImagePicker
@@ -52,6 +56,7 @@ FREContext AirIPCtx = nil;
 static AirImagePicker *sharedInstance = nil;
 static CGSize _maxDimensions;
 static BOOL _crop;
+
 
 + (AirImagePicker *)sharedInstance
 {
@@ -101,12 +106,15 @@ static BOOL _crop;
         self.imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *)kUTTypeMovie, nil];
     }
     
+    self.imagePicker.cameraFlashMode = [self myFlashMode];
+    
     self.customImageAlbumName = albumName;
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
     if (sourceType == UIImagePickerControllerSourceTypeCamera || UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
     {
+        
         [rootViewController presentModalViewController:self.imagePicker animated:YES];
     }
     else
@@ -172,6 +180,8 @@ static BOOL _crop;
     NSLog(@"Entering imagePickerController:didFinishPickingMediaWithInfo");
     
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
+    
+    [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
     
     // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
     if (self.popover) {
@@ -422,6 +432,7 @@ static BOOL _crop;
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
+    [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
     if (self.popover)
     {
         [self.popover dismissPopoverAnimated:YES];
@@ -729,6 +740,28 @@ DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
 //        
 //        // Release our control over the ByteArray
 //        FREReleaseByteArray(argv[0]);
+//    }
+//    
+//    return nil;
+//}
+
+
+//DEFINE_ANE_FUNCTION(setCameraFlashMode)
+//{
+//    uint32_t stringLength;
+//    NSString *flashModeString = nil;
+//    const uint8_t *modeChars;
+//    if (FREGetObjectAsUTF8(argv[0], &stringLength, &modeChars) == FRE_OK)
+//    {
+//        flashModeString = [NSString stringWithUTF8String:(const char *)modeChars];
+//    }
+//    
+//    if ([flashModeString isEqualToString:@"on"]) {
+//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeOn];
+//    } else if ([flashModeString isEqualToString:@"off"]) {
+//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeOff];
+//    } else if ([flashModeString isEqualToString:@"auto"]) {
+//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeAuto];
 //    }
 //    
 //    return nil;

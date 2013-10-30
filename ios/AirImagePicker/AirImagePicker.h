@@ -52,6 +52,8 @@ DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
 
+//DEFINE_ANE_FUNCTION(setCameraFlashMode);
+
 //DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
 //DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
 
