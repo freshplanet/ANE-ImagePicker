@@ -399,6 +399,7 @@ static BOOL _crop;
     CMTime time = CMTimeMakeWithSeconds(0,30);
     CGSize maxSize = CGSizeMake(320, 180);
     imageGenerator.maximumSize = maxSize;
+    imageGenerator.appliesPreferredTrackTransform = true;
     
     // Attemp to create the CGImage of the thumbnail
     [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]]
