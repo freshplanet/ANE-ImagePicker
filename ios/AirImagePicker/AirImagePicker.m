@@ -106,7 +106,9 @@ static BOOL _crop;
         self.imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *)kUTTypeMovie, nil];
     }
     
-    self.imagePicker.cameraFlashMode = [self myFlashMode];
+    if(sourceType == UIImagePickerControllerSourceTypeCamera) {
+        self.imagePicker.cameraFlashMode = [self myFlashMode];
+    }
     
     self.customImageAlbumName = albumName;
     
@@ -181,7 +183,9 @@ static BOOL _crop;
     
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
     
-    [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
+    if(self.imagePicker.sourceType == UIImagePickerControllerSourceTypeCamera) {
+        [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
+    }
     
     // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
     if (self.popover) {
