@@ -397,7 +397,7 @@ static BOOL _crop;
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:originalMediaURL options:nil];
     AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
     CMTime time = CMTimeMakeWithSeconds(0,30);
-    CGSize maxSize = CGSizeMake(320, 180);
+    CGSize maxSize = CGSizeMake(320, 320);
     imageGenerator.maximumSize = maxSize;
     imageGenerator.appliesPreferredTrackTransform = true;
     
