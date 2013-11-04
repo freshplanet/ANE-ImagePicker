@@ -190,16 +190,16 @@ public class AirImagePickerUtils {
 	}
 
 	public static Bitmap resizeImage(Bitmap image, int maxWidth, int maxHeight) {
-		Log.d(TAG, "[AirImagePickerUtils] Entering resizeImage");
+		Log.d(TAG, "[AirImagePickerUtils] Entering resizeImage: " + String.valueOf(maxWidth) + " x " + String.valueOf(maxHeight));
 		Bitmap result = image;
 		// make sure that the image has the correct height
 		if (image.getWidth() > maxWidth || image.getHeight() > maxHeight
 				&& maxWidth != -1 && maxHeight != -1)
 		{
-	        float reductionFactor = Math.max(image.getWidth() / maxWidth, image.getHeight() / maxHeight);
+	        float reductionFactor = Math.max(Float.valueOf(image.getWidth()) / maxWidth, Float.valueOf(image.getHeight()) / maxHeight);
 	        
 			result = Bitmap.createScaledBitmap( image, (int)(image.getWidth()/reductionFactor), (int)(image.getHeight()/reductionFactor), true);
-			Log.d(TAG, "[AirImagePickerUtils] resized image");
+			Log.d(TAG, "[AirImagePickerUtils] resized image to: " + String.valueOf(result.getWidth()) + " x " + String.valueOf(result.getHeight()));
 		}
 		Log.d(TAG, "[AirImagePickerUtils] Exiting resizeImage");
 		return result;

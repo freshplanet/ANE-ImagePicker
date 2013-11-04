@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -71,7 +72,13 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		
 		Log.d(TAG, "_cameraOutputPath = "+ result.videoPath);
 		try {
-			result.setPickedImage(AirImagePickerUtils.createThumbnailForVideo(result.videoPath));
+			Bitmap thumbnail = AirImagePickerUtils.createThumbnailForVideo(result.videoPath);
+			if(thumbnail.getWidth() > parameters.maxWidth || thumbnail.getHeight() > parameters.maxHeight) {
+				thumbnail =  AirImagePickerUtils.resizeImage(thumbnail, parameters.maxWidth, parameters.maxHeight);
+				
+			}
+			result.setPickedImage(thumbnail);
+			
 			result.imagePath = AirImagePickerUtils.saveImageToTemporaryDirectory(result.getPickedImage());
 			if((result.videoPath != null) && (result.imagePath != null) && (result.getPickedImage() != null)) {
 				sendResultToContext("DID_FINISH_PICKING", "VIDEO");
