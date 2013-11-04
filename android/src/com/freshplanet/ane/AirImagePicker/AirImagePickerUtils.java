@@ -213,7 +213,7 @@ public class AirImagePickerUtils {
 
 	public static Bitmap createThumbnailForVideo(String videoPath)
 	{
-		return ThumbnailUtils.createVideoThumbnail(videoPath, MediaStore.Images.Thumbnails.MICRO_KIND);
+		return ThumbnailUtils.createVideoThumbnail(videoPath, MediaStore.Images.Thumbnails.MINI_KIND);
 	}
 
 	public static final int NO_ACTION = -1;
