@@ -26,6 +26,7 @@ import java.util.Map;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.adobe.fre.FREBitmapData;
@@ -98,7 +99,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		ImagePickerParameters params = new ImagePickerParameters("airImagePicker", null, crop, maxImgWidth, maxImgWidth, null);
 		Intent intent = new Intent(getActivity().getApplicationContext(), GalleryActivity.class);
 		params.mediaType = videosAllowed ? ImagePickerResult.MEDIA_TYPE_VIDEO : ImagePickerResult.MEDIA_TYPE_IMAGE;
-		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, params);
+		Bundle b = new Bundle();
+		b.putParcelable(ImagePickerActivityBase.PARAMETERS, params);
+		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, b);
 		getActivity().startActivity(intent);
 		Log.d(AirImagePickerUtils.TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
 	}
@@ -118,7 +121,9 @@ public class AirImagePickerExtensionContext extends FREContext
 			params.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
 			intent = new Intent(getActivity().getApplicationContext(), ImageCameraActivity.class);
 		}
-		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, params);
+		Bundle b = new Bundle();
+		b.putParcelable(ImagePickerActivityBase.PARAMETERS, params);
+		intent.putExtra(getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, b);
 		getActivity().startActivity(intent);
 	}
 

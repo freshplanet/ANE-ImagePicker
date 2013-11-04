@@ -1,9 +1,18 @@
 package com.freshplanet.ane.AirImagePicker;
 
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class ImagePickerParameters implements Parcelable {
+	
+	public final String MEDIA_TYPE = "mediaType";
+	public final String SCHEME = "scheme";
+	public final String BASE_URI = "baseUri";
+	public final String SHOULD_CROP = "shouldCrop";
+	public final String MAX_WIDTH = "maxWidth";
+	public final String MAX_HEIGHT = "maxHeight";
+	public final String ALBUM_NAME = "albumName";
 	
 	public String mediaType;
 	public String scheme;
@@ -24,13 +33,14 @@ public class ImagePickerParameters implements Parcelable {
 	};
 	
 	private ImagePickerParameters(Parcel in) {
-		mediaType = in.readString();
-		scheme = in.readString();
-		baseUri = in.readString();
-		shouldCrop = in.readByte() > (byte)0 ? true : false;
-		maxWidth = in.readInt();
-		maxHeight = in.readInt();
-		albumName = in.readString();
+		Bundle b = in.readBundle();
+		mediaType = b.getString(MEDIA_TYPE);
+		scheme = b.getString(SCHEME);
+		baseUri = b.getString(BASE_URI);
+		shouldCrop = b.getBoolean(SHOULD_CROP);
+		maxWidth = b.getInt(MAX_WIDTH, -1);
+		maxHeight = b.getInt(MAX_HEIGHT, -1);
+		albumName = b.getString(ALBUM_NAME);
 	}
 	
 	
@@ -51,13 +61,15 @@ public class ImagePickerParameters implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(mediaType);
-		dest.writeString(scheme);
-		dest.writeString(baseUri);
-		dest.writeByte(shouldCrop ? (byte)1 : (byte)0);
-		dest.writeInt(maxWidth);
-		dest.writeInt(maxHeight);
-		dest.writeString(albumName);
+		Bundle b = new Bundle();
+		b.putString(MEDIA_TYPE, mediaType);
+		b.putString(SCHEME, scheme);
+		b.putString(BASE_URI, baseUri);
+		b.putBoolean(SHOULD_CROP, shouldCrop );
+		b.putInt(MAX_WIDTH, maxWidth);
+		b.putInt(MAX_HEIGHT, maxHeight);
+		b.putString(ALBUM_NAME, albumName);
+		dest.writeBundle(b);
 	}
 
 }

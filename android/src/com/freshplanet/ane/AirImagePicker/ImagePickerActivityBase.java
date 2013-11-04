@@ -33,8 +33,10 @@ public abstract class ImagePickerActivityBase extends Activity
 		Log.d(TAG, "[ImagePickerActivityBase] Entering onCreate");
 		if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
-			parameters = savedInstanceState.getParcelable("parameters");
-			result = savedInstanceState.getParcelable("result");
+			savedInstanceState.setClassLoader(ImagePickerParameters.class.getClassLoader());
+			parameters = savedInstanceState.getParcelable(PARAMETERS);
+			savedInstanceState.setClassLoader(ImagePickerResult.class.getClassLoader());
+			result = savedInstanceState.getParcelable(RESULT);
 		}
 		
 		if(airPackageName == null) {
@@ -43,13 +45,17 @@ public abstract class ImagePickerActivityBase extends Activity
 		}
 		
 		if(parameters == null) {
-			parameters = this.getIntent().getParcelableExtra(airPackageName + PARAMETERS);
+			Bundle b = this.getIntent().getBundleExtra(airPackageName + PARAMETERS);
+			b.setClassLoader(ImagePickerParameters.class.getClassLoader());
+			parameters = (ImagePickerParameters)b.getParcelable(PARAMETERS);
 		}
 		
 		if(result == null) {
 			String resultKey = airPackageName + RESULT;
 			if(getIntent().hasExtra(resultKey)) {
-				result = getIntent().getParcelableExtra(resultKey);
+				Bundle b = getIntent().getBundleExtra(airPackageName + RESULT);
+				b.setClassLoader(ImagePickerResult.class.getClassLoader());
+				result = (ImagePickerResult)b.getParcelable(RESULT);
 			} else {
 				result = new ImagePickerResult(parameters.scheme, parameters.baseUri, parameters.mediaType);
 			}
@@ -72,13 +78,13 @@ public abstract class ImagePickerActivityBase extends Activity
 		}
 		else
 		{
-			sendResultToContext("DID_CANCEL", "asdf");
+			sendResultToContext("DID_CANCEL", "");
 		}
 		
 		if(!this.isFinishing()) {
 			this.finish();
 		}
-		 
+		
 	}
 	
 	@Override
@@ -145,8 +151,8 @@ public abstract class ImagePickerActivityBase extends Activity
 	@Override
     protected void onSaveInstanceState(Bundle outState) {
 		outState.putString("airPackageName", airPackageName);
-		outState.putParcelable("parameters", parameters);
-		outState.putParcelable("result", result);
+		outState.putParcelable(PARAMETERS, parameters);
+		outState.putParcelable(RESULT, result);
         super.onSaveInstanceState(outState);
         Log.d(TAG, "[ImagePickerActivityBase] onSaveInstanceState" );
     }
@@ -156,7 +162,17 @@ public abstract class ImagePickerActivityBase extends Activity
         super.onRestoreInstanceState(savedInstanceState);
         if(savedInstanceState != null) {
 			airPackageName = savedInstanceState.getString("airPackageName");
-			result = savedInstanceState.getParcelable("result");
+			
+			if(savedInstanceState.containsKey(RESULT)) {
+				savedInstanceState.setClassLoader(ImagePickerResult.class.getClassLoader());
+				result = savedInstanceState.getParcelable(RESULT);
+			}
+			if(savedInstanceState.containsKey(PARAMETERS)) {
+				savedInstanceState.setClassLoader(ImagePickerParameters.class.getClassLoader());
+				parameters = savedInstanceState.getParcelable(PARAMETERS);
+			}
+			
+			
 		}
         Log.d(TAG, "[ImagePickerActivityBase] onRestoreInstanceState" );
     }
@@ -165,8 +181,12 @@ public abstract class ImagePickerActivityBase extends Activity
     protected void doCrop() {
     	if(parameters.shouldCrop && (result.imagePath != null) && AirImagePickerUtils.isCropAvailable(this)) {
 	    	Intent intent = new Intent(getApplicationContext(), CropActivity.class);
-	    	intent.putExtra(airPackageName + PARAMETERS, parameters);
-	    	intent.putExtra(airPackageName + RESULT, result);
+	    	Bundle b = new Bundle();
+	    	b.putParcelable(PARAMETERS, parameters);
+	    	intent.putExtra(airPackageName + PARAMETERS, b);
+	    	b = new Bundle();
+	    	b.putParcelable(RESULT, result);
+	    	intent.putExtra(airPackageName + RESULT, b);
 			startActivity(intent);
     	}
     }
