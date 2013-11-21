@@ -437,7 +437,9 @@ static BOOL _crop;
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
-    [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
+    if(picker.sourceType == UIImagePickerControllerSourceTypeCamera) {
+        [self setMyFlashMode:[[self imagePicker] cameraFlashMode]];
+    }
     if (self.popover)
     {
         [self.popover dismissPopoverAnimated:YES];
