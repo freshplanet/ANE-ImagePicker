@@ -28,7 +28,10 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		result.videoPath = tempFile.getAbsolutePath();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
-
+		intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
+		intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 180);
+		intent.putExtra("android.intent.extra.sizeLimit", 20 * 1024 * 8);
+		
 		startActivityForResult(intent, AirImagePickerUtils.CAMERA_VIDEO_ACTION);
 	}
 	
