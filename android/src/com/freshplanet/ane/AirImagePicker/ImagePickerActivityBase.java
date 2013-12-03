@@ -203,7 +203,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		}
 		
 		if(albumName != null) {
-			File savedPicture = AirImagePickerUtils.savePictureInGallery(albumName, AirImagePickerUtils.getJPEGRepresentationFromBitmap(image));
+			File savedPicture = AirImagePickerUtils.savePictureInGallery(albumName, "IMG", AirImagePickerUtils.getJPEGRepresentationFromBitmap(image));
 			if(savedPicture != null) {
 				notifyGalleryOfNewImage(savedPicture);
 			}

@@ -133,31 +133,38 @@ public class AirImagePickerUtils {
 		}
 		return null;
 	}
-
-	public static File savePictureInGallery(String albumName, byte[] pickedImageJPEGRepresentation)
-	{
-		Log.d(TAG, "[AirImagePickerUtils] Entering didSavePictureInGallery");
-		
-		long current = System.currentTimeMillis();
 	
-		// Save image to album
+	public static File getAlbumFolder(String albumName) 
+	{
 		File folder = new File(Environment.getExternalStorageDirectory() + File.separator + albumName);
 		if (!folder.exists()) {
 			folder.mkdir();
 			try {
-				new File(folder, ".nomedia").createNewFile();
+				new File(folder, ".yesmedia").createNewFile();
 			} catch (Exception e) {
 				Log.d(TAG, "[AirImagePickerUtils] exception = " + e.getMessage());
 				Log.d(TAG, "[AirImagePickerUtils] Exiting didSavePictureInGallery (failed)");
 				return null;
 			}
 		}
-		File picture = new File(folder, "IMG_" + current);
+		return folder;
+	}
+	
+
+	public static File savePictureInGallery(String albumName, String prefix, byte[] fileBytes)
+	{
+		Log.d(TAG, "[AirImagePickerUtils] Entering didSavePictureInGallery");
+		
+		long current = System.currentTimeMillis();
+	
+		// Save image to album
+		File folder = getAlbumFolder(albumName);
+		File picture = new File(folder, prefix + "_" + current);
 	
 		// Write Image to File
 		try {
 			FileOutputStream stream = new FileOutputStream(picture);
-			stream.write(pickedImageJPEGRepresentation);
+			stream.write(fileBytes);
 			stream.close();
 		} catch (Exception exception) { 
 			Log.d(TAG, "[AirImagePickerUtils] exception = " + exception.getMessage());
