@@ -23,9 +23,17 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		super.onCreate(savedInstanceState);
 		
 		Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+		File tempFile;
 		
-		File tempFile = AirImagePickerUtils.getTemporaryFile(".3gp");
+		if(parameters.albumName != null) {
+			File folder = AirImagePickerUtils.getAlbumFolder(parameters.albumName);
+			tempFile = new File(folder, "VID_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
+		} else {
+			tempFile = AirImagePickerUtils.getTemporaryFile(".mp4");
+		}
+		
 		result.videoPath = tempFile.getAbsolutePath();
+		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 		intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
