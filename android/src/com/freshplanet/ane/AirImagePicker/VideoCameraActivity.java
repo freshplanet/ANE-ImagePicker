@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -23,19 +24,19 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		super.onCreate(savedInstanceState);
 		
 		Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-		File tempFile;
+		File outputFile;
 		
 		if(parameters.albumName != null) {
 			File folder = AirImagePickerUtils.getAlbumFolder(parameters.albumName);
-			tempFile = new File(folder, "VID_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
+			outputFile = new File(folder, "VID_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
 		} else {
-			tempFile = AirImagePickerUtils.getTemporaryFile(".mp4");
+			outputFile = AirImagePickerUtils.getTemporaryFile(".mp4");
 		}
 		
-		result.videoPath = tempFile.getAbsolutePath();
+		result.videoPath = outputFile.getAbsolutePath();
 		
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+		if (shouldUseExtraOutput())
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outputFile));
 		intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
 		intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 180);
 		intent.putExtra("android.intent.extra.sizeLimit", 20 * 1024 * 8);
@@ -43,14 +44,23 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		startActivityForResult(intent, AirImagePickerUtils.CAMERA_VIDEO_ACTION);
 	}
 	
+	private static  boolean shouldUseExtraOutput()
+	{
+		// Products later than honeycomb usually respect EXTRA_OUTPUT - except Samsung Galaxy Tab,
+		// which never returns a result from the camera intent if you use it. 
+		return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) && 
+				!(Build.BRAND.equals("samsung") && (Build.MODEL.startsWith("GT-P") || Build.MODEL.startsWith("SM-T")));
+	}
+	
 	@Override
 	protected void handleResult(Intent data)
 	{
 		Log.d(TAG, "Entering handleResultForVideoCamera");
 
-		// EXTRA_OUTPUT doesn't work on some 2.x phones, copy manually to the
+		// EXTRA_OUTPUT doesn't work on some 2.x phones and Galaxy Tab, copy manually to the
 		// desired path
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+		if (!shouldUseExtraOutput()) {
+
 			FileInputStream inputstr = null;
 			FileOutputStream outputstr = null;
 			File outputFile = null;
@@ -92,6 +102,7 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 					sendErrorToContext("ERROR_GENERATING_VIDEO", e2.getMessage());
 				}
 			}
+			
 		}
 		
 		Log.d(TAG, "_cameraOutputPath = "+ result.videoPath);
