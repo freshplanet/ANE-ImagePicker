@@ -54,16 +54,29 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 			FileInputStream inputstr = null;
 			FileOutputStream outputstr = null;
 			File outputFile = null;
+			File inputFile = null;
 			try {
 				outputFile = new File(result.videoPath);
-				AssetFileDescriptor videoAsset = getContentResolver().openAssetFileDescriptor(data.getData(), "r");
-				inputstr = videoAsset.createInputStream();
-				outputstr = new FileOutputStream(outputFile);
-
-				byte[] buffer = new byte[1024];
-				int length;
-				while ((length = inputstr.read(buffer)) > 0) {
-					outputstr.write(buffer, 0, length);
+				inputFile = new File(data.getData().getPath());
+				if(!inputFile.renameTo(outputFile)) {
+					AssetFileDescriptor videoAsset = getContentResolver().openAssetFileDescriptor(data.getData(), "r");
+					inputstr = videoAsset.createInputStream();
+					outputstr = new FileOutputStream(outputFile);
+					
+					FileChannel inChannel = inputstr.getChannel();
+				    FileChannel outChannel = outputstr.getChannel();
+				    try
+				    {
+				        inChannel.transferTo(0, inChannel.size(), outChannel);
+				    }
+				    finally
+				    {
+				        if (inChannel != null)
+				            inChannel.close();
+				        if (outChannel != null)
+				            outChannel.close();
+				    }
+					new File(data.getData().getPath()).delete();
 				}
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage());
