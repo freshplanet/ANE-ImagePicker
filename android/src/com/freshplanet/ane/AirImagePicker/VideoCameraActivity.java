@@ -28,9 +28,9 @@ public class VideoCameraActivity extends ImagePickerActivityBase {
 		
 		if(parameters.albumName != null) {
 			File folder = AirImagePickerUtils.getAlbumFolder(parameters.albumName);
-			outputFile = new File(folder, "VID_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
+			outputFile = new File(folder, "VID_" + String.valueOf(System.currentTimeMillis()) + ".3gp");
 		} else {
-			outputFile = AirImagePickerUtils.getTemporaryFile(".mp4");
+			outputFile = AirImagePickerUtils.getTemporaryFile(".3gp");
 		}
 		
 		result.videoPath = outputFile.getAbsolutePath();
