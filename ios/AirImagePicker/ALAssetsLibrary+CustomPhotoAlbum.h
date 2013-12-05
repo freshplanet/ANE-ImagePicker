@@ -14,5 +14,6 @@ typedef void(^SaveImageCompletion)(NSError* error, ALAsset *asset);
 
 -(void)saveImage:(UIImage*)image toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock;
 -(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock;
+-(void)saveVideo:(NSURL*)videoURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock;
 
 @end

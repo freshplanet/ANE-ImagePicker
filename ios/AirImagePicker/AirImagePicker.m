@@ -319,6 +319,20 @@ static BOOL _crop;
    }];
 }
 
+- (void) saveVideoToCameraRoll:(NSURL *)videoUrl inAlbum:(NSString *)albumName {
+    NSLog(@"Entering - saveVideoToCameraRoll");
+    
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    
+    if(! [library videoAtPathIsCompatibleWithSavedPhotosAlbum:videoUrl]) {
+        NSLog(@"Video can't be saved to gallery");
+        return;
+    }
+    [library saveVideo:videoUrl toAlbum:albumName
+        withCompletionBlock:^(NSError* error, ALAsset *asset){
+            NSLog(@"finished saving to album: %@ with error: %@ and asset: %@", albumName, error, asset);
+        }];
+}
 
 - (NSURL *) saveImageToTemporaryDirectory:(UIImage *)image {
     NSLog(@"Entering - saveImageToTemporaryDirectory");
@@ -391,6 +405,13 @@ static BOOL _crop;
     // save the video path for later use
     self.videoPath = [originalMediaURL path];
     
+    
+    // Save Image in Custom Album
+    if(self.customImageAlbumName) {
+        [self saveVideoToCameraRoll:originalMediaURL inAlbum:self.customImageAlbumName];
+        self.customImageAlbumName = nil;
+    }
+    
     // create a thumbnail
     
     // Create or Asset Generator and task it with creating the thumbnail
@@ -400,6 +421,8 @@ static BOOL _crop;
     CGSize maxSize = CGSizeMake(320, 320);
     imageGenerator.maximumSize = maxSize;
     imageGenerator.appliesPreferredTrackTransform = true;
+    
+    
     
     // Attemp to create the CGImage of the thumbnail
     [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]]

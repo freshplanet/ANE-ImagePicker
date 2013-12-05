@@ -30,6 +30,18 @@
                        }];
 }
 
+-(void)saveVideo:(NSURL*)videoURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock
+{
+    NSLog(@"Entering - saveVideo");
+    [self writeVideoAtPathToSavedPhotosAlbum:videoURL completionBlock:^(NSURL *assetURL, NSError *error) {
+        if(error != nil) {
+            completionBlock(error, nil);
+            return;
+        }
+        [self addAssetURL: assetURL toAlbum:albumName withCompletionBlock:completionBlock];
+    }];
+}
+
 -(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock
 {
     __block BOOL albumWasFound = NO;
