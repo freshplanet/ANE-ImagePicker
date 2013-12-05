@@ -115,10 +115,10 @@ public class ImagePickerResult implements Parcelable {
 			builder.appendQueryParameter("videoPath", videoPath);
 		}
 		if(errorType != null) {
-			builder.appendQueryParameter("videoPath", errorType);
+			builder.appendQueryParameter("errorType", errorType);
 		}
 		if(errorMessage != null) {
-			builder.appendQueryParameter("videoPath", errorMessage);
+			builder.appendQueryParameter("errorMessage", errorMessage);
 		}
 		return builder.build();
 	}
