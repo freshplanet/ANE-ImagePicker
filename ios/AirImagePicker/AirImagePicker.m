@@ -274,11 +274,18 @@ static BOOL _crop;
         
         // Save Image in Custom Album ?
         if(self.customImageAlbumName) {
-            [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset *asset) {
-                if (error == nil) {
-                    [self finishImagePicked];
-                }
-            }];
+            if ([ALAssetsLibrary authorizationStatus] == ALAuthorizationStatusAuthorized) {
+                [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset *asset) {
+                }];
+                [self finishImagePicked];
+            } else {
+                [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset *asset) {
+                    if (error == nil) {
+                        [self finishImagePicked];
+                    }
+                }];
+            }
+            
             self.customImageAlbumName = nil;
         } else {
             [self finishImagePicked];
