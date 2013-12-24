@@ -272,25 +272,31 @@ static BOOL _crop;
             CGImageRelease(newImageRef);
         }
         
-        
-        // Save Image in Custom Album
+        // Save Image in Custom Album ?
         if(self.customImageAlbumName) {
-            [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName];
+            [self saveImageToCameraRoll:self.pickedImage inAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error, ALAsset *asset) {
+                if (error == nil) {
+                    [self finishImagePicked];
+                }
+            }];
             self.customImageAlbumName = nil;
+        } else {
+            [self finishImagePicked];
         }
-        self.pickedImage = [AirImagePicker resizeImage:self.pickedImage toMaxDimension:_maxDimensions];
-        
-        self.imagePath = [[self saveImageToTemporaryDirectory:self.pickedImage] path];
-        
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if ( self.imagePath ) {
-                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
-            } else {
-                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"PICKING_ERROR", (const uint8_t *)"COULD_NOT_SAVE");
-            }
-        });
-        
+    });
+}
+
+- (void) finishImagePicked {
+    self.pickedImage = [AirImagePicker resizeImage:self.pickedImage toMaxDimension:_maxDimensions];
+    
+    self.imagePath = [[self saveImageToTemporaryDirectory:self.pickedImage] path];
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ( self.imagePath ) {
+            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+        } else {
+            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"PICKING_ERROR", (const uint8_t *)"COULD_NOT_SAVE");
+        }
     });
 }
 
@@ -310,12 +316,16 @@ static BOOL _crop;
     return image;
 }
 
-- (void) saveImageToCameraRoll:(UIImage *)image inAlbum:(NSString *)albumName {
+- (void) saveImageToCameraRoll:(UIImage *)image inAlbum:(NSString *)albumName  withCompletionBlock:(SaveImageCompletion)completionBlock {
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
     [library saveImage:image
                toAlbum:albumName
    withCompletionBlock:^(NSError* error, ALAsset *asset){
-       NSLog(@"finished saving to album: %@ with error: %@ and asset: %@", albumName, error, asset);
+       if (error != nil) {
+           NSLog(@"couldn't save to album: %@ with error: %@ and asset: %@", albumName, error, asset);
+       } else {
+           completionBlock(error, asset);
+       }
    }];
 }
 
