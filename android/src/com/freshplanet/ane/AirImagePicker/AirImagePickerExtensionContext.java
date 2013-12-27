@@ -191,6 +191,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	 * */
 	public void dispatchResultEvent(String eventName, String message)
 	{
+		AirImagePickerExtension.log("dispatching event to AS3: " + eventName + ", " + message);
 		dispatchStatusEventAsync(eventName, message);
 	}
 	

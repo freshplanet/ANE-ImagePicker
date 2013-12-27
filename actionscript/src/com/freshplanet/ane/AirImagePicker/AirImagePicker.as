@@ -26,6 +26,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.external.ExtensionContext;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
+	
 
 	/**
 	*  Take care of picking images and videos on iOS/Android
@@ -328,6 +329,10 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function onStatus( event : StatusEvent ) : void
 		{
+			//For some reason, the following trace statement prevents a bug where the status event doesn't get
+			//dispatched on Android in landscape until you rotate to portrait. Please leave it in...
+			trace("[AirImagePicker] onStatus: ", event.code, event.level);
+			
 			var callback:Function = _callback;
 			
 			if (event.code == "PICKING_ERROR")
