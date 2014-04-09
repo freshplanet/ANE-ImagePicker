@@ -7,14 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1128B52C17711C6900B671BC /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52B17711C6900B671BC /* AVFoundation.framework */; };
+		1128B52E17711C7300B671BC /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52D17711C7300B671BC /* CoreMedia.framework */; };
+		1128B53017711C8500B671BC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52F17711C8500B671BC /* CoreGraphics.framework */; };
 		39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E60166E6B43004888F4 /* Foundation.framework */; };
 		39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 39898E65166E6B43004888F4 /* AirImagePicker.h */; };
 		39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 39898E67166E6B43004888F4 /* AirImagePicker.m */; };
 		39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E76166E6ED3004888F4 /* UIKit.framework */; };
 		65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */; };
 		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
-		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; };
-		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; };
+		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +34,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1128B52B17711C6900B671BC /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		1128B52D17711C7300B671BC /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		1128B52F17711C8500B671BC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		39898E5D166E6B43004888F4 /* libAirImagePicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAirImagePicker.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		39898E60166E6B43004888F4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirImagePicker-Prefix.pch"; sourceTree = "<group>"; };
@@ -53,6 +59,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1128B53017711C8500B671BC /* CoreGraphics.framework in Frameworks */,
+				1128B52E17711C7300B671BC /* CoreMedia.framework in Frameworks */,
+				1128B52C17711C6900B671BC /* AVFoundation.framework in Frameworks */,
 				39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */,
 				39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */,
 			);
@@ -64,6 +73,9 @@
 		39898E52166E6B43004888F4 = {
 			isa = PBXGroup;
 			children = (
+				1128B52F17711C8500B671BC /* CoreGraphics.framework */,
+				1128B52D17711C7300B671BC /* CoreMedia.framework */,
+				1128B52B17711C6900B671BC /* AVFoundation.framework */,
 				39898E62166E6B43004888F4 /* AirImagePicker */,
 				39898E5F166E6B43004888F4 /* Frameworks */,
 				39898E5E166E6B43004888F4 /* Products */,
@@ -232,6 +244,7 @@
 		39898E6C166E6B43004888F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/AirImagePicker.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
@@ -244,6 +257,7 @@
 		39898E6D166E6B43004888F4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/AirImagePicker.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";

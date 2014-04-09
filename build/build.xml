@@ -5,7 +5,8 @@
     <property file="build.config"/>
 
     <!-- All -->
-    <target name="all" depends="ios,ios-simulator,android,swc,package" description="Full build of extension"/>
+    <target name="all" depends="ios,android,swc,package" description="Full build of extension"/>
+    <target name="all-android-debug" depends="ios,android-debug,swc,package" description="Full build of extension w/debugging on Android"/>
 
     <!-- iOS -->
     <target name="ios" description="Build iOS Library">
@@ -29,46 +30,32 @@
         <delete dir="../temp/ios/build/"/>
     </target>
 
-    <!-- iOS Simulator -->
-    <target name="ios-simulator" description="Build iOS Simulator Library">
-        <mkdir dir="../temp/ios-simulator/build/"/>
-
-        <exec executable="xcodebuild" failonerror="true" dir="../ios/">
-            <arg line="-project ${name}.xcodeproj"/>
-            <arg line="-alltargets clean"/>
-        </exec>
-
-        <exec executable="xcodebuild" failonerror="true" dir="../ios/">
-            <arg line="-project ${name}.xcodeproj"/>
-            <arg line="-arch i386"/>
-            <arg line="-sdk ${ios.simulatorsdkversion}"/>
-            <arg line="-alltargets"/>
-            <arg line="-configuration Release"/>
-            <arg line="SYMROOT=../temp/ios-simulator/build/"/>
-        </exec>
-
-        <copy file="../temp/ios-simulator/build/Release-iphonesimulator/lib${name}.a" todir="../temp/ios-simulator" overwrite="true"/>
-
-        <delete dir="../temp/ios-simulator/build/"/>
+    <!-- Android -->
+    <target name="android" description="Build Android Library with debugging disabled">
+        <property name="ANDROID_DEBUG" value="false"/>
+        <antcall target="android-build"/>
+    </target>
+    <target name="android-debug" description="Build Android Library with debugging enabled">
+        <property name="ANDROID_DEBUG" value="true"/>
+        <antcall target="android-build"/>
     </target>
 
-    <!-- Android -->
-    <target name="android" description="Build Android Library">
+    <target name="android-build" description="Build Android Library">
         <delete dir="../android/temp"/>
         <mkdir dir="../android/temp/classes"/>
 
-        <javac source="1.6" srcdir="../android/src" destdir="../android/temp/classes" includeantruntime="false">
+        <javac source="1.6" srcdir="../android/src" destdir="../android/temp/classes" includeantruntime="false" debug="${ANDROID_DEBUG}">
             <classpath>
                 <pathelement location="${android.sdk}/android.jar"/>
                 <pathelement location="${flex.sdk}/lib/android/FlashRuntimeExtensions.jar"/>
             </classpath>
         </javac>
 
-        <mkdir dir="../temp/android/"/>
+        <mkdir dir="../temp/android"/>
         <jar basedir="../android/temp/classes" destfile="../temp/android/lib${name}.jar"/>
-        <copy todir="../temp/android/res/">
+<!--         <copy todir="../temp/android/res/">
             <fileset dir="../android/res"/>
-        </copy>
+        </copy> -->
         <delete dir="../android/temp"/>
     </target>
 
@@ -110,7 +97,6 @@
             <arg value="../build/extension.xml"/>
             <arg line="-swc swc/${name}.swc"/>
             <arg line="-platform iPhone-ARM -platformoptions ../build/platform.xml -C ios/ ."/>
-            <arg line="-platform iPhone-x86 -C ios-simulator/ ."/>
             <arg line="-platform Android-ARM -C android/ ."/>
             <arg line="-platform default -C default/ ."/>
         </exec>

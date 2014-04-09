@@ -18,7 +18,7 @@
                            
                            //error handling
                            if (error!=nil) {
-                               completionBlock(error);
+                               completionBlock(error, nil);
                                return;
                            }
                            
@@ -28,6 +28,18 @@
                          withCompletionBlock:completionBlock];
                            
                        }];
+}
+
+-(void)saveVideo:(NSURL*)videoURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock
+{
+    NSLog(@"Entering - saveVideo");
+    [self writeVideoAtPathToSavedPhotosAlbum:videoURL completionBlock:^(NSURL *assetURL, NSError *error) {
+        if(error != nil) {
+            completionBlock(error, nil);
+            return;
+        }
+        [self addAssetURL: assetURL toAlbum:albumName withCompletionBlock:completionBlock];
+    }];
 }
 
 -(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock
@@ -52,9 +64,9 @@
                                           [group addAsset: asset];
                                           
                                           //run the completion block
-                                          completionBlock(nil);
+                                          completionBlock(nil, asset);
                                           
-                                      } failureBlock: completionBlock];
+                                      } failureBlock: ^(NSError * error) {completionBlock(error, nil);}];
                                 
                                 //album was found, bail out of the method
                                 return;
@@ -77,17 +89,17 @@
                                                                         [group addAsset: asset];
                                                                         
                                                                         //call the completion block
-                                                                        completionBlock(nil);
+                                                                        completionBlock(nil, asset);
                                                                         
-                                                                    } failureBlock: completionBlock];
+                                                                    } failureBlock: ^(NSError * error) {completionBlock(error, nil);}];
                                                           
-                                                      } failureBlock: completionBlock];
+                                                      } failureBlock: ^(NSError * error) {completionBlock(error, nil);}];
                                 
                                 //should be the last iteration anyway, but just in case
                                 return;
                             }
                             
-                        } failureBlock: completionBlock];
+                        } failureBlock: ^(NSError * error) {completionBlock(error, nil);} ];
     
 }
 @end
