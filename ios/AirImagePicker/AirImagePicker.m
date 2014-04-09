@@ -355,7 +355,7 @@ static BOOL _crop;
     NSLog(@"Entering - saveImageToTemporaryDirectory");
     
     // JPEG compression
-    NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.95);
+    NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.8);
     
     NSURL *tempDir = [AirImagePicker getTemporaryDirectory];
     NSError *error = nil;
