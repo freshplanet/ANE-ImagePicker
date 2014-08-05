@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>8669807E-64B5-4F5F-97EE-E3A16B783A5A</string>
+	<key>IDESourceControlProjectName</key>
+	<string>AirImagePicker</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>D446C134-A2AB-4719-8114-0003D89C49D0</key>
+		<string>https://github.com/freshplanet/ANE-ImagePicker.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>ios/AirImagePicker.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>D446C134-A2AB-4719-8114-0003D89C49D0</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/freshplanet/ANE-ImagePicker.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>D446C134-A2AB-4719-8114-0003D89C49D0</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>D446C134-A2AB-4719-8114-0003D89C49D0</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ANE-ImagePicker</string>
+		</dict>
+	</array>
+</dict>
+</plist>
