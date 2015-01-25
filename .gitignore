@@ -27,6 +27,7 @@ xcuserdata
 Icon
 Thumbs.db
 .DS_Store
+*.xccheckout
 
 # Test
 test/bin-debug
