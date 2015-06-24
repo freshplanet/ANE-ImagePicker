@@ -36,7 +36,7 @@ public class AirImagePickerUtils {
 	static public byte[] getJPEGRepresentationFromBitmap(Bitmap bitmap)
 	{
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+		bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream);
 		return outputStream.toByteArray();
 	}
 
