@@ -149,7 +149,7 @@
 		39898E54166E6B43004888F4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = FreshPlanet;
 			};
 			buildConfigurationList = 39898E57166E6B43004888F4 /* Build configuration list for PBXProject "AirImagePicker" */;
@@ -206,6 +206,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;

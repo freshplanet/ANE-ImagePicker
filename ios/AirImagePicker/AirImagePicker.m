@@ -114,6 +114,11 @@ static AirImagePicker *sharedInstance = nil;
     }
 }
 
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    [[UIApplication sharedApplication] setStatusBarHidden:YES];
+}
+
 - (void)displayOverlay:(UIImage *)overlay
 {
     // Create a final overlay including a black area instead of the status bar, if needed.
