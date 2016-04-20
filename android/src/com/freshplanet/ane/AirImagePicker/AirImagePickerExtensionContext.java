@@ -60,6 +60,7 @@ import com.freshplanet.ane.AirImagePicker.functions.DrawPickedImageToBitmapDataF
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageHeightFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageJPEGRepresentationSizeFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageWidthFunction;
+import com.freshplanet.ane.AirImagePicker.functions.GetImagePath;
 import com.freshplanet.ane.AirImagePicker.functions.GetVideoPath;
 import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
@@ -99,6 +100,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("drawPickedImageToBitmapData", new DrawPickedImageToBitmapDataFunction());
 		functions.put("getPickedImageJPEGRepresentationSize", new GetPickedImageJPEGRepresentationSizeFunction());
 		functions.put("copyPickedImageJPEGRepresentationToByteArray", new CopyPickedImageJPEGRepresentationToByteArrayFunction());
+		functions.put("getImagePath", new GetImagePath());
 		functions.put("getVideoPath", new GetVideoPath());
 		functions.put("displayOverlay", new DisplayOverlayFunction()); // not implemented
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
@@ -890,6 +892,10 @@ public class AirImagePickerExtensionContext extends FREContext
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
 		return outputStream.toByteArray();
+	}
+
+  public String getImagePath() {
+		return selectedImagePath;
 	}
 
 	public String getVideoPath() {

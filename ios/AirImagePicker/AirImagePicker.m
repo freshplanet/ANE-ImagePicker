@@ -40,6 +40,7 @@ FREContext AirIPCtx = nil;
 @synthesize pickedImage = _pickedImage;
 @synthesize pickedImageJPEGData = _pickedImageJPEGData;
 @synthesize customImageAlbumName = _customImageAlbumName;
+@synthesize imagePath = _imagePath;
 @synthesize videoPath = _videoPath;
 
 static AirImagePicker *sharedInstance = nil;
@@ -70,6 +71,7 @@ static AirImagePicker *sharedInstance = nil;
     [_pickedImage release];
     [_pickedImageJPEGData release];
     [_customImageAlbumName release];
+    [_imagePath release];
     [_videoPath release];
     [_overlay release];
     [super dealloc];
@@ -79,6 +81,16 @@ static AirImagePicker *sharedInstance = nil;
 {
     if (PRINT_LOG) NSLog(@"[%@] %@", LOG_TAG, message);
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
+}
+
++ (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension; {
+  return([NSURL fileURLWithPath:
+    [NSString stringWithFormat:@"%@%@_%08x_%08x.%@",
+      NSTemporaryDirectory(),
+      type,
+      (uint32_t)arc4random(), 
+      (uint32_t)floor([[NSDate date] timeIntervalSince1970]),
+      extension]]);
 }
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
@@ -181,6 +193,11 @@ static AirImagePicker *sharedInstance = nil;
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
     {
+        // store the path to the original image file
+        [_imagePath release];
+        _imagePath = [(NSURL *)[info valueForKey:UIImagePickerControllerReferenceURL] path];
+        [_imagePath retain];
+    
         [self onImagePickedWithOriginalImage:[info objectForKey:UIImagePickerControllerOriginalImage]
                                  editedImage:[info objectForKey:UIImagePickerControllerEditedImage]];
     }
@@ -296,10 +313,8 @@ static AirImagePicker *sharedInstance = nil;
     dispatch_queue_t thread = dispatch_queue_create("video processing", NULL);
     dispatch_async(thread, ^{
         
-        // Save a copy of the picked video to the app directory
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSURL *toURL = [NSURL fileURLWithPath:[documentsDirectory stringByAppendingPathComponent:@"myMovie.mov"]];
+        // Save a copy of the picked video to the temp directory
+        NSURL *toURL = [self tempFileURLWithPrefix:@"movie" extension:@"mov"];
 
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
@@ -356,6 +371,7 @@ static AirImagePicker *sharedInstance = nil;
                     });
                 } else {
                     // Success!  Store the data we will retrieve later
+                    [_videoPath release];
                     _videoPath = [toURL path];
                     _pickedImage = [[UIImage alloc] initWithCGImage:image];
                     _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
@@ -715,6 +731,22 @@ DEFINE_ANE_FUNCTION(removeOverlay)
     return nil;
 }
 
+DEFINE_ANE_FUNCTION(getImagePath)
+{
+    NSLog(@"Entering getImagePath");
+    FREObject retValue = NULL;
+    
+    NSString *imagePath = [[AirImagePicker sharedInstance] imagePath];
+    FRENewObjectFromUTF8(strlen([imagePath UTF8String])+1,
+                         (const uint8_t *)[imagePath UTF8String],
+                         &retValue);
+    
+    [imagePath release];
+    
+    NSLog(@"Exiting getImagePath");
+    return retValue;
+}
+
 DEFINE_ANE_FUNCTION(getVideoPath)
 {
     NSLog(@"Entering getVideoPath");
@@ -737,7 +769,7 @@ DEFINE_ANE_FUNCTION(getVideoPath)
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 12;
+    NSInteger nbFuntionsToLink = 13;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -786,9 +818,13 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[10].functionData = NULL;
     func[10].function = &removeOverlay;
     
-    func[11].name = (const uint8_t*) "getVideoPath";
+    func[11].name = (const uint8_t*) "getImagePath";
     func[11].functionData = NULL;
-    func[11].function = &getVideoPath;
+    func[11].function = &getImagePath;
+    
+    func[12].name = (const uint8_t*) "getVideoPath";
+    func[12].functionData = NULL;
+    func[12].function = &getVideoPath;
     
     *functionsToSet = func;
     

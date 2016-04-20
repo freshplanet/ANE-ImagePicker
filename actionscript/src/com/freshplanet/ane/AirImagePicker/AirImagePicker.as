@@ -149,6 +149,20 @@ package com.freshplanet.ane.AirImagePicker
 		}
 		
 		/**
+		 * If <code>true</code>, return image data for picked images and video thumbnails.
+		 * If <code>false</code>, return only a filesystem path for picked images and videos.
+		 */
+		public function get returnImageData() : Boolean
+		{
+			return _returnImageData;
+		}
+		
+		public function set returnImageData( value : Boolean ) : void
+		{
+			_returnImageData = value;
+		}
+		
+		/**
 		 * Returns <code>true</code> if the gallery image picker is available on the
 		 * current device, <code>false</code> otherwise.
 		 * 
@@ -248,6 +262,7 @@ package com.freshplanet.ane.AirImagePicker
 		private static var _instance : AirImagePicker;
 		
 		private var _context : ExtensionContext;
+		private var _returnImageData : Boolean = true;
 		private var _logEnabled : Boolean = false;
 		private var _callback : Function = null;
 		private var _stage3D : Stage3D;
@@ -317,6 +332,12 @@ package com.freshplanet.ane.AirImagePicker
 					var mediaType:String = event.level;
 					if (mediaType == "IMAGE")
 					{
+					  var imagePath:String = _context.call("getImagePath") as String;
+					  
+					  if (! _returnImageData) {
+					    callback(STATUS_OK, imagePath);
+					  }
+					  
 						// Load BitmapData
 						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
 						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
@@ -328,12 +349,16 @@ package com.freshplanet.ane.AirImagePicker
 						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
 						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
 						
-						callback(STATUS_OK, pickedImageBitmapData, pickedImageByteArray);
+						callback(STATUS_OK, imagePath, pickedImageBitmapData, pickedImageByteArray);
 					}
 					else if (mediaType == "VIDEO")
 					{
 						// Video File path on device
 						var videoPath:String = _context.call("getVideoPath") as String;
+						
+						if (! _returnImageData) {
+					    callback(STATUS_OK, videoPath);
+					  }
 
 						// Picked Image Data corresponds to the thumbnail of the video.
 						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
