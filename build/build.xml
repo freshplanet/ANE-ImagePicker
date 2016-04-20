@@ -66,7 +66,7 @@
 
         <mkdir dir="../temp/android/"/>
         <jar basedir="../android/temp/classes" destfile="../temp/android/lib${name}.jar"/>
-        <copy todir="../temp/android/res/">
+        <copy todir="../temp/android/res/" failonerror="false">
             <fileset dir="../android/res"/>
         </copy>
         <delete dir="../android/temp"/>
