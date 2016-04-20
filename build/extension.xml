@@ -16,7 +16,7 @@
 //  
 //////////////////////////////////////////////////////////////////////////////////////-->
 
-<extension xmlns="http://ns.adobe.com/air/extension/3.1">
+<extension xmlns="http://ns.adobe.com/air/extension/19.0">
   <id>com.freshplanet.AirImagePicker</id>
   <versionNumber>1</versionNumber>
   <platforms>
