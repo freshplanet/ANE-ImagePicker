@@ -358,7 +358,8 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForAction(Intent data, int action)
 	{
-		if (action == GALLERY_IMAGES_ONLY_ACTION || action == GALLERY_IMAGES_AND_VIDEOS_ACTION)
+		if ((action == GALLERY_IMAGES_ONLY_ACTION) || 
+		    (action == GALLERY_IMAGES_AND_VIDEOS_ACTION))
 		{
 			handleResultForGallery(data);
 		}
@@ -469,13 +470,15 @@ public class AirImagePickerExtensionContext extends FREContext
 		Log.d(TAG, "[AirImagePickerExtensionContext] fileManager = " + fileManagerString);
 		Log.d(TAG, "[AirImagePickerExtensionContext] selectedImagePath = " + selectedImagePath);
 		
-		if ( selectedImagePath.endsWith(".3gp"))
+		// check for common video extensions
+		if (selectedImagePath.matches("[.](3gp|asf|wmv|avi|flv|m[0-9ko]v||mp[0-9eg]+|ogg)$"))
 		{
 			selectedVideoPath = selectedImagePath; 
 			createThumbnailForVideo();
 			if ( processPickedImage(selectedImagePath) )
 				dispatchResultEvent("DID_FINISH_PICKING", "VIDEO");
 		}
+		// assume it's an image if no video extensions match
 		else
 		{
 			if (_shouldCrop)
@@ -714,7 +717,9 @@ public class AirImagePickerExtensionContext extends FREContext
 			_pickedImage = getOrientedSampleBitmapFromPath(filePath);
 		}
 		
-		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
+		if (_pickedImage != null) {
+  		_pickedImageJPEGRepresentation = getJPEGRepresentationFromBitmap(_pickedImage);
+    }
 
 		Boolean result = _albumName != null ? didSavePictureInGallery() : true;
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage (ret value +"+result.toString()+")");
