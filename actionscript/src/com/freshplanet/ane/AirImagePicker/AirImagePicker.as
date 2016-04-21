@@ -336,6 +336,7 @@ package com.freshplanet.ane.AirImagePicker
 					  
 					  if (! _returnImageData) {
 					    callback(STATUS_OK, imagePath);
+					    return;
 					  }
 					  
 						// Load BitmapData
@@ -358,6 +359,7 @@ package com.freshplanet.ane.AirImagePicker
 						
 						if (! _returnImageData) {
 					    callback(STATUS_OK, videoPath);
+					    return;
 					  }
 
 						// Picked Image Data corresponds to the thumbnail of the video.

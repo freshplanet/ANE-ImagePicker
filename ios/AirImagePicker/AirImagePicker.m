@@ -283,8 +283,7 @@ static AirImagePicker *sharedInstance = nil;
             }];
         }
         
-        // clear any existing stored image path
-        [_imagePath release];
+        // clear any stored image path in case the function below fails
         _imagePath = nil;
         
         // Save image to a temporary path on disk
@@ -383,7 +382,6 @@ static AirImagePicker *sharedInstance = nil;
                     });
                 } else {
                     // Success!  Store the data we will retrieve later
-                    [_videoPath release];
                     _videoPath = [toURL path];
                     _pickedImage = [[UIImage alloc] initWithCGImage:image];
                     _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
