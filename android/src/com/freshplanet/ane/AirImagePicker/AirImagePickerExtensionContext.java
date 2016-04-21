@@ -47,6 +47,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
+import android.os.Build;
 
 import com.adobe.fre.FREBitmapData;
 import com.adobe.fre.FREByteArray;
@@ -297,13 +298,24 @@ public class AirImagePickerExtensionContext extends FREContext
 		switch (action)
 		{
 		case GALLERY_IMAGES_ONLY_ACTION:
-			intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			intent = new Intent();
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+			intent.setType("image/*");
+			// prevent the user from selecting from a Picasa album if possible
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+      }
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
 		case GALLERY_IMAGES_AND_VIDEOS_ACTION:
-			intent = new Intent(Intent.ACTION_GET_CONTENT);
-			intent.setType("video/*, images/*");
+			intent = new Intent();
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+			intent.setType("image/*|video/*");
+			// prevent the user from selecting from a Picasa album
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+      }
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
 			return intent;
 			
@@ -697,15 +709,6 @@ public class AirImagePickerExtensionContext extends FREContext
 			dispatchResultEvent("PICASSA_NOT_SUPPORTED");
 			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting processPickedImage (ret value false)");
 			return false;
-			
-//			final String picassaPath = filePath;
-//			// Do this in a background thread, since we are fetching a large image from the web.
-//			new Thread(new Runnable() {
-//				@Override
-//				public void run() {
-//					_pickedImage = getOrientedSampleBitmapFromPicassa(picassaPath);
-//				}
-//			}).start();
 		}
 		else {
 			_pickedImage = getOrientedSampleBitmapFromPath(filePath);
@@ -762,69 +765,6 @@ public class AirImagePickerExtensionContext extends FREContext
 		
 		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting didSavePictureInGallery (ret value true)");
 		return true;
-	}
-
-	@SuppressWarnings("unused")
-	private Bitmap getOrientedSampleBitmapFromPicassa(String filePath)
-	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getOrientedSampleBitmapFromPicassa");
-		
-		// PICASSA PICKING IS NOT SUPPORTED FOR NOW
-		// http://dimitar.me/how-to-get-picasa-images-using-the-image-picker-on-android-devices-running-any-os-version/
-		
-		File cacheDir;
-		
-		// if the device has a SD card
-		if (android.os.Environment.getExternalStorageDirectory().equals(android.os.Environment.MEDIA_MOUNTED)){
-			Log.d(TAG, "[AirImagePickerExtensionContext] cacheDir from getExternalStorageDirectory()");
-			cacheDir = new File(android.os.Environment.getExternalStorageDirectory(),".OCFL311");
-		} else {
-			Log.d(TAG, "[AirImagePickerExtensionContext] cacheDir from getCacheDir()");
-			cacheDir = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
-		}
-		
-		if (!cacheDir.exists())
-			cacheDir.mkdirs();
-		
-		Log.d(TAG, "[AirImagePickerExtensionContext] create file in cache dir");
-		File f = new File( cacheDir, "image_file_name.jpg");
-		
-		try
-		{
-			Log.d(TAG, "[AirImagePickerExtensionContext] open input stream in picassa");
-			
-			InputStream is = null;
-			if ( filePath.startsWith("content://com.google.android.gallery3d") ) {
-				Log.d(TAG, "[AirImagePickerExtensionContext] 1");
-				is = getActivity().getApplicationContext().getContentResolver().openInputStream(Uri.parse(filePath));
-				Log.d(TAG, "[AirImagePickerExtensionContext] 2");
-			} else {
-				is = new URL(filePath.toString()).openStream();
-			}
-			
-			Log.d(TAG, "[AirImagePickerExtensionContext] open outputstream in file system");
-			OutputStream os = new FileOutputStream(f);
-			
-			Log.d(TAG, "[AirImagePickerExtensionContext] copy bytes from picassa to file system");
-			// 
-			byte[] buffer = new byte[1024];
-			int len;
-			while( (len = is.read(buffer)) != -1 ) {
-				os.write(buffer,0,len);
-			}
-			
-			Log.d(TAG, "[AirImagePickerExtensionContext] done copying, close OutputStream");
-			os.close();
-			Bitmap b = getOrientedSampleBitmapFromPath(f.getAbsolutePath()); 
-			
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPicassa");
-			return b;
-		} 
-		catch (Exception ex) {
-			Log.d( TAG, "[AirImagePickerExtensionContext] Exception: " + ex.getMessage());
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getOrientedSampleBitmapFromPicassa");
-			return null;
-		}
 	}
 	
 	private Bitmap getOrientedSampleBitmapFromPath(String filePath)
