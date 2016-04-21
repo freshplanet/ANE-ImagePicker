@@ -193,11 +193,6 @@ static AirImagePicker *sharedInstance = nil;
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
     {
-        // store the path to the original image file
-        [_imagePath release];
-        _imagePath = [(NSURL *)[info valueForKey:UIImagePickerControllerReferenceURL] path];
-        [_imagePath retain];
-    
         [self onImagePickedWithOriginalImage:[info objectForKey:UIImagePickerControllerOriginalImage]
                                  editedImage:[info objectForKey:UIImagePickerControllerEditedImage]];
     }
@@ -288,6 +283,23 @@ static AirImagePicker *sharedInstance = nil;
             }];
         }
         
+        // clear any existing stored image path
+        [_imagePath release];
+        _imagePath = nil;
+        
+        // Save image to a temporary path on disk
+        NSURL *toURL = [AirImagePicker tempFileURLWithPrefix:@"image" extension:@"jpg"];
+        NSError *error = nil;
+        [_pickedImageJPEGData writeToURL:toURL options:0 error:&error];
+        if (error != nil) {
+          NSLog(@"AirImagePicker:  Error while saving to temp file: %@", 
+            [error description]);
+        }
+        else {
+          _imagePath = [toURL path];
+          [_imagePath retain];
+        }
+        
         [_pickedImage retain];
         [_pickedImageJPEGData retain];
         
@@ -314,7 +326,7 @@ static AirImagePicker *sharedInstance = nil;
     dispatch_async(thread, ^{
         
         // Save a copy of the picked video to the temp directory
-        NSURL *toURL = [self tempFileURLWithPrefix:@"movie" extension:@"mov"];
+        NSURL *toURL = [AirImagePicker tempFileURLWithPrefix:@"movie" extension:@"mov"];
 
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
