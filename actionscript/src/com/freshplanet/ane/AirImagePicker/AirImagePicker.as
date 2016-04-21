@@ -33,28 +33,14 @@ package com.freshplanet.ane.AirImagePicker
 	*
 	*  CALLBACKS:   
 	*
-	*   Because we are handling both videos and images, the callbacks to every 
-	*	Method in this native extension have the following form: <code>function( status:String, ...mediaArgs ):void</code>
+	*   The callbacks to every method in this native extension have the following form: 
+	*   <code>function( status:String, mediaPath:String = null ):void</code>
 	*
 	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
 	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, or STATUS_NOT_SUPPORTED 
 	*   when the requested feature is not supported by your device.
 	*   For Android, there's a specific status, STATUS_PICASSA_NOT_SUPPORTED, used when the user tries
 	* 	to pick an image from a Picassa Web Album.
-	*
-	*   mediaArgs:  An Array with different data according to the media type.
-	*		
-	*   Images :  A String containing the path of the image stored on the device, 
-	          a BitmapData instance representing the image, and a ByteArray instance containing
-	*					a JPEG representation of the image. If returnImageData is set to 
-	*         <code>false</code>, only the path will be returned.
-	*
-	*		Videos: A String containing the path of the video stored on the device, A BitmapData 
-	*					instance for a thumbnail of the video, and a ByteArray instance containing
-	*					a JPEG representation of the thumbnail. If returnImageData is set to 
-	*         <code>false</code>, only the path will be returned.
-	*
-	*	You can use StageVideo or FreshPlanet's ANE-Video to play the video on your AIR App.	
 	*
 	*	@see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/StageVideo.html
 	*   @see https://github.com/freshplanet/ANE-Video
@@ -152,20 +138,6 @@ package com.freshplanet.ane.AirImagePicker
 		}
 		
 		/**
-		 * If <code>true</code>, return image data for picked images and video thumbnails.
-		 * If <code>false</code>, return only a filesystem path for picked images and videos.
-		 */
-		public function get returnImageData() : Boolean
-		{
-			return _returnImageData;
-		}
-		
-		public function set returnImageData( value : Boolean ) : void
-		{
-			_returnImageData = value;
-		}
-		
-		/**
 		 * Returns <code>true</code> if the gallery image picker is available on the
 		 * current device, <code>false</code> otherwise.
 		 * 
@@ -197,17 +169,23 @@ package com.freshplanet.ane.AirImagePicker
 		 * on which the user clicked to display the image picker. Note that you should
 		 * use absolute stage coordinates. Example: <code>var anchor:Rectangle = 
 		 * myButton.getBounds(stage);</code>
+		 * @param allowMultiple If <code>true</code>, multiple images or videos can be selected. 
+		 * Default: <code>false</code>.
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, 
+		                                    allowVideo:Boolean = false, 
+		                                    crop : Boolean = false, 
+		                                    anchor : Rectangle = null,
+		                                    allowMultiple:Boolean = false) : void
 		{
 			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			_callback = callback;
 			
-			if (anchor != null) _context.call("displayImagePicker", allowVideo, crop, anchor);
-			else _context.call("displayImagePicker", allowVideo, crop);
+			if (anchor != null) _context.call("displayImagePicker", allowVideo, crop, allowMultiple, anchor);
+			else _context.call("displayImagePicker", allowVideo, crop, allowMultiple);
 		}
 		
 		/**
@@ -265,7 +243,6 @@ package com.freshplanet.ane.AirImagePicker
 		private static var _instance : AirImagePicker;
 		
 		private var _context : ExtensionContext;
-		private var _returnImageData : Boolean = true;
 		private var _logEnabled : Boolean = false;
 		private var _callback : Function = null;
 		private var _stage3D : Stage3D;
@@ -330,54 +307,8 @@ package com.freshplanet.ane.AirImagePicker
 			{
 				if (callback != null)
 				{
-					_callback = null;
-					
-					var mediaType:String = event.level;
-					if (mediaType == "IMAGE")
-					{
-					  var imagePath:String = _context.call("getImagePath") as String;
-					  
-					  if (! _returnImageData) {
-					    callback(STATUS_OK, imagePath);
-					    return;
-					  }
-					  
-						// Load BitmapData
-						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
-						var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
-						_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
-						
-						// Load JPEG-encoded ByteArray
-						var pickedImageByteArray:ByteArray = new ByteArray();
-						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
-						
-						callback(STATUS_OK, imagePath, pickedImageBitmapData, pickedImageByteArray);
-					}
-					else if (mediaType == "VIDEO")
-					{
-						// Video File path on device
-						var videoPath:String = _context.call("getVideoPath") as String;
-						
-						if (! _returnImageData) {
-					    callback(STATUS_OK, videoPath);
-					    return;
-					  }
-
-						// Picked Image Data corresponds to the thumbnail of the video.
-						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
-						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
-						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
-
-						// Load JPEG-encoded ByteArray of the thumbnail
-						var thumbnailImageByteArray:ByteArray = new ByteArray();
-						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
-
-						callback(STATUS_OK, videoPath, thumbnailImageBitmapData, thumbnailImageByteArray);
-					}
+					//!!! _callback = null;
+					callback(STATUS_OK, event.level);
 				}
 			}
 			else if (event.code == STATUS_DID_CANCEL)

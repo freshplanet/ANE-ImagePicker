@@ -14,17 +14,19 @@ public class DisplayImagePickerFunction implements FREFunction
 	{
 		Boolean crop = false;
 		Boolean allowVideo = false;
+		Boolean allowMultiple = false;
 		try
 		{
 			allowVideo = args[0].getAsBool();
 			crop = args[1].getAsBool();
+			allowMultiple = args[2].getAsBool();
 		}
 		catch (Exception exception)
 		{
 			AirImagePickerExtension.log(exception.getMessage());
 		}
 		
-		AirImagePickerExtension.context.displayImagePicker(allowVideo,crop);
+		AirImagePickerExtension.context.displayImagePicker(allowVideo,crop,allowMultiple);
 		
 		return null;
 	}

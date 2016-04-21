@@ -93,7 +93,9 @@ static AirImagePicker *sharedInstance = nil;
       extension]]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString *)albumName anchor:(CGRect)anchor
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
+          allowVideo:(BOOL)allowVideo crop:(BOOL)crop allowMultiple:(BOOL)allowMultiple 
+          albumName:(NSString *)albumName anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -303,7 +305,8 @@ static AirImagePicker *sharedInstance = nil;
         [_pickedImageJPEGData retain];
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"IMAGE");
+            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
+              (const uint8_t *)[_imagePath UTF8String]);
         });
         
     });
@@ -393,7 +396,8 @@ static AirImagePicker *sharedInstance = nil;
                     
                     // Let the native extension know that we are done with the picking
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", (const uint8_t *)"VIDEO");
+                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
+                          (const uint8_t *)[_videoPath UTF8String]);
                     });
                 }
                 
@@ -468,11 +472,16 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
     
+    uint32_t allowMultipleValue;
+    FREObject allowMultipleObject = argv[2];
+    FREGetObjectAsBool(allowMultipleObject, &allowMultipleValue);
+    BOOL allowMultiple = (allowMultipleValue != 0);
+    
     CGRect anchor;
-    if (argc > 2)
+    if (argc > 3)
     {
         // Extract anchor properties
-        FREObject anchorObject = argv[2];
+        FREObject anchorObject = argv[3];
         FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
         FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
         FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
@@ -496,7 +505,10 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
         anchor = CGRectMake(rootViewController.view.bounds.size.width - 100, 0, 100, 1); // Default anchor: Top right corner
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary allowVideo:allowVideo crop:crop albumName:nil anchor:anchor];
+    [[AirImagePicker sharedInstance] 
+      displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary 
+        allowVideo:allowVideo crop:crop albumName:nil 
+        allowMultiple:allowMultiple anchor:anchor];
     
     return nil;
 }
@@ -533,7 +545,10 @@ DEFINE_ANE_FUNCTION(displayCamera)
         albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
     }
     
-    [[AirImagePicker sharedInstance] displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera allowVideo:allowVideo crop:crop albumName:albumName anchor:CGRectZero];
+    [[AirImagePicker sharedInstance] 
+      displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera 
+      allowVideo:allowVideo crop:crop allowMultiple:NO 
+      albumName:albumName anchor:CGRectZero];
     
     return nil;
 }
@@ -741,45 +756,12 @@ DEFINE_ANE_FUNCTION(removeOverlay)
     return nil;
 }
 
-DEFINE_ANE_FUNCTION(getImagePath)
-{
-    NSLog(@"Entering getImagePath");
-    FREObject retValue = NULL;
-    
-    NSString *imagePath = [[AirImagePicker sharedInstance] imagePath];
-    FRENewObjectFromUTF8(strlen([imagePath UTF8String])+1,
-                         (const uint8_t *)[imagePath UTF8String],
-                         &retValue);
-    
-    [imagePath release];
-    
-    NSLog(@"Exiting getImagePath");
-    return retValue;
-}
-
-DEFINE_ANE_FUNCTION(getVideoPath)
-{
-    NSLog(@"Entering getVideoPath");
-    FREObject retValue = NULL;
-    
-    NSString *videoPath = [[AirImagePicker sharedInstance] videoPath];
-    FRENewObjectFromUTF8(strlen([videoPath UTF8String])+1,
-                         (const uint8_t *)[videoPath UTF8String],
-                         &retValue);
-    
-    [videoPath release];
-    
-    NSLog(@"Exiting getVideoPath");
-    return retValue;
-}
-
-
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 13;
+    NSInteger nbFuntionsToLink = 11;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -827,14 +809,6 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[10].name = (const uint8_t*) "removeOverlay";
     func[10].functionData = NULL;
     func[10].function = &removeOverlay;
-    
-    func[11].name = (const uint8_t*) "getImagePath";
-    func[11].functionData = NULL;
-    func[11].function = &getImagePath;
-    
-    func[12].name = (const uint8_t*) "getVideoPath";
-    func[12].functionData = NULL;
-    func[12].function = &getVideoPath;
     
     *functionsToSet = func;
     

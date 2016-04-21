@@ -34,7 +34,7 @@
 
 + (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop allowMultiple:(BOOL)allowMultiple albumName:(NSString*)albumName anchor:(CGRect)anchor;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
@@ -55,8 +55,6 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
 DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
 DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
-DEFINE_ANE_FUNCTION(getImagePath);
-DEFINE_ANE_FUNCTION(getVideoPath);
 DEFINE_ANE_FUNCTION(displayOverlay);
 DEFINE_ANE_FUNCTION(removeOverlay);
 
