@@ -44,12 +44,15 @@ package com.freshplanet.ane.AirImagePicker
 	*
 	*   mediaArgs:  An Array with different data according to the media type.
 	*		
-	*    	Images :  A BitmapData instance representing the image, and a ByteArray instance containing
-	*					a JPEG representation of the image.
+	*   Images :  A String containing the path of the image stored on the device, 
+	          a BitmapData instance representing the image, and a ByteArray instance containing
+	*					a JPEG representation of the image. If returnImageData is set to 
+	*         <code>false</code>, only the path will be returned.
 	*
 	*		Videos: A String containing the path of the video stored on the device, A BitmapData 
 	*					instance for a thumbnail of the video, and a ByteArray instance containing
-	*					a JPEG representation of the thumbnail.
+	*					a JPEG representation of the thumbnail. If returnImageData is set to 
+	*         <code>false</code>, only the path will be returned.
 	*
 	*	You can use StageVideo or FreshPlanet's ANE-Video to play the video on your AIR App.	
 	*
