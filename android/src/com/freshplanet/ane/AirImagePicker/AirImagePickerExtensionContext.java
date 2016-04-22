@@ -23,6 +23,7 @@ package com.freshplanet.ane.AirImagePicker;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -33,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import android.app.Activity;
@@ -69,17 +71,22 @@ import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
 public class AirImagePickerExtensionContext extends FREContext 
 {
 	private static String TAG = "AirImagePicker";
+	private void log(String message) {
+	  Log. d(TAG, "[AirImagePickerExtensionContext] "+message);
+	}
 	
 	@Override
 	public void dispose() 
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering dispose");
+		log("Entering dispose");
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Setting AirImagePickerExtension.context to null.");
+		cleanupTempFiles();
+		
+		log("Setting AirImagePickerExtension.context to null.");
 
 		AirImagePickerExtension.context = null;
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting dispose");
+		log("Exiting dispose");
 	}
 
 	//-----------------------------------------------------//
@@ -108,7 +115,7 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	public void displayImagePicker(Boolean videosAllowed, Boolean allowMultiple, Boolean crop)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
+		log("Entering displayImagePicker");
 		_shouldCrop = crop;
 		_allowMultiple = allowMultiple;
 		if (videosAllowed)
@@ -119,18 +126,18 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			startPickerActivityForAction(GALLERY_IMAGES_ONLY_ACTION);
 		}
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting displayImagePicker");
+		log("Exiting displayImagePicker");
 	}
 
 	public Boolean isCameraAvailable()
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isCameraAvailable");
+		log("Entering isCameraAvailable");
 		
 		Boolean hasCameraFeature = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
 		Boolean hasFrontCameraFeature = getActivity().getPackageManager().hasSystemFeature("android.hardware.camera.front");
 		Boolean isAvailable = (hasFrontCameraFeature || hasCameraFeature) && (isActionAvailable(CAMERA_IMAGE_ACTION) || isActionAvailable(CAMERA_VIDEO_ACTION));
 
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isCameraAvailable");
+		log("Exiting isCameraAvailable");
 		return isAvailable;
 	}
 
@@ -177,6 +184,16 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		dispatchResultEvent(eventName, "OK");
 	}
+	
+	/**
+	 * @param path The absolute path to a file with the picked media.
+	 */
+	private void returnPickedFile(File file) {
+	  // avoid deleting this file since we're passing it back to the client
+	  String path = file.getAbsolutePath();
+	  protectTempPath(path);
+	  dispatchResultEvent("DID_FINISH_PICKING", path);
+	}
 
 
 	//-----------------------------------------------------//
@@ -196,20 +213,20 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private Boolean isActionAvailable(int action)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering isActionAvailable");
+		log("Entering isActionAvailable");
 		
 		final PackageManager packageManager = getActivity().getPackageManager();
 		List<ResolveInfo> list = packageManager.queryIntentActivities(
 		  getIntentForAction(action), PackageManager.MATCH_DEFAULT_ONLY);
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting isActionAvailable");
+		log("Exiting isActionAvailable");
 		
 		return list.size() > 0;
 	}
 
 	private Intent getIntentForAction(int action)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering getIntentForAction");
+		log("Entering getIntentForAction");
 		Intent intent;
 		switch (action)
 		{
@@ -228,30 +245,30 @@ public class AirImagePickerExtensionContext extends FREContext
           (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)) {
       	intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
       }
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			log("Exiting getIntentForAction");
 			return intent;
 			
 		case CAMERA_IMAGE_ACTION:
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			log("Exiting getIntentForAction");
 			return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 			
 		case CAMERA_VIDEO_ACTION:
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			log("Exiting getIntentForAction");
 			return new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 			
 		case CROP_ACTION:
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			log("Exiting getIntentForAction");
 			return new Intent("com.android.camera.action.CROP");
 		
 		default:
-			Log.d(TAG, "[AirImagePickerExtensionContext] Exiting getIntentForAction");
+			log("Exiting getIntentForAction");
 			return null;
 		}
 	}
 
 	private void prepareIntentForAction(Intent intent, int action)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering prepareIntentForAction");
+		log("Entering prepareIntentForAction");
 		
 		if (action == CAMERA_IMAGE_ACTION)
 		{
@@ -265,7 +282,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		{
 			prepareIntentForCrop(intent);
 		}
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting prepareIntentForAction");
+		log("Exiting prepareIntentForAction");
 	}
 
 	private void handleResultForAction(Intent data, int action)
@@ -298,18 +315,18 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void startPickerActivityForAction(int action)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering startPickerActivityForAction");
+		log("Entering startPickerActivityForAction");
 		
 		_currentAction = action;
 		Intent intent = new Intent(getActivity().getApplicationContext(), AirImagePickerActivity.class);
 		getActivity().startActivity(intent);
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting startPickerActivityForAction");
+		log("Exiting startPickerActivityForAction");
 	}
 
 	public void onCreatePickerActivity(AirImagePickerActivity pickerActivity)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering onCreatePickerActivity");
+		log("Entering onCreatePickerActivity");
 		
 		if (_currentAction != NO_ACTION)
 		{
@@ -319,12 +336,12 @@ public class AirImagePickerExtensionContext extends FREContext
 			_pickerActivity.startActivityForResult(intent, _currentAction);
 		}
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onCreatePickerActivity");
+		log("Exiting onCreatePickerActivity");
 	}
 
 	public void onPickerActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering onPickerActivityResult");
+		log("Entering onPickerActivityResult");
 		
 		debugActivityResult(requestCode, resultCode, data);
 		
@@ -337,7 +354,7 @@ public class AirImagePickerExtensionContext extends FREContext
 			dispatchResultEvent("DID_CANCEL");
 		}
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting onPickerActivityResult");
+		log("Exiting onPickerActivityResult");
 	}
 	
 	private void debugActivityResult( int requestCode, int resultCode, Intent data )
@@ -369,7 +386,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	
 	private void handleResultForGallery(Intent data)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForGallery");
+		log("Entering handleResultForGallery");
 		
 		// handle a single selected item
 		if (data.getData() != null) {
@@ -383,57 +400,57 @@ public class AirImagePickerExtensionContext extends FREContext
       }
 		}
 		else {
-		  Log.d(TAG, "[AirImagePickerExtensionContext] Unable to find picked items: data = "+data.toString());
+		  log("Unable to find picked items: data = "+data.toString());
 		}
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForGallery");
+		// clean up temp files unless we're cropping, in which case 
+		//  they should be cleaned up when that finishes
+		if (! _shouldCrop) cleanupTempFiles();
+		
+		log("Exiting handleResultForGallery");
 	}
 	private void handleGalleryItem(Uri uri)
 	{
-	  Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleGalleryItem");
+	  log("Entering handleGalleryItem");
 
-		// convert to a real file path
-		String path = getFilesystemPathForUri(uri);
-
-	  // bail if we have no path to avoid crashing below
-		if (path == null) {
-		  Log.d(TAG, "[AirImagePickerExtensionContext] No content path found!");
-		  return;
-		}
-		
-		// try and detect if the file is a video using the content resolver,
+    // try and detect if the file is a video using the content resolver,
 		//  falling back on common video file extensions
 		ContentResolver resolver = getActivity().getContentResolver();
 		String contentType = resolver.getType(uri);
-		if (((contentType != null) && (contentType.startsWith("video"))) || 
-		    (path.matches("[.](3gp|asf|wmv|avi|flv|m[0-9ko]v||mp[0-9eg]+|ogg)$")))
-		{
-			dispatchResultEvent("DID_FINISH_PICKING", path);
-		}
-		// assume it's an image if we can't identify it as a video
-		else
-		{
-			if (_shouldCrop)
-			{
-				// stop previous activity
-				if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+		Boolean isVideo = 
+		  (((contentType != null) && (contentType.startsWith("video"))) || 
+		   (uri.getPath().matches("[.](3gp|asf|wmv|avi|flv|m[0-9ko]v||mp[0-9eg]+|ogg)$")));
+		
+		// convert to a real file path
+		File file = getFileForUri(uri);
+		
+		// if we're cropping, pass to the crop activity
+		if ((_shouldCrop) && (! isVideo)) {
+		  // stop previous activity
+				if ((_currentAction == CAMERA_IMAGE_ACTION) || 
+				    (_currentAction == GALLERY_IMAGES_ONLY_ACTION) || 
+				    (_currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION)) {
 					if (_pickerActivity != null) {
 						_pickerActivity.finish();
 					}
 				}
-				_cropInputPath = path;
+				_cropInputFile = file;
 				startPickerActivityForAction(CROP_ACTION);
-			}
-			else
-			{
-				dispatchResultEvent("DID_FINISH_PICKING", path);
-			}
+				return;
+		}
+		
+	  // bail if we have no path to avoid crashing below
+		if (file != null) {
+		  returnPickedFile(file);
+		}
+		else {
+		  log("No content path found!");
 		}
 	  
-	  Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleGalleryItem");
+	  log("Exiting handleGalleryItem");
 	}
 	
-	private String getFilesystemPathForUri(Uri uri)
+	private File getFileForUri(Uri uri)
 	{
 		ContentResolver resolver = getActivity().getContentResolver();
 		InputStream inStream = null;
@@ -443,40 +460,36 @@ public class AirImagePickerExtensionContext extends FREContext
   		inStream = resolver.openInputStream(uri);
     }
     catch (FileNotFoundException e) {
-      Log.d(TAG, "[AirImagePickerExtensionContext] Failed to get an input stream for URI "+
+      log("Failed to get an input stream for URI "+
         uri.toString()+" ("+e.getMessage()+")");
       return(null);
     }
     // get a temporary file to store the media in (hopefully preserving the filename as a suffix)
-    File tempFile = getTemporaryImageFile(uri.getLastPathSegment().replaceAll("[^.\\w]+", ""));
+    File tempFile = getTempFile(uri.getLastPathSegment().replaceAll("[^.\\w]+", ""));
     try {
       outStream = new FileOutputStream(tempFile);
     }
     catch (FileNotFoundException e) {
-      Log.d(TAG, "[AirImagePickerExtensionContext] Failed to get an output stream for file "+
+      log("Failed to get an output stream for file "+
         tempFile.toString()+" ("+e.getMessage()+")");
       return(null);
     }
     // write the data to the temp file 
     try {
-      byte[] buffer = new byte[8 * 1024];
-      int bytesRead;
-      while ((bytesRead = inStream.read(buffer)) != -1) {
-        outStream.write(buffer, 0, bytesRead);
-      }
+      copyStream(inStream, outStream);
       inStream.close();
       outStream.close();
 		}
 		catch (IOException e) {
-      Log.d(TAG, "[AirImagePickerExtensionContext] IOException saving stream: "+e.getMessage());
+      log("IOException saving stream: "+e.getMessage());
       return(null);
     }
     catch (Exception e) {
-      Log.d(TAG, "[AirImagePickerExtensionContext] Failed to save stream: "+e.getMessage());
+      log("Failed to save stream: "+e.getMessage());
       e.printStackTrace();
       return(null);
     }
-    return(tempFile.getAbsolutePath());
+    return(tempFile);
 	}
 
 
@@ -484,20 +497,18 @@ public class AirImagePickerExtensionContext extends FREContext
 	//						 CAMERA						   //
 	//-----------------------------------------------------//
 
-	private String _cameraOutputPath;
+	private File _cameraOutputFile;
 
 	private void prepareIntentForPictureCamera(Intent intent)
 	{
-		File tempFile = getTemporaryImageFile(".jpg");
-		_cameraOutputPath = tempFile.getAbsolutePath();
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+		_cameraOutputFile = getTempFile(".jpg");
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(_cameraOutputFile));
 	}
 	
 	private void prepareIntentForVideoCamera(Intent intent)
 	{
-		File tempFile = getTemporaryImageFile(".3gp");
-		_cameraOutputPath = tempFile.getAbsolutePath();
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+		_cameraOutputFile = getTempFile(".3gp");
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(_cameraOutputFile));
 	}
 
 	private void handleResultForImageCamera(Intent data)
@@ -505,17 +516,21 @@ public class AirImagePickerExtensionContext extends FREContext
 		if (_shouldCrop)
 		{
 			// stop previous activity
-			if (_currentAction == CAMERA_IMAGE_ACTION || _currentAction == GALLERY_IMAGES_ONLY_ACTION || _currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION ) {
+			if ((_currentAction == CAMERA_IMAGE_ACTION) || 
+			    (_currentAction == GALLERY_IMAGES_ONLY_ACTION) || 
+			    (_currentAction == GALLERY_IMAGES_AND_VIDEOS_ACTION)) {
 				if (_pickerActivity != null) {
 					_pickerActivity.finish();
 				}
 			}
-			_cropInputPath = _cameraOutputPath;
+			_cropInputFile = _cameraOutputFile;
 			startPickerActivityForAction(CROP_ACTION);
 		}
 		else
 		{
-			dispatchResultEvent("DID_FINISH_PICKING", _cameraOutputPath);
+		  returnPickedFile(_cameraOutputFile);
+		  // clean up temporary files
+		  cleanupTempFiles();
 		}
 	}
 	
@@ -523,7 +538,9 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		Log.d(TAG, "Entering handleResultForVideoCamera");
 		
-		dispatchResultEvent("DID_FINISH_PICKING", _cameraOutputPath);
+		returnPickedFile(_cameraOutputFile);
+		// clean up temporary files
+		cleanupTempFiles();
 		
 		Log.d(TAG, "Exiting handleResultForVideoCamera");
 	}
@@ -533,18 +550,19 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	private Boolean _shouldCrop = false;
-	private String _cropInputPath;
-	private String _cropOutputPath;
+	private File _cropInputFile;
+	private File _cropOutputFile;
 
 	private void prepareIntentForCrop(Intent intent)
 	{
-		// Set crop input
-		intent.setDataAndType(Uri.fromFile(new File(_cropInputPath)), "image/*");
-
-		// Set crop output
-		File tempFile = getTemporaryImageFile(".jpg");
-		_cropOutputPath = tempFile.getAbsolutePath();
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+		// set crop input and output to shared storage so the crop intent 
+		//  can access them
+		_cropInputFile = getSharedFile("AirImagePicker.crop.in", _cropInputFile);
+		_cropOutputFile = getSharedFile("AirImagePicker.crop.out");
+		
+		// set up the intent source and destination
+		intent.setDataAndType(Uri.fromFile(_cropInputFile), "image/*");
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(_cropOutputFile));
 
 		// Cropped image should be square (aspect ratio 1:1)
 		intent.putExtra("aspectX", 1);
@@ -554,7 +572,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		// Set crop output size
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(_cropInputPath, options);
+		BitmapFactory.decodeFile(_cropInputFile.getAbsolutePath(), options);
 		int smallestEdge = Math.min(options.outWidth, options.outHeight);
 		intent.putExtra("outputX", smallestEdge);
 		intent.putExtra("outputY", smallestEdge);
@@ -562,36 +580,141 @@ public class AirImagePickerExtensionContext extends FREContext
 
 	private void handleResultForCrop(Intent data)
 	{
-		Log.d(TAG, "[AirImagePickerExtensionContext] Entering handleResultForCrop");
+		log("Entering handleResultForCrop");
 		
-		dispatchResultEvent("DID_FINISH_PICKING", _cropOutputPath);
+		// copy crop output to an internal path to avoid leaving junk 
+		//  in shared storage
+		File outFile = getTempFile(".jpg");
+		try {
+  		copyFile(_cropOutputFile, outFile);
+    }
+    catch (IOException e) {
+      log("Failed to get a copy of the crop output");
+      outFile = _cropOutputFile;
+    }
 		
-		Log.d(TAG, "[AirImagePickerExtensionContext] Exiting handleResultForCrop");
+		// return the result and clean up temporary files
+		returnPickedFile(outFile);
+		// clean up temporary files
+		cleanupTempFiles();
+		
+		log("Exiting handleResultForCrop");
 	}
 
-
 	//-----------------------------------------------------//
-	//				   	IMAGE PROCESSING			   	   //
+	//				   	TEMP STORAGE    			   	               //
 	//-----------------------------------------------------//
 
-	private static final int BITMAP_MEMORY_LIMIT = 5 * 1024 * 1024; // 5MB
+  private List<File> _tempFiles = new ArrayList<File>();
 
-	private File getTemporaryImageFile( String extension )
+  // get a new temporary file named using the given suffix
+	private File getTempFile(String suffix)
 	{
-	  File f = null;
+	  File file = null;
 	  try {
-	    f = File.createTempFile("airImagePicker-", 
-	      extension, getActivity().getCacheDir());
+	    file = File.createTempFile("airImagePicker-", 
+	      suffix, getActivity().getCacheDir());
+	    // store the temp file for later cleanup
+	    _tempFiles.add(file);
 	  }
 	  catch (IOException e) {
-	    Log.d(TAG, "[AirImagePickerExtensionContext] Failed to create temp file");
+	    log("Failed to create temp file: "+e.getMessage());
 	  }
-	  return(f);
+	  return(file);
 	}
 	
-	private void deleteTemporaryImageFile(String filePath)
-	{
-		new File(filePath).delete();
+  // remove the file at the given path from our list of temporary files, 
+  //  since we don't know when the client will be done using it and 
+  //  want to avoid cleaning it up prematurely
+  private void protectTempPath(String path) {
+	  for (int i = 0; i < _tempFiles.size(); i++) {
+	    File file = _tempFiles.get(i);
+	    if (file.getAbsolutePath() == path) {
+	      _tempFiles.remove(i);
+	      break;
+	    }
+	  } 
 	}
+	
+	// remove all temporary files we have not passed back to the client
+	private void cleanupTempFiles()
+	{
+	  log("Entering cleanupTempFiles");
+	
+		for (int i = 0; i < _tempFiles.size(); i++) {
+	    File file = _tempFiles.get(i);
+	    if ((file.exists()) && (file.isFile())) {
+	      log(file.getAbsolutePath()+" - deleting");
+	      try {
+	        file.delete();
+	      }
+	      catch (Exception e) {
+	        log("Failed to delete temp file: "+e.getMessage());
+	      }
+	    }
+	    else {
+	      log(file.getAbsolutePath()+" - does not exist");
+	    }
+	  }
+	  // clear the list of temp files, since none of the them should exist anymore
+	  _tempFiles.clear();
+	  
+	  log("Exiting cleanupTempFiles");
+	}
+	
+	// get a path in external storage that can be read and written 
+	//  by other applications
+	private File getSharedFile(String name, File sourceFile) {
+	  // see if we can write to external storage
+    String state = Environment.getExternalStorageState();
+    if (! Environment.MEDIA_MOUNTED.equals(state)) {
+      log("Unable to write to external storage");
+      return(sourceFile);
+    }
+    // get the directory and make a path there
+    File path = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES);
+    File file = new File(path, name);
+    try {
+      // make sure the directory exists
+      path.mkdirs();
+      // remove the file if it already exists
+      if (file.exists()) file.delete();
+      // copy a file from internal storage if needed
+      if (sourceFile != null) {
+        copyFile(sourceFile, file);
+      }
+      // store the file for cleanup
+      _tempFiles.add(file);
+      // switch the path to the shared one
+      return(file);
+    }
+    catch (IOException e) {
+	    log("Failed to create shared file: "+e.getMessage());
+    }
+    // fall back to returning the path to the source data
+    return(sourceFile);
+  }
+  private File getSharedFile(String name) {
+    return(getSharedFile(name, null));
+  }
+  
+  // copy data from one file to another
+  private void copyFile(File inputFile, File outputFile) throws IOException {
+    InputStream inStream = new FileInputStream(inputFile);
+    OutputStream outStream = new FileOutputStream(outputFile);
+    copyStream(inStream, outStream);
+    inStream.close();
+    outStream.close();
+  }
+  
+  // copy data from one stream to another
+  private void copyStream(InputStream inStream, OutputStream outStream) throws IOException {
+    byte[] buffer = new byte[8 * 1024];
+    int bytesRead;
+    while ((bytesRead = inStream.read(buffer)) != -1) {
+      outStream.write(buffer, 0, bytesRead);
+    }
+  }
 	
 }

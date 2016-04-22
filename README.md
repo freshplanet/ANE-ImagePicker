@@ -32,8 +32,13 @@ In the manifestAdditions section of your AIR app manifest, include this in the a
     android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|fontScale"
   />
   ```
-
 The "configChanges" attribute fixes crashes when returning to the app on some Samsung devices.
+  
+If you need to use the cropping feature, add this in the manifestAdditions section:
+  ```xml
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  ``
+This allows images to be shared with the system application that handles cropping.
 
 Advanced features available: square cropping, custom positioning for the gallery image picker on iPad, custom overlay to avoid white screen when losing Stage3D context, and the selection of multiple images and videos.
 
