@@ -37,7 +37,7 @@ package com.freshplanet.ane.AirImagePicker
 	*  CALLBACKS:   
 	*
 	*   The callbacks to every method in this native extension have the following form: 
-	*   <code>function( status:String, mediaFile:File = null ):void</code>
+	*   <code>function(status:String, media:File = null):void</code>
 	*
 	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
 	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, 
@@ -149,6 +149,31 @@ package com.freshplanet.ane.AirImagePicker
 		}
 		
 		/**
+		 * If <code>true</code>, the user will be allowed to select videos as well 
+		 *  as images.
+		 * If <code>false</code>, only images will be selected.
+		 */
+		public function get allowVideo():Boolean { return(_allowVideo); }
+		public function set allowVideo(value:Boolean ):void { _allowVideo = value; }
+		
+		/**
+		 * If <code>true</code>, the user will be allowed to select multiple images
+		 *  or videos when displayImagePicker is called.
+		 * If <code>false</code>, the user will only be able to select one image 
+		 *  or video.
+		 */
+		public function get allowMultiple():Boolean { return(_allowMultiple); }
+		public function set allowMultiple(value:Boolean ):void { _allowMultiple = value; }
+		
+		/**
+		 * If <code>true</code>, an interface will be shown to crop selected images 
+		 *  to a 1:1 aspect ratio.
+		 * If <code>false</code>, selected media will be returned unmodified.
+		 */
+		public function get showCrop():Boolean { return(_showCrop); }
+		public function set showCrop(value:Boolean ):void { _showCrop = value; }
+		
+		/**
 		 * Display the gallery image picker if it is available on the current device.
 		 * Otherwise, do nothing.<br><br>
 		 * 
@@ -157,38 +182,28 @@ package com.freshplanet.ane.AirImagePicker
 		 * If the user cancels, <code>null</code> is returned to the callback.<br><br>
 		 *
 		 * @param callback A callback function of the following form:
-		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
-		 * explanation of the arguments passed to the callback.
-		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
-		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
-		 * ratio. A native UI will be displayed to allow the user to do the cropping
-		 * properly. Default: <code>false</code>.
+		 * <code>function(status:String, media:File = null):void</code>. See the ASDoc 
+		 * for this class for a in-depth explanation of the arguments passed to the callback.
 		 * @param anchor On the iPad, the image picker is displayed in a popover that
 		 * doesn't cover the whole screen. This parameter is the anchor from which the
 		 * popover will be presented. For example, it could be the bounds of the button
 		 * on which the user clicked to display the image picker. Note that you should
 		 * use absolute stage coordinates. Example: <code>var anchor:Rectangle = 
 		 * myButton.getBounds(stage);</code>
-		 * @param allowMultiple If <code>true</code>, multiple images or videos can be selected. 
-		 * Default: <code>false</code>.
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, 
-		                                    allowVideo:Boolean = false, 
-		                                    crop : Boolean = false, 
-		                                    anchor : Rectangle = null,
-		                                    allowMultiple:Boolean = false) : void
+		public function displayImagePicker(callback:Function, anchor:Rectangle=null):void
 		{
 			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			_callback = callback;
 			
 			if (anchor != null) {
-			  _context.call("displayImagePicker", allowVideo, allowMultiple, crop, anchor);
+			  _context.call("displayImagePicker", _allowVideo, _allowMultiple, _showCrop, anchor);
 			}
 			else {
-			  _context.call("displayImagePicker", allowVideo, allowMultiple, crop);
+			  _context.call("displayImagePicker", _allowVideo, _allowMultiple, _showCrop);
 			}
 		}
 		
@@ -212,22 +227,19 @@ package com.freshplanet.ane.AirImagePicker
 		 * If the user cancels, <code>null</code> is returned to the callback.
 		 * 
 		 * @param callback A callback function of the following form:
-		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
-		 * explanation of the arguments passed to the callback.
-		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
-		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
-		 * ratio. A native UI will be displayed to allow the user to do the cropping
-		 * properly. Default: <code>false</code>.
+		 * <code>function(status:String, media:File = null):void</code>. 
+		 * See the ASDoc for this class for a in-depth explanation of the arguments 
+		 * passed to the callback.
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera(callback:Function, allowVideo:Boolean=false, crop:Boolean=false):void
+		public function displayCamera(callback:Function):void
 		{
 			if (! isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			prepareToDisplayNativeUI(callback);
 			
-			_context.call("displayCamera", allowVideo, crop);
+			_context.call("displayCamera", _allowVideo, _showCrop);
 		}
 		
 		
@@ -248,6 +260,11 @@ package com.freshplanet.ane.AirImagePicker
 		private var _stage3D : Stage3D;
 		private var _overlay : BitmapData;
 		private var _context3DLost : Boolean = false;
+		
+		// picker configuration
+		private var _allowVideo:Boolean = false;
+		private var _allowMultiple:Boolean = false;
+		private var _showCrop:Boolean = false;
 		
 		private function prepareToDisplayNativeUI( callback : Function ) : void
 		{
