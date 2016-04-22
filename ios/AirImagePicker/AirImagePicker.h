@@ -29,7 +29,7 @@
 
 + (void)log:(NSString *)message;
 
-+ (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension;
+- (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension;
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
           allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple 
@@ -37,6 +37,8 @@
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
+
+- (void) returnMediaURL:(NSURL*)mediaURL;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;

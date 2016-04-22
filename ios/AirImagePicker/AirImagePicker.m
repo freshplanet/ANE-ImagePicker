@@ -75,7 +75,7 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-+ (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension; {
+- (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension; {
   return([NSURL fileURLWithPath:
     [NSString stringWithFormat:@"%@%@_%08x_%08x.%@",
       NSTemporaryDirectory(),
@@ -261,7 +261,7 @@ static AirImagePicker *sharedInstance = nil;
         NSData *data = UIImageJPEGRepresentation(pickedImage, 1.0);
         
         // Save image to a temporary path on disk
-        NSURL *toURL = [AirImagePicker tempFileURLWithPrefix:@"image" extension:@"jpg"];
+        NSURL *toURL = [self tempFileURLWithPrefix:@"image" extension:@"jpg"];
         NSError *error = nil;
         [data writeToURL:toURL options:0 error:&error];
         if (error != nil) {
@@ -272,10 +272,7 @@ static AirImagePicker *sharedInstance = nil;
             (const uint8_t *)[[error description] UTF8String]);
         }
         else {
-          dispatch_async(dispatch_get_main_queue(), ^{
-            FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
-              (const uint8_t *)[[toURL path] UTF8String]);
-          });
+          [self returnMediaURL:toURL];
         }
     });
     dispatch_release(thread);
@@ -296,7 +293,7 @@ static AirImagePicker *sharedInstance = nil;
     dispatch_async(thread, ^{
         
         // Save a copy of the picked video to the temp directory
-        NSURL *toURL = [AirImagePicker tempFileURLWithPrefix:@"movie" extension:@"mov"];
+        NSURL *toURL = [self tempFileURLWithPrefix:@"movie" extension:@"mov"];
 
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
@@ -322,16 +319,20 @@ static AirImagePicker *sharedInstance = nil;
         }
         else
         {
-            // Let the native extension know that we are done with the picking
-            dispatch_async(dispatch_get_main_queue(), ^{
-                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
-                  (const uint8_t *)[[toURL path] UTF8String]);
-            });
+            [self returnMediaURL:toURL];
         }
     });
     dispatch_release(thread);
     
     NSLog(@"Exiting onVideoPickedWithVideoPath");
+}
+
+// Let the native extension know that we are done with the picking
+- (void) returnMediaURL:(NSURL*)mediaURL {
+  dispatch_async(dispatch_get_main_queue(), ^{
+      FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
+        (const uint8_t *)[[mediaURL path] UTF8String]);
+  });
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
