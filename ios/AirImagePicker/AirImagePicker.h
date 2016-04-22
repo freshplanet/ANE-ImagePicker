@@ -24,11 +24,6 @@
 
 @property (nonatomic, retain) UIImagePickerController *imagePicker;
 @property (nonatomic, retain) UIPopoverController *popover;
-@property (nonatomic, readonly) UIImage *pickedImage;
-@property (nonatomic, readonly) NSData *pickedImageJPEGData;
-@property (nonatomic, strong) NSString *customImageAlbumName;
-@property (nonatomic, strong) NSString *imagePath;
-@property (nonatomic, strong) NSString *videoPath;
 
 + (id)sharedInstance;
 
@@ -36,7 +31,9 @@
 
 + (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop allowMultiple:(BOOL)allowMultiple albumName:(NSString*)albumName anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
+          allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple 
+          crop:(BOOL)crop anchor:(CGRect)anchor;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;

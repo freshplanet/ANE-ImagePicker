@@ -106,7 +106,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 	}
 
-	public void displayImagePicker(Boolean videosAllowed, Boolean crop, Boolean allowMultiple)
+	public void displayImagePicker(Boolean videosAllowed, Boolean allowMultiple, Boolean crop)
 	{
 		Log.d(TAG, "[AirImagePickerExtensionContext] Entering displayImagePicker");
 		_shouldCrop = crop;
@@ -134,11 +134,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		return isAvailable;
 	}
 
-	public void displayCamera(Boolean allowVideoCaptures,Boolean crop, String albumName)
+	public void displayCamera(Boolean allowVideoCaptures,Boolean crop)
 	{
 		_shouldCrop = crop;
-		if (albumName != null) 
-			_albumName = albumName;
 		
 		if (allowVideoCaptures)
 		{
@@ -577,10 +575,6 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	private static final int BITMAP_MEMORY_LIMIT = 5 * 1024 * 1024; // 5MB
-
-	private Bitmap _pickedImage;
-	private byte[] _pickedImageJPEGRepresentation;
-	private String _albumName;
 
 	private File getTemporaryImageFile( String extension )
 	{

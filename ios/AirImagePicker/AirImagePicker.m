@@ -39,11 +39,6 @@ FREContext AirIPCtx = nil;
 
 @synthesize imagePicker = _imagePicker;
 @synthesize popover = _popover;
-@synthesize pickedImage = _pickedImage;
-@synthesize pickedImageJPEGData = _pickedImageJPEGData;
-@synthesize customImageAlbumName = _customImageAlbumName;
-@synthesize imagePath = _imagePath;
-@synthesize videoPath = _videoPath;
 
 static AirImagePicker *sharedInstance = nil;
 
@@ -70,11 +65,6 @@ static AirImagePicker *sharedInstance = nil;
 {
     [_imagePicker release];
     [_popover release];
-    [_pickedImage release];
-    [_pickedImageJPEGData release];
-    [_customImageAlbumName release];
-    [_imagePath release];
-    [_videoPath release];
     [_overlay release];
     [super dealloc];
 }
@@ -96,8 +86,8 @@ static AirImagePicker *sharedInstance = nil;
 }
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
-          allowVideo:(BOOL)allowVideo crop:(BOOL)crop allowMultiple:(BOOL)allowMultiple 
-          albumName:(NSString *)albumName anchor:(CGRect)anchor
+          allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple crop:(BOOL)crop  
+          anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -112,8 +102,6 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker.mediaTypes = (NSArray*) mTypesArray;
         CFRelease(mTypesArray);
     }
-    
-    self.customImageAlbumName = albumName;
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
@@ -215,47 +203,43 @@ static AirImagePicker *sharedInstance = nil;
     // Process image in background thread
     dispatch_queue_t thread = dispatch_queue_create("image processing", NULL);
     dispatch_async(thread, ^{
-        
-        // Clean up previous image
-        [_pickedImage release];
-        _pickedImage = nil;
-        [_pickedImageJPEGData release];
-        _pickedImageJPEGData = nil;
+
+        UIImage *pickedImage = nil;
         
         // Retrieve image
         BOOL crop = YES;
         if (editedImage)
         {
-            _pickedImage = editedImage;
+            pickedImage = editedImage;
         }
         else
         {
             crop = NO;
-            _pickedImage = originalImage;
+            pickedImage = originalImage;
         }
         
         if (!crop)
         {
             // Unedited images may have an incorrect orientation. We fix it.
-            _pickedImage = [_pickedImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:_pickedImage.size interpolationQuality:kCGInterpolationDefault];
+            pickedImage = [pickedImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:pickedImage.size interpolationQuality:kCGInterpolationDefault];
         }
-        else if (_pickedImage.size.width != _pickedImage.size.height)
+        else if (pickedImage.size.width != pickedImage.size.height)
         {
             // If image is not square (happens if the user didn't zoom enough when cropping), we add black areas around
-            CGFloat longestEdge = MAX(_pickedImage.size.width, _pickedImage.size.height);
+            CGFloat longestEdge = MAX(pickedImage.size.width, pickedImage.size.height);
             CGRect drawRect = CGRectZero;
-            drawRect.size = _pickedImage.size;
-            if (_pickedImage.size.width > _pickedImage.size.height)
+            drawRect.size = pickedImage.size;
+            if (pickedImage.size.width > pickedImage.size.height)
             {
-                drawRect.origin.y = (longestEdge - _pickedImage.size.height) / 2;
+                drawRect.origin.y = (longestEdge - pickedImage.size.height) / 2;
             }
             else
             {
-                drawRect.origin.x = (longestEdge - _pickedImage.size.width) / 2;
+                drawRect.origin.x = (longestEdge - pickedImage.size.width) / 2;
             }
             
             // Prepare drawing context
-            CGImageRef imageRef = _pickedImage.CGImage;
+            CGImageRef imageRef = pickedImage.CGImage;
             CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
             CGContextRef context = CGBitmapContextCreate(NULL, longestEdge, longestEdge, 8, 0, colorSpace, kCGImageAlphaPremultipliedLast);
             CGColorSpaceRelease(colorSpace);
@@ -266,7 +250,7 @@ static AirImagePicker *sharedInstance = nil;
             CGContextFillRect(context, CGRectMake(0, 0, longestEdge, longestEdge));
             CGContextDrawImage(context, drawRect, imageRef);
             CGImageRef newImageRef = CGBitmapContextCreateImage(context);
-            _pickedImage = [UIImage imageWithCGImage:newImageRef];
+            pickedImage = [UIImage imageWithCGImage:newImageRef];
             
             // Clean up
             CGContextRelease(context);
@@ -274,32 +258,25 @@ static AirImagePicker *sharedInstance = nil;
         }
         
         // JPEG compression
-        _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-        
-        // clear any stored image path in case the function below fails
-        _imagePath = nil;
+        NSData *data = UIImageJPEGRepresentation(pickedImage, 1.0);
         
         // Save image to a temporary path on disk
         NSURL *toURL = [AirImagePicker tempFileURLWithPrefix:@"image" extension:@"jpg"];
         NSError *error = nil;
-        [_pickedImageJPEGData writeToURL:toURL options:0 error:&error];
+        [data writeToURL:toURL options:0 error:&error];
         if (error != nil) {
           NSLog(@"AirImagePicker:  Error while saving to temp file: %@", 
             [error description]);
+          FREDispatchStatusEventAsync(AirIPCtx,
+            (const uint8_t *)"ERROR_GENERATING_VIDEO",
+            (const uint8_t *)[[error description] UTF8String]);
         }
         else {
-          _imagePath = [toURL path];
-          [_imagePath retain];
-        }
-        
-        [_pickedImage retain];
-        [_pickedImageJPEGData retain];
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
+          dispatch_async(dispatch_get_main_queue(), ^{
             FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
-              (const uint8_t *)[_imagePath UTF8String]);
-        });
-        
+              (const uint8_t *)[[toURL path] UTF8String]);
+          });
+        }
     });
     dispatch_release(thread);
 
@@ -345,14 +322,10 @@ static AirImagePicker *sharedInstance = nil;
         }
         else
         {
-            // Success!  Store the data we will retrieve later
-            _videoPath = [toURL path];
-            [_videoPath retain];
-            
             // Let the native extension know that we are done with the picking
             dispatch_async(dispatch_get_main_queue(), ^{
                 FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
-                  (const uint8_t *)[_videoPath UTF8String]);
+                  (const uint8_t *)[[toURL path] UTF8String]);
             });
         }
     });
@@ -419,15 +392,15 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
     BOOL allowVideo = (allowVideoValue != 0);
     
-    uint32_t cropValue;
-    FREObject cropObject = argv[1];
-    FREGetObjectAsBool(cropObject, &cropValue);
-    BOOL crop = (cropValue != 0);
-    
     uint32_t allowMultipleValue;
-    FREObject allowMultipleObject = argv[2];
+    FREObject allowMultipleObject = argv[1];
     FREGetObjectAsBool(allowMultipleObject, &allowMultipleValue);
     BOOL allowMultiple = (allowMultipleValue != 0);
+    
+    uint32_t cropValue;
+    FREObject cropObject = argv[2];
+    FREGetObjectAsBool(cropObject, &cropValue);
+    BOOL crop = (cropValue != 0);
     
     CGRect anchor;
     if (argc > 3)
@@ -459,8 +432,8 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     
     [[AirImagePicker sharedInstance] 
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary 
-        allowVideo:allowVideo crop:crop allowMultiple:allowMultiple 
-        albumName:nil anchor:anchor];
+        allowVideo:allowVideo allowMultiple:allowMultiple crop:crop 
+        anchor:anchor];
     
     return nil;
 }
@@ -488,19 +461,10 @@ DEFINE_ANE_FUNCTION(displayCamera)
     FREObject cropObject = argv[1];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
- 
-    uint32_t stringLength;
-    NSString *albumName = nil;
-    const uint8_t *albumNameString;
-    if (FREGetObjectAsUTF8(argv[2], &stringLength, &albumNameString) == FRE_OK)
-    {
-        albumName = [NSString stringWithUTF8String:(const char *)albumNameString];
-    }
     
     [[AirImagePicker sharedInstance] 
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera 
-      allowVideo:allowVideo crop:crop allowMultiple:NO 
-      albumName:albumName anchor:CGRectZero];
+      allowVideo:allowVideo allowMultiple:NO crop:crop anchor:CGRectZero];
     
     return nil;
 }
