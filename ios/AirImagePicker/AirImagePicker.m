@@ -24,6 +24,8 @@
 #import <OpenGLES/ES1/glext.h>
 #import "UIImage+Resize.h"
 
+#import "AssetPickerController.h"
+
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
 

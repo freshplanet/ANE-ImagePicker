@@ -12,6 +12,17 @@
 		39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 39898E67166E6B43004888F4 /* AirImagePicker.m */; };
 		39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E76166E6ED3004888F4 /* UIKit.framework */; };
 		65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */; };
+		8BDA1E471CCAC586008FB833 /* AssetPickerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E461CCAC586008FB833 /* AssetPickerController.m */; };
+		8BDA1E501CCAC894008FB833 /* AlbumController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E491CCAC894008FB833 /* AlbumController.m */; };
+		8BDA1E511CCAC894008FB833 /* AlbumListController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E4B1CCAC894008FB833 /* AlbumListController.m */; };
+		8BDA1E521CCAC894008FB833 /* AlbumRowCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E4D1CCAC894008FB833 /* AlbumRowCell.m */; };
+		8BDA1E531CCAC894008FB833 /* AlbumTableCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E4F1CCAC894008FB833 /* AlbumTableCell.m */; };
+		8BDA1E561CCACAA5008FB833 /* FastCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E551CCACAA5008FB833 /* FastCell.m */; };
+		8BDA1E5A1CCACAC9008FB833 /* NSObject+Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E591CCACAC9008FB833 /* NSObject+Notifications.m */; };
+		8BDA1E5E1CCACAE4008FB833 /* NSString+Formatters.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E5D1CCACAE4008FB833 /* NSString+Formatters.m */; };
+		8BDA1E621CCACB02008FB833 /* UIDevice+Detect.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E611CCACB02008FB833 /* UIDevice+Detect.m */; };
+		8BDA1E651CCACB4D008FB833 /* PrefabTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E641CCACB4D008FB833 /* PrefabTableViewController.m */; };
+		8BDA1E681CCAD01D008FB833 /* ProgressController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E671CCAD01D008FB833 /* ProgressController.m */; };
 		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
 		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; };
 		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; };
@@ -40,6 +51,28 @@
 		39898E76166E6ED3004888F4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		65577E94170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ALAssetsLibrary+CustomPhotoAlbum.h"; sourceTree = "<group>"; };
 		65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ALAssetsLibrary+CustomPhotoAlbum.m"; sourceTree = "<group>"; };
+		8BDA1E451CCAC586008FB833 /* AssetPickerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetPickerController.h; sourceTree = "<group>"; };
+		8BDA1E461CCAC586008FB833 /* AssetPickerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AssetPickerController.m; sourceTree = "<group>"; };
+		8BDA1E481CCAC894008FB833 /* AlbumController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlbumController.h; sourceTree = "<group>"; };
+		8BDA1E491CCAC894008FB833 /* AlbumController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlbumController.m; sourceTree = "<group>"; };
+		8BDA1E4A1CCAC894008FB833 /* AlbumListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlbumListController.h; sourceTree = "<group>"; };
+		8BDA1E4B1CCAC894008FB833 /* AlbumListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlbumListController.m; sourceTree = "<group>"; };
+		8BDA1E4C1CCAC894008FB833 /* AlbumRowCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlbumRowCell.h; sourceTree = "<group>"; };
+		8BDA1E4D1CCAC894008FB833 /* AlbumRowCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlbumRowCell.m; sourceTree = "<group>"; };
+		8BDA1E4E1CCAC894008FB833 /* AlbumTableCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlbumTableCell.h; sourceTree = "<group>"; };
+		8BDA1E4F1CCAC894008FB833 /* AlbumTableCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlbumTableCell.m; sourceTree = "<group>"; };
+		8BDA1E541CCACA99008FB833 /* FastCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FastCell.h; sourceTree = "<group>"; };
+		8BDA1E551CCACAA5008FB833 /* FastCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FastCell.m; sourceTree = "<group>"; };
+		8BDA1E581CCACAC9008FB833 /* NSObject+Notifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+Notifications.h"; path = "AirImagePicker/NSObject+Notifications.h"; sourceTree = "<group>"; };
+		8BDA1E591CCACAC9008FB833 /* NSObject+Notifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+Notifications.m"; path = "AirImagePicker/NSObject+Notifications.m"; sourceTree = "<group>"; };
+		8BDA1E5C1CCACAE4008FB833 /* NSString+Formatters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+Formatters.h"; path = "AirImagePicker/NSString+Formatters.h"; sourceTree = "<group>"; };
+		8BDA1E5D1CCACAE4008FB833 /* NSString+Formatters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+Formatters.m"; path = "AirImagePicker/NSString+Formatters.m"; sourceTree = "<group>"; };
+		8BDA1E601CCACAF7008FB833 /* UIDevice+Detect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIDevice+Detect.h"; path = "AirImagePicker/UIDevice+Detect.h"; sourceTree = "<group>"; };
+		8BDA1E611CCACB02008FB833 /* UIDevice+Detect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIDevice+Detect.m"; path = "AirImagePicker/UIDevice+Detect.m"; sourceTree = "<group>"; };
+		8BDA1E631CCACB41008FB833 /* PrefabTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrefabTableViewController.h; sourceTree = "<group>"; };
+		8BDA1E641CCACB4D008FB833 /* PrefabTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PrefabTableViewController.m; sourceTree = "<group>"; };
+		8BDA1E661CCAD016008FB833 /* ProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProgressController.h; sourceTree = "<group>"; };
+		8BDA1E671CCAD01D008FB833 /* ProgressController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProgressController.m; sourceTree = "<group>"; };
 		FAF67EB516CEC370006E40A6 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
 		FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
 		FAF67EB916CEC4BB006E40A6 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
@@ -81,6 +114,9 @@
 		39898E5F166E6B43004888F4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8BDA1E5F1CCACAE9008FB833 /* UIDevice */,
+				8BDA1E5B1CCACACF008FB833 /* NSString */,
+				8BDA1E571CCACABB008FB833 /* NSObject */,
 				FAF67EB816CEC375006E40A6 /* UIImage */,
 				39898E60166E6B43004888F4 /* Foundation.framework */,
 				39898E76166E6ED3004888F4 /* UIKit.framework */,
@@ -91,6 +127,22 @@
 		39898E62166E6B43004888F4 /* AirImagePicker */ = {
 			isa = PBXGroup;
 			children = (
+				8BDA1E671CCAD01D008FB833 /* ProgressController.m */,
+				8BDA1E661CCAD016008FB833 /* ProgressController.h */,
+				8BDA1E641CCACB4D008FB833 /* PrefabTableViewController.m */,
+				8BDA1E631CCACB41008FB833 /* PrefabTableViewController.h */,
+				8BDA1E551CCACAA5008FB833 /* FastCell.m */,
+				8BDA1E541CCACA99008FB833 /* FastCell.h */,
+				8BDA1E481CCAC894008FB833 /* AlbumController.h */,
+				8BDA1E491CCAC894008FB833 /* AlbumController.m */,
+				8BDA1E4A1CCAC894008FB833 /* AlbumListController.h */,
+				8BDA1E4B1CCAC894008FB833 /* AlbumListController.m */,
+				8BDA1E4C1CCAC894008FB833 /* AlbumRowCell.h */,
+				8BDA1E4D1CCAC894008FB833 /* AlbumRowCell.m */,
+				8BDA1E4E1CCAC894008FB833 /* AlbumTableCell.h */,
+				8BDA1E4F1CCAC894008FB833 /* AlbumTableCell.m */,
+				8BDA1E451CCAC586008FB833 /* AssetPickerController.h */,
+				8BDA1E461CCAC586008FB833 /* AssetPickerController.m */,
 				39898E65166E6B43004888F4 /* AirImagePicker.h */,
 				39898E67166E6B43004888F4 /* AirImagePicker.m */,
 				39898E63166E6B43004888F4 /* Supporting Files */,
@@ -107,6 +159,33 @@
 				65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		8BDA1E571CCACABB008FB833 /* NSObject */ = {
+			isa = PBXGroup;
+			children = (
+				8BDA1E581CCACAC9008FB833 /* NSObject+Notifications.h */,
+				8BDA1E591CCACAC9008FB833 /* NSObject+Notifications.m */,
+			);
+			name = NSObject;
+			sourceTree = "<group>";
+		};
+		8BDA1E5B1CCACACF008FB833 /* NSString */ = {
+			isa = PBXGroup;
+			children = (
+				8BDA1E5C1CCACAE4008FB833 /* NSString+Formatters.h */,
+				8BDA1E5D1CCACAE4008FB833 /* NSString+Formatters.m */,
+			);
+			name = NSString;
+			sourceTree = "<group>";
+		};
+		8BDA1E5F1CCACAE9008FB833 /* UIDevice */ = {
+			isa = PBXGroup;
+			children = (
+				8BDA1E611CCACB02008FB833 /* UIDevice+Detect.m */,
+				8BDA1E601CCACAF7008FB833 /* UIDevice+Detect.h */,
+			);
+			name = UIDevice;
 			sourceTree = "<group>";
 		};
 		FAF67EB816CEC375006E40A6 /* UIImage */ = {
@@ -174,11 +253,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8BDA1E5A1CCACAC9008FB833 /* NSObject+Notifications.m in Sources */,
 				39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */,
+				8BDA1E621CCACB02008FB833 /* UIDevice+Detect.m in Sources */,
+				8BDA1E511CCAC894008FB833 /* AlbumListController.m in Sources */,
 				FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */,
 				FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */,
+				8BDA1E5E1CCACAE4008FB833 /* NSString+Formatters.m in Sources */,
+				8BDA1E531CCAC894008FB833 /* AlbumTableCell.m in Sources */,
+				8BDA1E681CCAD01D008FB833 /* ProgressController.m in Sources */,
 				FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */,
+				8BDA1E561CCACAA5008FB833 /* FastCell.m in Sources */,
+				8BDA1E471CCAC586008FB833 /* AssetPickerController.m in Sources */,
+				8BDA1E651CCACB4D008FB833 /* PrefabTableViewController.m in Sources */,
 				65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */,
+				8BDA1E521CCAC894008FB833 /* AlbumRowCell.m in Sources */,
+				8BDA1E501CCAC894008FB833 /* AlbumController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
