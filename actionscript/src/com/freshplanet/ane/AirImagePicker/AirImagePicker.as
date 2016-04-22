@@ -1,6 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
+//
+//  Copyright 2016 VoiceThread (https://voicethread.com/)
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -27,6 +29,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
+	import flash.filesystem.File;
 
 	/**
 	*  Take care of picking images and videos on iOS/Android
@@ -34,13 +37,11 @@ package com.freshplanet.ane.AirImagePicker
 	*  CALLBACKS:   
 	*
 	*   The callbacks to every method in this native extension have the following form: 
-	*   <code>function( status:String, mediaPath:String = null ):void</code>
+	*   <code>function( status:String, mediaFile:File = null ):void</code>
 	*
 	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
-	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, or STATUS_NOT_SUPPORTED 
-	*   when the requested feature is not supported by your device.
-	*   For Android, there's a specific status, STATUS_PICASSA_NOT_SUPPORTED, used when the user tries
-	* 	to pick an image from a Picassa Web Album.
+	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, 
+	* or STATUS_NOT_SUPPORTED when the requested feature is not supported by your device.
 	*
 	*	@see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/StageVideo.html
 	*   @see https://github.com/freshplanet/ANE-Video
@@ -57,7 +58,6 @@ package com.freshplanet.ane.AirImagePicker
 		public static const STATUS_ERROR:String = "ERROR";
 		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
-		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
 
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
@@ -308,7 +308,7 @@ package com.freshplanet.ane.AirImagePicker
 				if (callback != null)
 				{
 					//!!! _callback = null;
-					callback(STATUS_OK, event.level);
+					callback(STATUS_OK, new File(event.level));
 				}
 			}
 			else if (event.code == STATUS_DID_CANCEL)
@@ -317,14 +317,6 @@ package com.freshplanet.ane.AirImagePicker
 				{
 					_callback = null;
 					callback(STATUS_DID_CANCEL);
-				}
-			}
-			else if (event.code == STATUS_PICASSA_NOT_SUPPORTED)
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_PICASSA_NOT_SUPPORTED);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message

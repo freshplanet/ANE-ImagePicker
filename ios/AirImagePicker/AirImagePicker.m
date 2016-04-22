@@ -2,6 +2,8 @@
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
 //
+//  Copyright 2016 VoiceThread (https://voicethread.com/)
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
@@ -274,17 +276,6 @@ static AirImagePicker *sharedInstance = nil;
         // JPEG compression
         _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
         
-        // Save Image in Custom Album
-        if (_customImageAlbumName!=nil)
-        {
-            ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-            [library saveImage:_pickedImage toAlbum:_customImageAlbumName withCompletionBlock:^(NSError *error) {
-                if (error!= nil) {
-                    NSLog(@"AirImagePicker:  Error while saving to custom album: %@", [error description]);
-                }
-            }];
-        }
-        
         // clear any stored image path in case the function below fails
         _imagePath = nil;
         
@@ -354,54 +345,15 @@ static AirImagePicker *sharedInstance = nil;
         }
         else
         {
-            // Success! Video was copied to the app directory.  Next is generating the thumbnail
-            //
-            // MPMoviePlayerController could also be used to create a thumbnail, but we dont want to instantiate it just
-            // for that.  Hence we use AVAssetImageGenerator.  It is also a good idea to use it because it is
-            // thread-safe and you could have more than one instantiated at a time.
+            // Success!  Store the data we will retrieve later
+            _videoPath = [toURL path];
+            [_videoPath retain];
             
-            // we are done with the file manager, release it.
-            [fileManager release];
-            
-            // Create or Asset Generator and task it with creating the thumbnail
-            AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:toURL options:nil];
-            AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-            [asset release];
-            CMTime time = CMTimeMakeWithSeconds(0,30);
-            CGSize maxSize = CGSizeMake(320, 180);
-            imageGenerator.maximumSize = maxSize;
-            
-            // Attemp to create the CGImage of the thumbnail
-            [imageGenerator generateCGImagesAsynchronouslyForTimes:[NSArray arrayWithObject:[NSValue valueWithCMTime:time]]
-                                                 completionHandler:^(CMTime requestedTime, CGImageRef image, CMTime actualTime,
-                                                                     AVAssetImageGeneratorResult result, NSError *error) {
-                // Something went wrong, log the error.
-                if (result != AVAssetImageGeneratorSucceeded) {
-                    NSLog(@"Couldn't generate thumbnail, error: %@", error);
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        FREDispatchStatusEventAsync(AirIPCtx,
-                                                    (const uint8_t *)"ERROR_GENERATING_VIDEO",
-                                                    (const uint8_t *)[[error description] UTF8String]);
-                    });
-                } else {
-                    // Success!  Store the data we will retrieve later
-                    _videoPath = [toURL path];
-                    _pickedImage = [[UIImage alloc] initWithCGImage:image];
-                    _pickedImageJPEGData = UIImageJPEGRepresentation(_pickedImage, 1.0);
-                    
-                    // increase the reference count for the objects we are keeping.
-                    [_videoPath retain];
-                    [_pickedImage retain];
-                    [_pickedImageJPEGData retain];
-                    
-                    // Let the native extension know that we are done with the picking
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
-                          (const uint8_t *)[_videoPath UTF8String]);
-                    });
-                }
-                
-            }];
+            // Let the native extension know that we are done with the picking
+            dispatch_async(dispatch_get_main_queue(), ^{
+                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
+                  (const uint8_t *)[_videoPath UTF8String]);
+            });
         }
     });
     dispatch_release(thread);
@@ -507,8 +459,8 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     
     [[AirImagePicker sharedInstance] 
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary 
-        allowVideo:allowVideo crop:crop albumName:nil 
-        allowMultiple:allowMultiple anchor:anchor];
+        allowVideo:allowVideo crop:crop allowMultiple:allowMultiple 
+        albumName:nil anchor:anchor];
     
     return nil;
 }
@@ -549,169 +501,6 @@ DEFINE_ANE_FUNCTION(displayCamera)
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera 
       allowVideo:allowVideo crop:crop allowMultiple:NO 
       albumName:albumName anchor:CGRectZero];
-    
-    return nil;
-}
-
-DEFINE_ANE_FUNCTION(getPickedImageWidth)
-{
-    NSLog(@"Entering getPickedImageWidth");
-    
-    UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
-    
-    if (pickedImage)
-    {
-        CGImageRef imageRef = [pickedImage CGImage];
-        NSUInteger width = CGImageGetWidth(imageRef);
-        
-        FREObject result;
-        if (FRENewObjectFromUint32(width, &result) == FRE_OK)
-        {
-            NSLog(@"Exiting getPickedImageWidth");
-            return result;
-        }
-        else
-        {
-            NSLog(@"Exiting getPickedImageWidth");
-            return nil;
-        }
-    }
-    else
-    {
-      NSLog(@"Exiting getPickedImageWidth");
-      return nil;
-    }
-}
-
-DEFINE_ANE_FUNCTION(getPickedImageHeight)
-{
-    NSLog(@"Entering getPickedImageHeight");
-    
-    UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
-    
-    if (pickedImage)
-    {
-        CGImageRef imageRef = [pickedImage CGImage];
-        NSUInteger height = CGImageGetHeight(imageRef);
-        
-        FREObject result;
-        if (FRENewObjectFromUint32(height, &result) == FRE_OK)
-        {
-            NSLog(@"Exiting getPickedImageHeight");
-            return result;
-        }
-        else
-        {
-            NSLog(@"Exiting getPickedImageHeight");
-            return nil;
-        }
-    }
-    else
-    {
-        NSLog(@"Exiting getPickedImageHeight");
-        return nil;
-    }
-}
-
-DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
-{
-    NSLog(@"Entering drawPickedImageToBitmapData");
-    
-    UIImage *pickedImage = [[AirImagePicker sharedInstance] pickedImage];
-    
-    if (pickedImage)
-    {
-        // Get the AS3 BitmapData
-        FREBitmapData bitmapData;
-        FREAcquireBitmapData(argv[0], &bitmapData);
-        
-        // Pull the raw pixels values out of the image data
-        CGImageRef imageRef = [pickedImage CGImage];
-        NSUInteger width = CGImageGetWidth(imageRef);
-        NSUInteger height = CGImageGetHeight(imageRef);
-        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        unsigned char *rawData = malloc(height * width * 4);
-        NSUInteger bytesPerPixel = 4;
-        NSUInteger bytesPerRow = bytesPerPixel * width;
-        NSUInteger bitsPerComponent = 8;
-        CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-        CGColorSpaceRelease(colorSpace);
-        CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
-        CGContextRelease(context);
-        
-        // Pixels are now it rawData in the format RGBA8888
-        // Now loop over each pixel to write them into the AS3 BitmapData memory
-        int x, y;
-        // There may be extra pixels in each row due to the value of lineStride32.
-        // We'll skip over those as needed.
-        int offset = bitmapData.lineStride32 - bitmapData.width;
-        int offset2 = bytesPerRow - bitmapData.width*4;
-        int byteIndex = 0;
-        uint32_t *bitmapDataPixels = bitmapData.bits32;
-        for (y=0; y<bitmapData.height; y++)
-        {
-            for (x=0; x<bitmapData.width; x++, bitmapDataPixels++, byteIndex += 4)
-            {
-                // Values are currently in RGBA7777, so each color value is currently a separate number.
-                int red     = (rawData[byteIndex]);
-                int green   = (rawData[byteIndex + 1]);
-                int blue    = (rawData[byteIndex + 2]);
-                int alpha   = (rawData[byteIndex + 3]);
-                
-                // Combine values into ARGB32
-                *bitmapDataPixels = (alpha << 24) | (red << 16) | (green << 8) | blue;
-            }
-            
-            bitmapDataPixels += offset;
-            byteIndex += offset2;
-        }
-        
-        // Free the memory we allocated
-        free(rawData);
-        
-        // Tell Flash which region of the BitmapData changes (all of it here)
-        FREInvalidateBitmapDataRect(argv[0], 0, 0, bitmapData.width, bitmapData.height);
-        
-        // Release our control over the BitmapData
-        FREReleaseBitmapData(argv[0]);
-    }
-    
-    NSLog(@"Exiting drawPickedImageToBitmapData");
-    return nil;
-}
-
-DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize)
-{
-    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
-    
-    if (jpegData)
-    {
-        FREObject result;
-        if (FRENewObjectFromUint32(jpegData.length, &result) == FRE_OK)
-        {
-            return result;
-        }
-        else return nil;
-    }
-    else return nil;
-}
-
-DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray)
-{
-    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
-    
-    if (jpegData)
-    {
-        // Get the AS3 ByteArray
-        FREByteArray byteArray;
-        FREAcquireByteArray(argv[0], &byteArray);
-        
-        // Copy JPEG representation in ByteArray
-        memcpy(byteArray.bytes, jpegData.bytes, jpegData.length);
-        
-        // Release our control over the ByteArray
-        FREReleaseByteArray(argv[0]);
-    }
     
     return nil;
 }
@@ -761,7 +550,7 @@ DEFINE_ANE_FUNCTION(removeOverlay)
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 11;
+    NSInteger nbFuntionsToLink = 6;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -782,33 +571,13 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[3].functionData = NULL;
     func[3].function = &displayCamera;
     
-    func[4].name = (const uint8_t*) "getPickedImageWidth";
+    func[4].name = (const uint8_t*) "displayOverlay";
     func[4].functionData = NULL;
-    func[4].function = &getPickedImageWidth;
+    func[4].function = &displayOverlay;
     
-    func[5].name = (const uint8_t*) "getPickedImageHeight";
+    func[5].name = (const uint8_t*) "removeOverlay";
     func[5].functionData = NULL;
-    func[5].function = &getPickedImageHeight;
-    
-    func[6].name = (const uint8_t*) "drawPickedImageToBitmapData";
-    func[6].functionData = NULL;
-    func[6].function = &drawPickedImageToBitmapData;
-    
-    func[7].name = (const uint8_t*) "getPickedImageJPEGRepresentationSize";
-    func[7].functionData = NULL;
-    func[7].function = &getPickedImageJPEGRepresentationSize;
-    
-    func[8].name = (const uint8_t*) "copyPickedImageJPEGRepresentationToByteArray";
-    func[8].functionData = NULL;
-    func[8].function = &copyPickedImageJPEGRepresentationToByteArray;
-    
-    func[9].name = (const uint8_t*) "displayOverlay";
-    func[9].functionData = NULL;
-    func[9].function = &displayOverlay;
-    
-    func[10].name = (const uint8_t*) "removeOverlay";
-    func[10].functionData = NULL;
-    func[10].function = &removeOverlay;
+    func[5].function = &removeOverlay;
     
     *functionsToSet = func;
     

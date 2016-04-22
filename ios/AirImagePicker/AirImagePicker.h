@@ -2,6 +2,8 @@
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
 //
+//  Copyright 2016 VoiceThread (https://voicethread.com/)
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
@@ -50,11 +52,6 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable);
 DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
-DEFINE_ANE_FUNCTION(getPickedImageWidth);
-DEFINE_ANE_FUNCTION(getPickedImageHeight);
-DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
-DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
-DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
 DEFINE_ANE_FUNCTION(displayOverlay);
 DEFINE_ANE_FUNCTION(removeOverlay);
 
