@@ -25,6 +25,12 @@
         </exec>
 
         <copy file="../temp/ios/build/Release-iphoneos/lib${name}.a" todir="../temp/ios" overwrite="true"/>
+        
+        <copy todir="../temp/ios">
+            <fileset dir="../ios/images" casesensitive="yes">
+              <include name="**/*.png"/>
+          </fileset>
+        </copy>
 
         <delete dir="../temp/ios/build/"/>
     </target>

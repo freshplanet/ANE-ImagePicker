@@ -16,24 +16,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-#import "ProgressController.h"
+@interface NSURL (Rewriters)
 
-@protocol AssetPickerControllerDelegate <NSObject>
-  - (void)assetPickerController:(id)picker didPickImage:(UIImage *)image;
-  - (void)assetPickerController:(id)picker didPickVideoWithURL:(NSURL *)url;
-  - (void)assetPickerControllerDidFinish:(id)picker;
-@end
-
-@interface AssetPickerController : UINavigationController
-
-// a delegate to receive picked media, etc.
-@property (nonatomic, assign) id<AssetPickerControllerDelegate> assetPickerDelegate;
-
-// cancel the request
-- (void)cancel;
-// respond to a list of assets being selected
-- (void)didSelectAssets:(NSArray *)assets;
+// get unique file URLs in standardized locations 
++ (NSURL *)tempFileURLWithPrefix:(NSString *)type 
+            extension:(NSString *)extension;
 
 @end

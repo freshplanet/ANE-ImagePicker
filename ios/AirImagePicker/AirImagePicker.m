@@ -22,9 +22,9 @@
 #import <QuartzCore/QuartzCore.h>
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
-#import "UIImage+Resize.h"
 
-#import "AssetPickerController.h"
+#import "UIImage+Resize.h"
+#import "NSURL+Rewriters.h"
 
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
@@ -77,37 +77,46 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension; {
-  return([NSURL fileURLWithPath:
-    [NSString stringWithFormat:@"%@%@_%08x_%08x.%@",
-      NSTemporaryDirectory(),
-      type,
-      (uint32_t)arc4random(), 
-      (uint32_t)floor([[NSDate date] timeIntervalSince1970]),
-      extension]]);
-}
-
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
           allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple crop:(BOOL)crop  
           anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
-    self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
-    self.imagePicker.sourceType = sourceType;
-    self.imagePicker.allowsEditing = crop;
-    self.imagePicker.delegate = self;
-    if (allowVideo == true) {
-        // there are memory leaks that are not occuring if we use CoreFoundation C code
-        CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
-        CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
-        self.imagePicker.mediaTypes = (NSArray*) mTypesArray;
-        CFRelease(mTypesArray);
+    // determine what kind of picker to use
+    BOOL singleCroppedImage = (! allowVideo) && (! allowMultiple) && (crop);
+    BOOL useCamera = (sourceType == UIImagePickerControllerSourceTypeCamera);
+    
+    // use the native picker if required by a compile directive, 
+    //  if we need the camera, or if we're selecting a single image 
+    //  with cropping
+    if ((USE_NATIVE_PICKER) || (useCamera) || (singleCroppedImage)) {
+      self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
+      UIImagePickerController *nativePicker = (UIImagePickerController *)self.imagePicker;
+      nativePicker.sourceType = sourceType;
+      nativePicker.allowsEditing = crop;
+      nativePicker.delegate = self;
+      if (allowVideo == true) {
+          // there are memory leaks that are not occuring if we use CoreFoundation C code
+          CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
+          CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
+          nativePicker.mediaTypes = (NSArray*) mTypesArray;
+          CFRelease(mTypesArray);
+      }
+    }
+    // otherwise use the non-native picker
+    else {
+      #if ! USE_NATIVE_PICKER
+        self.imagePicker = [[[AssetPickerController alloc] init] autorelease];
+        AssetPickerController *assetPicker = (AssetPickerController *)self.imagePicker;
+        assetPicker.assetPickerDelegate = self;
+      #endif
     }
     
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
-    if (sourceType == UIImagePickerControllerSourceTypeCamera || UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+    if ((sourceType == UIImagePickerControllerSourceTypeCamera) || 
+        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone))
     {
         [rootViewController presentModalViewController:self.imagePicker animated:YES];
     }
@@ -167,6 +176,45 @@ static AirImagePicker *sharedInstance = nil;
     _overlay = nil;
 }
 
+#pragma mark - AssetPickerControllerDelegate
+#if ! USE_NATIVE_PICKER
+
+- (void)assetPickerController:(AssetPickerController *)picker didPickVideoWithURL:(NSURL *)url
+{
+  NSLog(@"Entering assetPickerController:didPickVideoWithURL:");
+  [self onVideoPickedWithMediaURL:url];
+  NSLog(@"Exiting assetPickerController:didPickVideoWithURL:");
+}
+
+- (void)assetPickerController:(AssetPickerController *)picker didPickImage:(UIImage *)image
+{
+  NSLog(@"Entering assetPickerController:didPickImage:");
+  [self onImagePickedWithOriginalImage:image editedImage:nil];
+  NSLog(@"Exiting assetPickerController:didPickImage:");
+}
+
+- (void)assetPickerControllerDidFinish:(AssetPickerController *)picker
+{ 
+  NSLog(@"Entering assetPickerControllerDidFinish:");
+
+  // dismiss the controller
+  if (self.popover) {
+    [self.popover dismissPopoverAnimated:YES];
+  } else {
+    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    [rootViewController dismissModalViewControllerAnimated:YES];
+  }
+  self.popover = nil;
+  self.imagePicker = nil;
+  
+  // send an event back to the ActionScript side
+  FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
+  
+  NSLog(@"Exiting assetPickerControllerDidFinish:");
+}
+
+#endif /* ! USE_NATIVE_PICKER */
+
 #pragma mark - UIImagePickerControllerDelegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
@@ -202,6 +250,8 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage
 {
+    NSLog(@"Entering onImagePickedWithOriginalImage:originalImage:editedImage:");
+
     // Process image in background thread
     dispatch_queue_t thread = dispatch_queue_create("image processing", NULL);
     dispatch_async(thread, ^{
@@ -263,7 +313,7 @@ static AirImagePicker *sharedInstance = nil;
         NSData *data = UIImageJPEGRepresentation(pickedImage, 1.0);
         
         // Save image to a temporary path on disk
-        NSURL *toURL = [self tempFileURLWithPrefix:@"image" extension:@"jpg"];
+        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"jpg"];
         NSError *error = nil;
         [data writeToURL:toURL options:0 error:&error];
         if (error != nil) {
@@ -279,6 +329,7 @@ static AirImagePicker *sharedInstance = nil;
     });
     dispatch_release(thread);
 
+    NSLog(@"Exiting onImagePickedWithOriginalImage:originalImage:editedImage:");
 }
 
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL
@@ -295,7 +346,7 @@ static AirImagePicker *sharedInstance = nil;
     dispatch_async(thread, ^{
         
         // Save a copy of the picked video to the temp directory
-        NSURL *toURL = [self tempFileURLWithPrefix:@"movie" extension:@"mov"];
+        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"mov"];
 
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];

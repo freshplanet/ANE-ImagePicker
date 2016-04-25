@@ -20,16 +20,27 @@
 
 #import "FlashRuntimeExtensions.h"
 
-@interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
+#define USE_NATIVE_PICKER NO
 
-@property (nonatomic, retain) UIImagePickerController *imagePicker;
+#if ! USE_NATIVE_PICKER
+  #import "AssetPickerController.h"
+#endif
+
+@interface AirImagePicker : NSObject <
+  #if ! USE_NATIVE_PICKER
+    AssetPickerControllerDelegate,
+  #endif
+    UINavigationControllerDelegate, 
+    UIImagePickerControllerDelegate, 
+    UIPopoverControllerDelegate
+  >
+
+@property (nonatomic, retain) UIViewController *imagePicker;
 @property (nonatomic, retain) UIPopoverController *popover;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
-
-- (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension;
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
           allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple 

@@ -23,6 +23,7 @@
 		8BDA1E621CCACB02008FB833 /* UIDevice+Detect.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E611CCACB02008FB833 /* UIDevice+Detect.m */; };
 		8BDA1E651CCACB4D008FB833 /* PrefabTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E641CCACB4D008FB833 /* PrefabTableViewController.m */; };
 		8BDA1E681CCAD01D008FB833 /* ProgressController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1E671CCAD01D008FB833 /* ProgressController.m */; };
+		8BDA1EBE1CCE9E56008FB833 /* NSURL+Rewriters.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BDA1EBD1CCE9E56008FB833 /* NSURL+Rewriters.m */; };
 		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
 		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; };
 		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; };
@@ -73,6 +74,8 @@
 		8BDA1E641CCACB4D008FB833 /* PrefabTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PrefabTableViewController.m; sourceTree = "<group>"; };
 		8BDA1E661CCAD016008FB833 /* ProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProgressController.h; sourceTree = "<group>"; };
 		8BDA1E671CCAD01D008FB833 /* ProgressController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProgressController.m; sourceTree = "<group>"; };
+		8BDA1EBC1CCE9E56008FB833 /* NSURL+Rewriters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURL+Rewriters.h"; path = "AirImagePicker/NSURL+Rewriters.h"; sourceTree = "<group>"; };
+		8BDA1EBD1CCE9E56008FB833 /* NSURL+Rewriters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURL+Rewriters.m"; path = "AirImagePicker/NSURL+Rewriters.m"; sourceTree = "<group>"; };
 		FAF67EB516CEC370006E40A6 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
 		FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
 		FAF67EB916CEC4BB006E40A6 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
@@ -114,6 +117,7 @@
 		39898E5F166E6B43004888F4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8BDA1EBF1CCE9E7C008FB833 /* NSURL */,
 				8BDA1E5F1CCACAE9008FB833 /* UIDevice */,
 				8BDA1E5B1CCACACF008FB833 /* NSString */,
 				8BDA1E571CCACABB008FB833 /* NSObject */,
@@ -186,6 +190,15 @@
 				8BDA1E601CCACAF7008FB833 /* UIDevice+Detect.h */,
 			);
 			name = UIDevice;
+			sourceTree = "<group>";
+		};
+		8BDA1EBF1CCE9E7C008FB833 /* NSURL */ = {
+			isa = PBXGroup;
+			children = (
+				8BDA1EBC1CCE9E56008FB833 /* NSURL+Rewriters.h */,
+				8BDA1EBD1CCE9E56008FB833 /* NSURL+Rewriters.m */,
+			);
+			name = NSURL;
 			sourceTree = "<group>";
 		};
 		FAF67EB816CEC375006E40A6 /* UIImage */ = {
@@ -267,6 +280,7 @@
 				8BDA1E471CCAC586008FB833 /* AssetPickerController.m in Sources */,
 				8BDA1E651CCACB4D008FB833 /* PrefabTableViewController.m in Sources */,
 				65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */,
+				8BDA1EBE1CCE9E56008FB833 /* NSURL+Rewriters.m in Sources */,
 				8BDA1E521CCAC894008FB833 /* AlbumRowCell.m in Sources */,
 				8BDA1E501CCAC894008FB833 /* AlbumController.m in Sources */,
 			);

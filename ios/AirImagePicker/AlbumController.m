@@ -198,10 +198,8 @@
         }
       }];
     // tell the parent that assets were selected
-    UINavigationController *nav = self.navigationController;
-    if ([nav isKindOfClass:[AssetPickerController class]]) {
-      [(AssetPickerController *)nav didSelectAssets:selectedAssets];
-    }
+    [(AssetPickerController *)self.navigationController 
+      didSelectAssets:selectedAssets];
     [selectedAssets release];
   }
   // stop the waiting state
