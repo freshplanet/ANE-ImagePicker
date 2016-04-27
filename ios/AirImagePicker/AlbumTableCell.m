@@ -35,6 +35,10 @@
 - (void)layoutSubviews {
   [super layoutSubviews];
   
+  // get the space to leave at the top, bottom, and left
+  CGFloat topMargin = 5.0;
+  CGFloat bottomMargin = 5.0;
+  CGFloat leftMargin = 5.0;
   // get the space to leave between elements
   CGFloat spacing = 10.0;
   // get the width available for all the text
@@ -47,18 +51,33 @@
   CGSize detailSize = 
     [self.detailTextLabel.text sizeWithFont:self.detailTextLabel.font];
   
+  // position the thumbnail
+  CGFloat thumbSize = 
+    self.contentView.bounds.size.height - (topMargin + bottomMargin);
+  self.imageView.frame = CGRectMake(
+      CGRectGetMinX(self.contentView.bounds) + leftMargin,
+      CGRectGetMinY(self.contentView.bounds) + topMargin,
+      thumbSize, thumbSize
+    );
   // show as much of the text as we can
   self.textLabel.frame = CGRectMake(
     CGRectGetMaxX(self.imageView.frame) + spacing, 
-    CGRectGetMinY(self.contentView.bounds),
+    self.imageView.frame.origin.y, 
     MIN(textSize.width, availableWidth - detailSize.width - spacing),
-    self.contentView.bounds.size.height);
+    self.imageView.frame.size.height);
   // put the detail right after it
   self.detailTextLabel.frame = CGRectMake(
-    CGRectGetMaxX(self.textLabel.frame) + 10.0,
-    self.textLabel.frame.origin.y, 
+    CGRectGetMaxX(self.textLabel.frame) + spacing,
+    self.imageView.frame.origin.y, 
     detailSize.width,
-    self.textLabel.frame.size.height);
+    self.imageView.frame.size.height);
+  // center the chevron
+  self.accessoryView.frame = CGRectMake(
+      self.accessoryView.frame.origin.x,
+      self.imageView.frame.origin.y,
+      self.accessoryView.frame.size.width, 
+      self.imageView.frame.size.height
+    );
 }
 
 @end

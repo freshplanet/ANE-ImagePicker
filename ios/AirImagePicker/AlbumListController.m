@@ -38,7 +38,9 @@
   self.wantsFullScreenLayout = YES;
   // set the title
   self.title = @"Albums";
-  self.tableView.rowHeight = 55.0;
+  self.tableView.rowHeight = 65.0;
+  // don't show row separators
+  self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
   // add a button to cancel the picker
   self.navigationItem.leftBarButtonItem =
     [[[UIBarButtonItem alloc] 
