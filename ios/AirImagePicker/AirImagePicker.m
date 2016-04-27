@@ -290,7 +290,7 @@ static AirImagePicker *sharedInstance = nil;
         NSData *data = UIImageJPEGRepresentation(pickedImage, 1.0);
         
         // Save image to a temporary path on disk
-        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"jpg"];
+        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"temp-AirImagePicker" extension:@"jpg"];
         NSError *error = nil;
         [data writeToURL:toURL options:0 error:&error];
         if (error != nil) {
@@ -323,7 +323,7 @@ static AirImagePicker *sharedInstance = nil;
     dispatch_async(thread, ^{
         
         // Save a copy of the picked video to the temp directory
-        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"mov"];
+        NSURL *toURL = [NSURL tempFileURLWithPrefix:@"temp-AirImagePicker" extension:@"mov"];
 
         NSError *fileError;
         NSFileManager *fileManager = [[NSFileManager alloc] init];
@@ -374,6 +374,8 @@ static AirImagePicker *sharedInstance = nil;
   dispatch_async(dispatch_get_main_queue(), ^{
       FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_PICK_MEDIA", 
         (const uint8_t *)[[mediaURL path] UTF8String]);
+      FREDispatchStatusEventAsync(AirIPCtx, 
+        (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
   });
 }
 

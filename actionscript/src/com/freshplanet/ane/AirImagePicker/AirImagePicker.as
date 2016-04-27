@@ -39,9 +39,18 @@ package com.freshplanet.ane.AirImagePicker
 	*   The callbacks to every method in this native extension have the following form: 
 	*   <code>function(status:String, media:File = null):void</code>
 	*
-	*	status:  Was the picking operation succcessful (STATUS_OK), cancelled by the user
-	*	(STATUS_DID_CANCEL), STATUS_ERROR when there's an error during the creation process, 
-	* or STATUS_NOT_SUPPORTED when the requested feature is not supported by your device.
+	*	  For each image or video that was picked, the callback will be called with 
+	*   <code>status</code> set to STATUS_MEDIA and <code>media</code> set to 
+	*   a temporary file containing the selected media. You should delete this 
+	*   file once you finish with it.
+	*
+	*   When all picked media has been returned, the callback will be called with 
+	*   STATUS_DID_FINISH and a null media file to indicate that no more media is 
+	*   available.
+	*
+	*   If something goes wrong while picking media, the callback will be called 
+	*   with STATUS_ERROR, or STATUS_NOT_SUPPORTED if the requested feature isn't 
+	*   available on the current device.
 	*
 	*	@see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/StageVideo.html
 	*   @see https://github.com/freshplanet/ANE-Video
@@ -54,9 +63,9 @@ package com.freshplanet.ane.AirImagePicker
 		// 																						 //
 		// --------------------------------------------------------------------------------------//
 
-		public static const STATUS_OK:String = "OK";
+		public static const STATUS_MEDIA:String = "MEDIA";
+		public static const STATUS_DID_FINISH:String = "DID_FINISH";
 		public static const STATUS_ERROR:String = "ERROR";
-		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 
 		/** AirImagePicker is supported on iOS and Android devices. */
@@ -315,10 +324,6 @@ package com.freshplanet.ane.AirImagePicker
 		private function onStatus( event : StatusEvent ) : void
 		{
 			var callback:Function = _callback;
-			
-			//!!!
-			log("onStatus: "+event.code+" "+event.level);
-			
 			if (event.code == "ERROR")
 			{
 				if (_callback != null)
@@ -330,13 +335,13 @@ package com.freshplanet.ane.AirImagePicker
 			else if (event.code == "DID_PICK_MEDIA")
 			{
 			  _pickedMediaCount++;
-				if (callback != null) callback(STATUS_OK, new File(event.level));
+				if (callback != null) callback(STATUS_MEDIA, new File(event.level));
 			}
 			else if (event.code == "DID_FINISH")
 			{
 				if (callback != null) {
 				  _callback = null;
-				  if (_pickedMediaCount == 0) callback(STATUS_DID_CANCEL);
+				  callback(STATUS_DID_FINISH);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message
@@ -347,7 +352,7 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function log( message : String ) : void
 		{
-			/*!!! if (_logEnabled)*/ trace("["+LOG_TAG+"] " + message);
+			if (_logEnabled) trace("["+LOG_TAG+"] " + message);
 		}
 	}
 }

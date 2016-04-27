@@ -13,7 +13,7 @@
 // get a URL for a unique temporary file
 + (NSURL *)tempFileURLWithPrefix:(NSString *)type extension:(NSString *)extension {
   return([NSURL fileURLWithPath:
-    [NSString stringWithFormat:@"%@%@_%08x_%08x.%@",
+    [NSString stringWithFormat:@"%@%@-%08x-%08x.%@",
       NSTemporaryDirectory(),
       type,
       (uint32_t)arc4random(), 

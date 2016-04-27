@@ -103,7 +103,7 @@
   // get the main representation of the media
   ALAssetRepresentation *rep = [libraryAsset defaultRepresentation];
   // get a temp file location to move the data to
-  NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"tmp"];
+  NSURL *toURL = [NSURL tempFileURLWithPrefix:@"temp-AirImagePicker" extension:@"tmp"];
   // copy the asset data to the temp file in chunks
   long long offset = 0;
   NSUInteger size = [rep size];
