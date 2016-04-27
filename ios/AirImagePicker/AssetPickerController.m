@@ -38,7 +38,6 @@
 
 @implementation AssetPickerController
 
-@synthesize assetPickerDelegate = _assetPickerDelegate;
 @synthesize progress = _progress;
 
 - (id)init {
@@ -152,12 +151,16 @@
   [fileHandle closeFile];
   // return the URL to the client
   dispatch_async(dispatch_get_main_queue(), ^{
-    [_assetPickerDelegate assetPickerController:self didPickMediaWithURL:toURL];
+    if ([self.delegate respondsToSelector:@selector(assetPickerController:didPickMediaWithURL:)]) {
+      [self.delegate assetPickerController:self didPickMediaWithURL:toURL];
+    }
   });
 }
 
 - (void)assetProcessingDidFinish {
-  [_assetPickerDelegate assetPickerControllerDidFinish:self];
+  if ([self.delegate respondsToSelector:@selector(assetPickerControllerDidFinish:)]) {
+    [self.delegate assetPickerControllerDidFinish:self];
+  }
 }
 
 @end

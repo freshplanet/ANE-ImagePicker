@@ -20,14 +20,14 @@
 
 #import "FlashRuntimeExtensions.h"
 
-#define USE_NATIVE_PICKER NO
+#define FORCE_NATIVE_PICKER NO
 
-#if ! USE_NATIVE_PICKER
+#if ! FORCE_NATIVE_PICKER
   #import "AssetPickerController.h"
 #endif
 
 @interface AirImagePicker : NSObject <
-  #if ! USE_NATIVE_PICKER
+  #if ! FORCE_NATIVE_PICKER
     AssetPickerControllerDelegate,
   #endif
     UINavigationControllerDelegate, 
@@ -50,6 +50,7 @@
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
 
 - (void) returnMediaURL:(NSURL*)mediaURL;
+- (void) dismissImagePicker;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;

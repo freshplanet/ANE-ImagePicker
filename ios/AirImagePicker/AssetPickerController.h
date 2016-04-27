@@ -35,9 +35,6 @@
   NSUInteger processedBytes;
 }
 
-// a delegate to receive picked media, etc.
-@property (nonatomic, assign) id<AssetPickerControllerDelegate> assetPickerDelegate;
-
 // the progress on the current asset being processed
 @property (nonatomic, readonly) float progress;
 

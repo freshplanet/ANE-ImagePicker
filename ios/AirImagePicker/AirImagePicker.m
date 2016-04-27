@@ -90,7 +90,7 @@ static AirImagePicker *sharedInstance = nil;
     // use the native picker if required by a compile directive, 
     //  if we need the camera, or if we're selecting a single image 
     //  with cropping
-    if ((USE_NATIVE_PICKER) || (useCamera) || (singleCroppedImage)) {
+    if ((FORCE_NATIVE_PICKER) || (useCamera) || (singleCroppedImage)) {
       self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
       UIImagePickerController *nativePicker = (UIImagePickerController *)self.imagePicker;
       nativePicker.sourceType = sourceType;
@@ -106,10 +106,10 @@ static AirImagePicker *sharedInstance = nil;
     }
     // otherwise use the non-native picker
     else {
-      #if ! USE_NATIVE_PICKER
+      #if ! FORCE_NATIVE_PICKER
         self.imagePicker = [[[AssetPickerController alloc] init] autorelease];
         AssetPickerController *assetPicker = (AssetPickerController *)self.imagePicker;
-        assetPicker.assetPickerDelegate = self;
+        assetPicker.delegate = self;
       #endif
     }
     
@@ -177,7 +177,7 @@ static AirImagePicker *sharedInstance = nil;
 }
 
 #pragma mark - AssetPickerControllerDelegate
-#if ! USE_NATIVE_PICKER
+#if ! FORCE_NATIVE_PICKER
 
 - (void)assetPickerController:(AssetPickerController *)picker didPickMediaWithURL:(NSURL *)url
 {
@@ -190,25 +190,13 @@ static AirImagePicker *sharedInstance = nil;
 - (void)assetPickerControllerDidFinish:(AssetPickerController *)picker
 { 
   NSLog(@"Entering assetPickerControllerDidFinish:");
-
-  // dismiss the controller
-  if (self.popover) {
-    [self.popover dismissPopoverAnimated:YES];
-  } else {
-    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    [rootViewController dismissModalViewControllerAnimated:YES];
-  }
-  self.popover = nil;
-  self.imagePicker = nil;
-  
-  // send an event back to the ActionScript side
+  [self dismissImagePicker];
   FREDispatchStatusEventAsync(AirIPCtx, 
     (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
-  
   NSLog(@"Exiting assetPickerControllerDidFinish:");
 }
 
-#endif /* ! USE_NATIVE_PICKER */
+#endif /* ! FORCE_NATIVE_PICKER */
 
 #pragma mark - UIImagePickerControllerDelegate
 
@@ -219,13 +207,7 @@ static AirImagePicker *sharedInstance = nil;
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
     
     // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
-    if (self.popover) {
-        [self.popover dismissPopoverAnimated:YES];
-        self.popover = nil;
-    } else {
-        [self.imagePicker dismissModalViewControllerAnimated:YES];
-        self.imagePicker = nil;
-    }
+    [self dismissImagePicker];
     
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
@@ -375,6 +357,18 @@ static AirImagePicker *sharedInstance = nil;
     NSLog(@"Exiting onVideoPickedWithVideoPath");
 }
 
+- (void)dismissImagePicker {
+  if (self.popover) {
+      [self.popover dismissPopoverAnimated:YES];
+  }
+  else {
+    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    [rootViewController dismissModalViewControllerAnimated:YES];
+  }
+  self.popover = nil;
+  self.imagePicker = nil;
+}
+
 // Let the native extension know that we are done with the picking
 - (void) returnMediaURL:(NSURL*)mediaURL {
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -385,17 +379,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
-    if (self.popover)
-    {
-        [self.popover dismissPopoverAnimated:YES];
-        self.popover = nil;
-    }
-    else
-    {
-        [self.imagePicker dismissModalViewControllerAnimated:YES];
-        self.imagePicker = nil;
-    }
-    
+    [self dismissImagePicker];
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
@@ -403,22 +387,20 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
 {
-    if (self.popover)
-    {
-        [self.popover dismissPopoverAnimated:YES];
-        self.popover = nil;
-    }
-    else
-    {
-        [self.imagePicker dismissModalViewControllerAnimated:YES];
-        self.imagePicker = nil;
-    }
-    
+    [self dismissImagePicker];
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
-@end
+#pragma mark - UINavigationControllerDelegate
 
+-(void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+  // hide the status bar for the image picker, because otherwise it will hang 
+  //  around on top of a fullscreen AIR app after this ANE closes
+  [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+}
+
+@end
 
 // C API
 
