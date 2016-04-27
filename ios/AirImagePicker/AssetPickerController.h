@@ -21,15 +21,25 @@
 #import "ProgressController.h"
 
 @protocol AssetPickerControllerDelegate <NSObject>
-  - (void)assetPickerController:(id)picker didPickImage:(UIImage *)image;
-  - (void)assetPickerController:(id)picker didPickVideoWithURL:(NSURL *)url;
+  - (void)assetPickerController:(id)picker didPickMediaWithURL:(NSURL *)url;
   - (void)assetPickerControllerDidFinish:(id)picker;
 @end
 
-@interface AssetPickerController : UINavigationController
+@interface AssetPickerController : UINavigationController <ProgressTarget> {
+
+  // a view to show the progress of assets being processed
+  ProgressController *progressVC;
+  // the number of asset bytes to be copied
+  NSUInteger totalBytes;
+  // the number of asset bytes copied so far
+  NSUInteger processedBytes;
+}
 
 // a delegate to receive picked media, etc.
 @property (nonatomic, assign) id<AssetPickerControllerDelegate> assetPickerDelegate;
+
+// the progress on the current asset being processed
+@property (nonatomic, readonly) float progress;
 
 // cancel the request
 - (void)cancel;

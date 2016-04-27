@@ -179,18 +179,12 @@ static AirImagePicker *sharedInstance = nil;
 #pragma mark - AssetPickerControllerDelegate
 #if ! USE_NATIVE_PICKER
 
-- (void)assetPickerController:(AssetPickerController *)picker didPickVideoWithURL:(NSURL *)url
+- (void)assetPickerController:(AssetPickerController *)picker didPickMediaWithURL:(NSURL *)url
 {
-  NSLog(@"Entering assetPickerController:didPickVideoWithURL:");
-  [self onVideoPickedWithMediaURL:url];
-  NSLog(@"Exiting assetPickerController:didPickVideoWithURL:");
-}
-
-- (void)assetPickerController:(AssetPickerController *)picker didPickImage:(UIImage *)image
-{
-  NSLog(@"Entering assetPickerController:didPickImage:");
-  [self onImagePickedWithOriginalImage:image editedImage:nil];
-  NSLog(@"Exiting assetPickerController:didPickImage:");
+  NSLog(@"Entering assetPickerController:didPickMediaWithURL:");
+  FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_PICK_MEDIA", 
+        (const uint8_t *)[[url path] UTF8String]);
+  NSLog(@"Exiting assetPickerController:didPickMediaWithURL:");
 }
 
 - (void)assetPickerControllerDidFinish:(AssetPickerController *)picker
@@ -208,7 +202,8 @@ static AirImagePicker *sharedInstance = nil;
   self.imagePicker = nil;
   
   // send an event back to the ActionScript side
-  FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
+  FREDispatchStatusEventAsync(AirIPCtx, 
+    (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
   
   NSLog(@"Exiting assetPickerControllerDidFinish:");
 }
@@ -320,7 +315,7 @@ static AirImagePicker *sharedInstance = nil;
           NSLog(@"AirImagePicker:  Error while saving to temp file: %@", 
             [error description]);
           FREDispatchStatusEventAsync(AirIPCtx,
-            (const uint8_t *)"ERROR_GENERATING_VIDEO",
+            (const uint8_t *)"ERROR",
             (const uint8_t *)[[error description] UTF8String]);
         }
         else {
@@ -366,7 +361,7 @@ static AirImagePicker *sharedInstance = nil;
             [fileManager release];  // we are done with the file manager, release it.
             dispatch_async(dispatch_get_main_queue(), ^{
                 FREDispatchStatusEventAsync(AirIPCtx,
-                                            (const uint8_t *)"ERROR_GENERATING_VIDEO",
+                                            (const uint8_t *)"ERROR",
                                             (const uint8_t *)[[fileError description] UTF8String]);
             });
         }
@@ -383,7 +378,7 @@ static AirImagePicker *sharedInstance = nil;
 // Let the native extension know that we are done with the picking
 - (void) returnMediaURL:(NSURL*)mediaURL {
   dispatch_async(dispatch_get_main_queue(), ^{
-      FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH_PICKING", 
+      FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_PICK_MEDIA", 
         (const uint8_t *)[[mediaURL path] UTF8String]);
   });
 }
@@ -401,7 +396,7 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker = nil;
     }
     
-    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
+    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
 #pragma mark - UIPopoverControllerDelegate
@@ -419,7 +414,7 @@ static AirImagePicker *sharedInstance = nil;
         self.imagePicker = nil;
     }
     
-    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_CANCEL", (const uint8_t *)"OK");
+    FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
 @end

@@ -19,12 +19,16 @@
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 
+@protocol ProgressTarget <NSObject>
+  - (float) progress;
+@end
+
 @interface ProgressController : UIViewController {
 
   // a target to query for progress information 
   //  (using the 'progress' selector) or nil if 
   //  the ETA is indeterminate
-  id progressTarget;
+  id<ProgressTarget> progressTarget;
   
   // a description of the task being performed
   NSString *taskName;

@@ -160,7 +160,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	//-----------------------------------------------------//
 
 	/** 
-	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL"
+	 * @param eventName "DID_PICK_MEDIA", "DID_FINISH"
 	 * 
 	 * @param message Extra information you want to pass to the actionscript side
 	 * of the native extension.  Usually you want to pass "OK".  In this case it 
@@ -178,7 +178,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	}
 	
 	/**
-	 * @param eventName "DID_FINISH_PICKING", "DID_CANCEL"
+	 * @param eventName "DID_PICK_MEDIA", "DID_FINISH"
 	 */
 	private void dispatchResultEvent(String eventName)
 	{
@@ -192,7 +192,7 @@ public class AirImagePickerExtensionContext extends FREContext
 	  // avoid deleting this file since we're passing it back to the client
 	  String path = file.getAbsolutePath();
 	  protectTempPath(path);
-	  dispatchResultEvent("DID_FINISH_PICKING", path);
+	  dispatchResultEvent("DID_PICK_MEDIA", path);
 	}
 
 
@@ -351,7 +351,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		}
 		else
 		{
-			dispatchResultEvent("DID_CANCEL");
+			dispatchResultEvent("DID_FINISH");
 		}
 		
 		log("Exiting onPickerActivityResult");

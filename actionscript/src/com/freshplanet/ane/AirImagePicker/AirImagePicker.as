@@ -198,6 +198,7 @@ package com.freshplanet.ane.AirImagePicker
 			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			_callback = callback;
+			_pickedMediaCount = 0;
 			
 			if (anchor != null) {
 			  _context.call("displayImagePicker", _allowVideo, _allowMultiple, _showCrop, anchor);
@@ -237,6 +238,8 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (! isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
+			_pickedMediaCount = 0;
+			
 			prepareToDisplayNativeUI(callback);
 			
 			_context.call("displayCamera", _allowVideo, _showCrop);
@@ -260,6 +263,7 @@ package com.freshplanet.ane.AirImagePicker
 		private var _stage3D : Stage3D;
 		private var _overlay : BitmapData;
 		private var _context3DLost : Boolean = false;
+		private var _pickedMediaCount:int = 0;
 		
 		// picker configuration
 		private var _allowVideo:Boolean = false;
@@ -312,28 +316,27 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			var callback:Function = _callback;
 			
-			if (event.code == "ERROR_GENERATING_VIDEO")
+			//!!!
+			log("onStatus: "+event.code+" "+event.level);
+			
+			if (event.code == "ERROR")
 			{
 				if (_callback != null)
 				{
-					log("Error while generating video = "+event.level);
+					log("Error while picking media = "+event.level);
 					callback(STATUS_ERROR, event.level);
 				}
 			}
-			else if (event.code == "DID_FINISH_PICKING")
+			else if (event.code == "DID_PICK_MEDIA")
 			{
-				if (callback != null)
-				{
-					//!!! _callback = null;
-					callback(STATUS_OK, new File(event.level));
-				}
+			  _pickedMediaCount++;
+				if (callback != null) callback(STATUS_OK, new File(event.level));
 			}
-			else if (event.code == STATUS_DID_CANCEL)
+			else if (event.code == "DID_FINISH")
 			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_DID_CANCEL);
+				if (callback != null) {
+				  _callback = null;
+				  if (_pickedMediaCount == 0) callback(STATUS_DID_CANCEL);
 				}
 			}
 			else if (event.code == "LOGGING") // Simple log message
@@ -344,7 +347,7 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function log( message : String ) : void
 		{
-			if (_logEnabled) trace("["+LOG_TAG+"] " + message);
+			/*!!! if (_logEnabled)*/ trace("["+LOG_TAG+"] " + message);
 		}
 	}
 }

@@ -21,6 +21,8 @@
 #import "AssetPickerController.h"
 #import "AlbumListController.h"
 
+#import "NSURL+Rewriters.h"
+
 // private methods
 @interface AssetPickerController()
 
@@ -37,6 +39,7 @@
 @implementation AssetPickerController
 
 @synthesize assetPickerDelegate = _assetPickerDelegate;
+@synthesize progress = _progress;
 
 - (id)init {
   // show the user's photo albums
@@ -45,9 +48,14 @@
       autorelease];
   // put them in a navigation controller
   if ((self = [super initWithRootViewController:albums])) {
-    // additional customization goes here
+    _progress = 0.0;
   }
   return(self);
+}
+- (void)dealloc {
+  if (progressVC) {
+    [progressVC release], progressVC = nil;
+  }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -64,40 +72,88 @@
 
 // respond to a list of assets being selected
 - (void)didSelectAssets:(NSArray *)assets {
-  for (id asset in assets) {
-    [self processAsset:(ALAsset *)asset];
+  // show a view to let the user know assets are being processed
+  if (progressVC == nil) {
+    progressVC = [[ProgressController alloc]
+      initWithTaskNamed:@"Processing Media"
+      progressTarget:self];
+    [self presentModalViewController:progressVC animated:NO];
   }
-  [self assetProcessingDidFinish];
+  // get the total size of all assets
+  totalBytes = 0;
+  for (id asset in assets) {
+    totalBytes += [[asset defaultRepresentation] size];
+  }
+  processedBytes = 0;
+  // process assets on another thread
+  dispatch_queue_t thread = dispatch_queue_create("asset copy", NULL);
+  dispatch_async(thread, ^{
+    for (id asset in assets) {
+      // process the next asset
+      [self processAsset:(ALAsset *)asset];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self assetProcessingDidFinish];
+    });
+  });
+  dispatch_release(thread);
 }
 
 // process a single asset from the pending list
 - (void)processAsset:(ALAsset *)libraryAsset {
   // get the main representation of the media
   ALAssetRepresentation *rep = [libraryAsset defaultRepresentation];
-  // get the orientation of the media
-  UIImageOrientation orientation = 
-    [[libraryAsset valueForProperty:ALAssetPropertyOrientation] intValue];
-  // see what type of media has been selected
-  NSString *type = [libraryAsset valueForProperty:ALAssetPropertyType];
-  // handle images
-  if (type == ALAssetTypePhoto) {
-    // make it a UIImage
-    UIImage *fullImage = [UIImage imageWithCGImage:[rep fullResolutionImage] 
-      scale:1.0 orientation:orientation];
-    // return the image to the delegate
-    [_assetPickerDelegate assetPickerController:self didPickImage:fullImage];
+  // get a temp file location to move the data to
+  NSURL *toURL = [NSURL tempFileURLWithPrefix:@"airImagePicker" extension:@"tmp"];
+  // copy the asset data to the temp file in chunks
+  long long offset = 0;
+  NSUInteger size = [rep size];
+  NSUInteger bytesRead = 0;
+  uint8_t buffer[16 * 1024]; // 16K data buffer
+  NSError *error = nil;
+  // create the temp file (or we can't open for writing below)
+  if (! [[NSFileManager defaultManager] fileExistsAtPath:[toURL path]]) {
+    BOOL created = [[NSFileManager defaultManager] 
+                      createFileAtPath:[toURL path] 
+                      contents:nil attributes:nil];
+    if (! created) {
+      NSLog(@"AirImagePicker:  Error creating temp file");
+      return;
+    }
   }
-  // handle videos
-  else if (type == ALAssetTypeVideo) {
-    NSURL *videoURL = [NSURL URLWithString:
-      [NSString stringWithFormat:@"%@", [rep url]]];
-    [_assetPickerDelegate assetPickerController:self 
-      didPickVideoWithURL:videoURL];  
+  // open the file for writing
+  NSFileHandle *fileHandle = 
+    [NSFileHandle fileHandleForWritingToURL:toURL error:&error];
+  if (fileHandle == nil) {
+    NSLog(@"AirImagePicker:  Error opening temp file for writing: %@", 
+            [error description]);
+    return;
   }
-  else {
-    NSLog(@"WARNING: Unrecognized media type for asset %@: %@", 
-      libraryAsset, type);
+  NSInteger fd = [fileHandle fileDescriptor];
+  do {
+      // read a chunk
+      bytesRead = [rep getBytes:buffer fromOffset:offset length:sizeof(buffer) 
+                   error:&error];
+      if (error != nil) {
+        NSLog(@"AirImagePicker:  Error writing to temp file: %@", 
+            [error description]);
+        return;
+      }
+      offset += bytesRead;
+      processedBytes += bytesRead;
+      // write a chunk
+      write(fd, buffer, bytesRead);
+      // update progress
+      _progress = (float)processedBytes / (float)totalBytes;
   }
+  while (offset < [rep size]);
+  // make sure the file is completely written to disk
+  [fileHandle synchronizeFile];
+  [fileHandle closeFile];
+  // return the URL to the client
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [_assetPickerDelegate assetPickerController:self didPickMediaWithURL:toURL];
+  });
 }
 
 - (void)assetProcessingDidFinish {

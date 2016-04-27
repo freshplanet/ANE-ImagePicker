@@ -219,10 +219,8 @@
   if (progressTarget == nil) return;
   // get progress
   float progress = 0.0;
-  /*
   if ([progressTarget respondsToSelector:@selector(progress)]) 
     progress = (float)[progressTarget progress];
-  */
   // show it on the progress bar
   [progressBar setProgress:progress];
 }
