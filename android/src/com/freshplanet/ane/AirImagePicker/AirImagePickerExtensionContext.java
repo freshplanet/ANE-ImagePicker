@@ -233,9 +233,10 @@ public class AirImagePickerExtensionContext extends FREContext
 		case GALLERY_IMAGES_ONLY_ACTION:
 		case GALLERY_IMAGES_AND_VIDEOS_ACTION:
 			intent = new Intent();
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
 			intent.setAction(Intent.ACTION_GET_CONTENT);
 			intent.setType((action == GALLERY_IMAGES_ONLY_ACTION) ? 
-			  "image/*" : "image/*|video/*");
+			  "image/*" : "*/*");
 			// prevent the user from selecting from a Picasa album if possible
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
