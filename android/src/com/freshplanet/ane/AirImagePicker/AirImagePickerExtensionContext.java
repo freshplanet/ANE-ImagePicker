@@ -389,18 +389,23 @@ public class AirImagePickerExtensionContext extends FREContext
 	{
 		log("Entering handleResultForGallery");
 		
-		// handle a single selected item
-		if (data.getData() != null) {
-		  handleGalleryItem(data.getData());
-		}
+		int handledItems = 0;
+		
 		// handle multiple selected items
-		else if (data.getClipData() != null) {
+	  if (data.getClipData() != null) {
 		  ClipData clipData = data.getClipData();
 		  for (int i = 0; i < clipData.getItemCount(); i++) {
         handleGalleryItem(clipData.getItemAt(i).getUri());
+        handledItems++;
       }
 		}
-		else {
+		// handle a single selected item
+		else if (data.getData() != null) {
+		  handleGalleryItem(data.getData());
+		  handledItems++;
+		}
+		// make sure we got some items
+		if (! (handledItems > 0)) {
 		  log("Unable to find picked items: data = "+data.toString());
 		}
 		
