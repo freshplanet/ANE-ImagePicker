@@ -87,7 +87,6 @@ static AirImagePicker *sharedInstance = nil;
     // determine what kind of picker to use
     BOOL singleCroppedImage = (! allowVideo) && (! allowDocument) && (! allowMultiple) && (crop);
     BOOL useCamera = (sourceType == UIImagePickerControllerSourceTypeCamera);
-    BOOL iCloud = NO;
     
     // use the native picker if required by a compile directive, 
     //  if we need the camera, or if we're selecting a single image 
@@ -141,7 +140,6 @@ static AirImagePicker *sharedInstance = nil;
       // respond to selected documents
       docPicker.delegate = self;
       self.picker = docPicker;
-      iCloud = YES;
     }
     // otherwise use the non-native picker
     else {
@@ -155,8 +153,7 @@ static AirImagePicker *sharedInstance = nil;
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
     if ((sourceType == UIImagePickerControllerSourceTypeCamera) || 
-        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ||
-        (iCloud))
+        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone))
     {
         [rootViewController presentModalViewController:self.picker animated:YES];
     }
