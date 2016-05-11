@@ -113,12 +113,16 @@ public class AirImagePickerExtensionContext extends FREContext
 		return isActionAvailable(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 	}
 
-	public void displayImagePicker(Boolean videosAllowed, Boolean allowMultiple, Boolean crop)
+	public void displayImagePicker(Boolean allowVideo, 
+	                               Boolean allowDocument, 
+	                               Boolean allowMultiple, Boolean crop)
 	{
 		log("Entering displayImagePicker");
 		_shouldCrop = crop;
+		_allowVideo = allowVideo;
+		_allowDocument = allowDocument;
 		_allowMultiple = allowMultiple;
-		if (videosAllowed)
+		if (allowVideo)
 		{
 			startPickerActivityForAction(GALLERY_IMAGES_AND_VIDEOS_ACTION);
 		} 
@@ -200,6 +204,8 @@ public class AirImagePickerExtensionContext extends FREContext
 	//					INTENTS AND ACTIONS				   //
 	//-----------------------------------------------------//
 	
+	private Boolean _allowVideo = false;
+	private Boolean _allowDocument = false;
 	private Boolean _allowMultiple = false;
 
 	public static final int NO_ACTION = -1;
@@ -235,8 +241,20 @@ public class AirImagePickerExtensionContext extends FREContext
 			intent = new Intent();
 			intent.addCategory(Intent.CATEGORY_OPENABLE);
 			intent.setAction(Intent.ACTION_GET_CONTENT);
-			intent.setType((action == GALLERY_IMAGES_ONLY_ACTION) ? 
-			  "image/*" : "*/*");
+			if (_allowDocument) {
+			  intent.setType("*/*");
+			}
+			else if (_allowVideo) {
+			  intent.setType("*/*");
+			  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			    intent.setType("*/*");
+			    String[] mimetypes = {"image/*", "video/*"};
+          intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+			  }
+			}
+			else {
+			  intent.setType("image/*");
+			}
 			// prevent the user from selecting from a Picasa album if possible
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);

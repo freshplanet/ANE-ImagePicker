@@ -39,7 +39,7 @@ FREContext AirIPCtx = nil;
 
 @implementation AirImagePicker
 
-@synthesize imagePicker = _imagePicker;
+@synthesize picker = _picker;
 @synthesize popover = _popover;
 
 static AirImagePicker *sharedInstance = nil;
@@ -65,7 +65,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)dealloc
 {
-    [_imagePicker release];
+    [_picker release];
     [_popover release];
     [_overlay release];
     [super dealloc];
@@ -78,21 +78,23 @@ static AirImagePicker *sharedInstance = nil;
 }
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
-          allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple crop:(BOOL)crop  
+          allowVideo:(BOOL)allowVideo allowDocument:(BOOL)allowDocument 
+          allowMultiple:(BOOL)allowMultiple crop:(BOOL)crop  
           anchor:(CGRect)anchor
 {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
     // determine what kind of picker to use
-    BOOL singleCroppedImage = (! allowVideo) && (! allowMultiple) && (crop);
+    BOOL singleCroppedImage = (! allowVideo) && (! allowDocument) && (! allowMultiple) && (crop);
     BOOL useCamera = (sourceType == UIImagePickerControllerSourceTypeCamera);
+    BOOL iCloud = NO;
     
     // use the native picker if required by a compile directive, 
     //  if we need the camera, or if we're selecting a single image 
     //  with cropping
     if ((FORCE_NATIVE_PICKER) || (useCamera) || (singleCroppedImage)) {
-      self.imagePicker = [[[UIImagePickerController alloc] init] autorelease];
-      UIImagePickerController *nativePicker = (UIImagePickerController *)self.imagePicker;
+      self.picker = [[[UIImagePickerController alloc] init] autorelease];
+      UIImagePickerController *nativePicker = (UIImagePickerController *)self.picker;
       nativePicker.sourceType = sourceType;
       nativePicker.allowsEditing = crop;
       nativePicker.delegate = self;
@@ -104,11 +106,48 @@ static AirImagePicker *sharedInstance = nil;
           CFRelease(mTypesArray);
       }
     }
+    // on iOS 8+, iCloud does not work correctly with the ALAsset framework,
+    //  so we need to use the UIDocumentPickerViewController, which unfortunately
+    //  does not support multi-select
+    else if (([[UIDevice currentDevice].systemVersion intValue] >= 8) &&
+             // check that iCloud is enabled
+             ([[NSFileManager defaultManager] ubiquityIdentityToken] != nil)) {
+      // get the types of document to accept
+      NSArray *allTypes = @[
+          (NSString *)kUTTypeImage, 
+          (NSString *)kUTTypeAudiovisualContent, 
+          (NSString *)kUTTypePDF, 
+          @"public.presentation", 
+          @"com.microsoft.word.doc", 
+          @"com.microsoft.excel.xls"];
+      NSArray *videoTypes = @[
+          (NSString *)kUTTypeImage, 
+          (NSString *)kUTTypeMovie];
+      NSArray *types = @[(NSString *)kUTTypeImage];
+      if (allowDocument) types = allTypes;
+      else if (allowVideo) types = videoTypes;
+      // make a picker for importing
+      UIDocumentMenuViewController *docPicker = [[[UIDocumentMenuViewController alloc] 
+        initWithDocumentTypes:types inMode:UIDocumentPickerModeImport] 
+          autorelease];
+      // add the option to use the photos app like a document provider
+      [docPicker addOptionWithTitle:@"Photos" image:nil order:UIDocumentMenuOrderFirst handler:^{
+          UIImagePickerController *imagePicker = [[[UIImagePickerController alloc] init] autorelease];
+          if (allowVideo) imagePicker.mediaTypes = videoTypes;
+          imagePicker.delegate = self;
+          self.picker = imagePicker;
+          [rootViewController presentModalViewController:self.picker animated:YES];
+        }];
+      // respond to selected documents
+      docPicker.delegate = self;
+      self.picker = docPicker;
+      iCloud = YES;
+    }
     // otherwise use the non-native picker
     else {
       #if ! FORCE_NATIVE_PICKER
-        self.imagePicker = [[[AssetPickerController alloc] init] autorelease];
-        AssetPickerController *assetPicker = (AssetPickerController *)self.imagePicker;
+        self.picker = [[[AssetPickerController alloc] init] autorelease];
+        AssetPickerController *assetPicker = (AssetPickerController *)self.picker;
         assetPicker.delegate = self;
       #endif
     }
@@ -116,13 +155,14 @@ static AirImagePicker *sharedInstance = nil;
     // Image picker should always be presented fullscreen on iPhone and iPod Touch.
     // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
     if ((sourceType == UIImagePickerControllerSourceTypeCamera) || 
-        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone))
+        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ||
+        (iCloud))
     {
-        [rootViewController presentModalViewController:self.imagePicker animated:YES];
+        [rootViewController presentModalViewController:self.picker animated:YES];
     }
     else
     {
-        self.popover = [[[UIPopoverController alloc] initWithContentViewController:self.imagePicker] autorelease];
+        self.popover = [[[UIPopoverController alloc] initWithContentViewController:self.picker] autorelease];
         self.popover.delegate = self;
         [self.popover presentPopoverFromRect:anchor inView:rootViewController.view
                     permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
@@ -190,7 +230,7 @@ static AirImagePicker *sharedInstance = nil;
 - (void)assetPickerControllerDidFinish:(AssetPickerController *)picker
 { 
   NSLog(@"Entering assetPickerControllerDidFinish:");
-  [self dismissImagePicker];
+  [self dismissPicker];
   FREDispatchStatusEventAsync(AirIPCtx, 
     (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
   NSLog(@"Exiting assetPickerControllerDidFinish:");
@@ -207,7 +247,7 @@ static AirImagePicker *sharedInstance = nil;
     NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
     
     // Apple sez: When the user taps a button in the camera interface to accept a newly captured picture or movie, or to just cancel the operation, the system notifies the delegate of the user’s choice. The system does not, however, dismiss the camera interface. The delegate must dismiss it
-    [self dismissImagePicker];
+    [self dismissPicker];
     
     // Handle a image
     if (CFStringCompare((CFStringRef) mediaType, kUTTypeImage, 0) == kCFCompareEqualTo)
@@ -357,7 +397,7 @@ static AirImagePicker *sharedInstance = nil;
     NSLog(@"Exiting onVideoPickedWithVideoPath");
 }
 
-- (void)dismissImagePicker {
+- (void)dismissPicker {
   if (self.popover) {
       [self.popover dismissPopoverAnimated:YES];
   }
@@ -366,7 +406,7 @@ static AirImagePicker *sharedInstance = nil;
     [rootViewController dismissModalViewControllerAnimated:YES];
   }
   self.popover = nil;
-  self.imagePicker = nil;
+  self.picker = nil;
 }
 
 // Let the native extension know that we are done with the picking
@@ -381,7 +421,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
-    [self dismissImagePicker];
+    [self dismissPicker];
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
@@ -389,7 +429,7 @@ static AirImagePicker *sharedInstance = nil;
 
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
 {
-    [self dismissImagePicker];
+    [self dismissPicker];
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
 }
 
@@ -400,6 +440,34 @@ static AirImagePicker *sharedInstance = nil;
   // hide the status bar for the image picker, because otherwise it will hang 
   //  around on top of a fullscreen AIR app after this ANE closes
   [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+}
+
+#pragma mark - UIDocumentMenuDelegate
+
+- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu
+          didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    self.picker = documentPicker;
+    documentPicker.delegate = self;
+    [rootViewController presentModalViewController:self.picker animated:YES];
+  });
+}
+
+- (void)documentMenuWasCancelled:(UIDocumentMenuViewController *)documentMenu {
+  [self dismissPicker];
+}
+
+#pragma mark - UIDocumentPickerDelegate
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller
+          didPickDocumentAtURL:(NSURL *)url {
+  
+  NSLog(@"%@", url);
+  
+  [self returnMediaURL:url];
+}
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
 }
 
 @end
@@ -425,21 +493,26 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     FREGetObjectAsBool(allowVideoObj, &allowVideoValue);
     BOOL allowVideo = (allowVideoValue != 0);
     
+    uint32_t allowDocumentValue;
+    FREObject allowDocumentObj = argv[1];
+    FREGetObjectAsBool(allowDocumentObj, &allowDocumentValue);
+    BOOL allowDocument = (allowDocumentValue != 0);
+    
     uint32_t allowMultipleValue;
-    FREObject allowMultipleObject = argv[1];
+    FREObject allowMultipleObject = argv[2];
     FREGetObjectAsBool(allowMultipleObject, &allowMultipleValue);
     BOOL allowMultiple = (allowMultipleValue != 0);
     
     uint32_t cropValue;
-    FREObject cropObject = argv[2];
+    FREObject cropObject = argv[3];
     FREGetObjectAsBool(cropObject, &cropValue);
     BOOL crop = (cropValue != 0);
     
     CGRect anchor;
-    if (argc > 3)
+    if (argc > 4)
     {
         // Extract anchor properties
-        FREObject anchorObject = argv[3];
+        FREObject anchorObject = argv[4];
         FREObject anchorX, anchorY, anchorWidth, anchorHeight, thrownException;
         FREGetObjectProperty(anchorObject, (const uint8_t *)"x", &anchorX, &thrownException);
         FREGetObjectProperty(anchorObject, (const uint8_t *)"y", &anchorY, &thrownException);
@@ -465,7 +538,7 @@ DEFINE_ANE_FUNCTION(displayImagePicker)
     
     [[AirImagePicker sharedInstance] 
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary 
-        allowVideo:allowVideo allowMultiple:allowMultiple crop:crop 
+        allowVideo:allowVideo allowDocument:allowDocument allowMultiple:allowMultiple crop:crop 
         anchor:anchor];
     
     return nil;
@@ -497,7 +570,7 @@ DEFINE_ANE_FUNCTION(displayCamera)
     
     [[AirImagePicker sharedInstance] 
       displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera 
-      allowVideo:allowVideo allowMultiple:NO crop:crop anchor:CGRectZero];
+      allowVideo:allowVideo allowDocument:NO allowMultiple:NO crop:crop anchor:CGRectZero];
     
     return nil;
 }

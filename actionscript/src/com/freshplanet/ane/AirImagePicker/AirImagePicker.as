@@ -166,6 +166,14 @@ package com.freshplanet.ane.AirImagePicker
 		public function set allowVideo(value:Boolean ):void { _allowVideo = value; }
 		
 		/**
+		 * If <code>true</code>, the user will be allowed to select documents as well 
+		 *  as images and videos.
+		 * If <code>false</code>, only images will be selected.
+		 */
+		public function get allowDocument():Boolean { return(_allowDocument); }
+		public function set allowDocument(value:Boolean ):void { _allowDocument = value; }
+		
+		/**
 		 * If <code>true</code>, the user will be allowed to select multiple images
 		 *  or videos when displayImagePicker is called.
 		 * If <code>false</code>, the user will only be able to select one image 
@@ -210,10 +218,10 @@ package com.freshplanet.ane.AirImagePicker
 			_pickedMediaCount = 0;
 			
 			if (anchor != null) {
-			  _context.call("displayImagePicker", _allowVideo, _allowMultiple, _showCrop, anchor);
+			  _context.call("displayImagePicker", _allowVideo, _allowDocument, _allowMultiple, _showCrop, anchor);
 			}
 			else {
-			  _context.call("displayImagePicker", _allowVideo, _allowMultiple, _showCrop);
+			  _context.call("displayImagePicker", _allowVideo, _allowDocument, _allowMultiple, _showCrop);
 			}
 		}
 		
@@ -276,6 +284,7 @@ package com.freshplanet.ane.AirImagePicker
 		
 		// picker configuration
 		private var _allowVideo:Boolean = false;
+		private var _allowDocument:Boolean = false;
 		private var _allowMultiple:Boolean = false;
 		private var _showCrop:Boolean = false;
 		

@@ -20,6 +20,7 @@
 
 #import "FlashRuntimeExtensions.h"
 
+// whether to always use the native pickers (no multiselect support)
 #define FORCE_NATIVE_PICKER NO
 
 #if ! FORCE_NATIVE_PICKER
@@ -32,10 +33,12 @@
   #endif
     UINavigationControllerDelegate, 
     UIImagePickerControllerDelegate, 
-    UIPopoverControllerDelegate
+    UIPopoverControllerDelegate,
+    UIDocumentMenuDelegate,
+    UIDocumentPickerDelegate
   >
 
-@property (nonatomic, retain) UIViewController *imagePicker;
+@property (nonatomic, retain) UIViewController *picker;
 @property (nonatomic, retain) UIPopoverController *popover;
 
 + (id)sharedInstance;
@@ -43,14 +46,22 @@
 + (void)log:(NSString *)message;
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
-          allowVideo:(BOOL)allowVideo allowMultiple:(BOOL)allowMultiple 
+          allowVideo:(BOOL)allowVideo allowDocument:(BOOL)allowDocument allowMultiple:(BOOL)allowMultiple 
           crop:(BOOL)crop anchor:(CGRect)anchor;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
 
 - (void) returnMediaURL:(NSURL*)mediaURL;
-- (void) dismissImagePicker;
+- (void) dismissPicker;
+
+- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu
+          didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker;
+- (void)documentMenuWasCancelled:(UIDocumentMenuViewController *)documentMenu;
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller
+  didPickDocumentAtURL:(NSURL *)url;
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;
