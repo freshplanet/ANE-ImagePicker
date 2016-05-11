@@ -455,19 +455,18 @@ static AirImagePicker *sharedInstance = nil;
 }
 
 - (void)documentMenuWasCancelled:(UIDocumentMenuViewController *)documentMenu {
-  [self dismissPicker];
+  self.picker = nil;
 }
 
 #pragma mark - UIDocumentPickerDelegate
 
 - (void)documentPicker:(UIDocumentPickerViewController *)controller
           didPickDocumentAtURL:(NSURL *)url {
-  
-  NSLog(@"%@", url);
-  
   [self returnMediaURL:url];
+  self.picker = nil;
 }
 - (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+  self.picker = nil;
 }
 
 @end
