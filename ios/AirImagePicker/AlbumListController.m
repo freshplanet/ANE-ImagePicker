@@ -27,6 +27,8 @@
 
 - (void)didCancel;
 
+- (void)addAlbumsFromPhotos;
+- (void)addAlbumForCollection:(PHAssetCollection *)coll;
 - (void)addAlbumForGroup:(ALAssetsGroup *)group;
 
 @end
@@ -58,28 +60,45 @@
   [sections removeAllObjects];
   [sections addObject:albumCells];
   // load albums from the asset library
-  [library release];
-  library = [[ALAssetsLibrary alloc] init];
-  [library enumerateGroupsWithTypes:ALAssetsGroupAll 
-    usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-      // add groups while we get them
-      if (group != nil) {
-        [self addAlbumForGroup:group];
-      }
-      // reload when we're done
-      else {
-        [self.tableView reloadData];
-      }
-    } failureBlock:^(NSError *error) {
-      NSLog(@"ERROR: Failed to load albums: %@", error);
-      // show a message for the user
-      UIAlertView *alert = [[[UIAlertView alloc]
-        initWithTitle:@"Failed to Load Albums"
-        message:@"You may need to go to Settings and turn Location Services on."
-        delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil]
-          autorelease];
-      [alert show];
-    }];
+  if ([[UIDevice currentDevice].systemVersion intValue] >= 8) {
+    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
+      [self addAlbumsFromPhotos];
+    }
+    else {
+      [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+          if (status == PHAuthorizationStatusAuthorized) {
+            [self addAlbumsFromPhotos];
+          }
+          else {
+            [self didCancel];
+          }
+        }];
+    }
+  }
+  else {
+    [library release];
+    library = [[ALAssetsLibrary alloc] init];
+    [library enumerateGroupsWithTypes:ALAssetsGroupAll 
+      usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+        // add groups while we get them
+        if (group != nil) {
+          [self addAlbumForGroup:group];
+        }
+        // reload when we're done
+        else {
+          [self.tableView reloadData];
+        }
+      } failureBlock:^(NSError *error) {
+        NSLog(@"ERROR: Failed to load albums: %@", error);
+        // show a message for the user
+        UIAlertView *alert = [[[UIAlertView alloc]
+          initWithTitle:@"Failed to Load Albums"
+          message:@"You may need to go to Settings and turn Location Services on."
+          delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil]
+            autorelease];
+        [alert show];
+      }];
+  }
 }
 - (void)dealloc {
   [albumCells release], albumCells = nil;
@@ -93,6 +112,56 @@
   // always use the iPhone screen size 
   //  (on iPad it will be inside a popover)
   [self setContentSizeForViewInPopover:CGSizeMake(320.0, 480.0)];
+}
+
+// add albums using the Photos framework
+- (void)addAlbumsFromPhotos {
+  PHFetchResult *result;
+  PHAssetCollectionType types[] = { 
+      PHAssetCollectionTypeAlbum, 
+      PHAssetCollectionTypeSmartAlbum
+    };
+  for (int i = 0; i < 2; i++) {
+    result = [PHAssetCollection fetchAssetCollectionsWithType:types[i] 
+      subtype:PHAssetCollectionSubtypeAny options:nil];
+    [result enumerateObjectsUsingBlock:^(PHCollection *coll, NSUInteger idx, BOOL *stop) {
+        [self addAlbumForCollection:(PHAssetCollection *)coll];
+      }];
+  }
+}
+- (void)addAlbumForCollection:(PHAssetCollection *)coll {
+  // add the group to the groups list
+  if (! groups) groups = [[NSMutableArray alloc] init];
+  [groups addObject:coll];
+  // make a cell for the album
+  UITableViewCell *albumCell = [[[AlbumTableCell alloc] 
+    initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil]
+      autorelease];  
+  // set it up
+  albumCell.textLabel.text = [coll localizedTitle];
+  if ([coll estimatedAssetCount] != NSNotFound) {
+    albumCell.detailTextLabel.text = [NSString stringWithFormat:@"(%li)",
+      (long)[coll estimatedAssetCount]];
+  }
+  albumCell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+  // load a thumbnail using the first asset in the collection
+  PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:coll options:nil];
+  PHAsset *first = (PHAsset *)[result firstObject];
+  if (first != nil) {
+    PHImageRequestOptions *options = [[[PHImageRequestOptions alloc] init] autorelease];
+    options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+    // retain the cell so it stays in memory until the async call completes
+    [albumCell retain];
+    CGFloat thumbSize = 55.0 * [UIScreen mainScreen].scale;
+    [[PHImageManager defaultManager] requestImageForAsset:first 
+      targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
+      options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
+        albumCell.imageView.image = thumb;
+        [albumCell release];
+      }];
+  }
+  // add it to the cell list
+  [albumCells addObject:albumCell];
 }
 
 // add an album to the list

@@ -34,23 +34,29 @@
 
 - (CGFloat)thumbnailWidth;
 - (CGFloat)thumbnailSpacing;
+- (NSUInteger)numberOfAssets;
 - (NSUInteger)thumbnailsPerRow;
 
 @end
 
 @implementation AlbumController
 
-- (id)initWithGroup:(ALAssetsGroup *)inGroup {
+- (id)initWithGroup:(id)inGroup {
   if ((self = [super initWithNibName:nil bundle:nil])) {
-    // store the group
-    group = [inGroup retain];
     // make a set of selected asset indices
     selectedIndices = [[NSMutableSet alloc] init];
     // listen for the selection changing
     [self observeNotificationsNamed:AlbumRowSelectionDidChangeNotification 
       selector:@selector(selectionDidChange:)];
     // set up the nav bar
-    self.title = [group valueForProperty:ALAssetsGroupPropertyName];
+    if ([inGroup isKindOfClass:[ALAssetsGroup class]]) {
+      group = [inGroup retain];
+      self.title = [group valueForProperty:ALAssetsGroupPropertyName];
+    }
+    else if ([inGroup isKindOfClass:[PHAssetCollection class]]) {
+      self.title = [inGroup localizedTitle];
+      group = [[PHAsset fetchAssetsInAssetCollection:inGroup options:nil] retain];
+    }
     // make a button for the user to finish
     doneButton = [[UIBarButtonItem alloc] 
         initWithBarButtonSystemItem:UIBarButtonSystemItemDone 
@@ -97,19 +103,21 @@
     [self thumbnailSpacing], 
     self.tableView.contentInset.left);
   // see what type of album we're showing
-  NSNumber *typeNum = [group valueForProperty:ALAssetsGroupPropertyType];
-  if (typeNum) {
-    NSInteger type = [typeNum integerValue];
-    // if it's the camera roll, scroll to the bottom so that the newest
-    //  content is the most easily accessible
-    if (type & ALAssetsGroupSavedPhotos) {
-      NSUInteger rows = 
-        [self tableView:self.tableView numberOfRowsInSection:0];
-      if (rows > 0) {
-        [self.tableView 
-          scrollToRowAtIndexPath:
-            [NSIndexPath indexPathForRow:(rows - 1) inSection:0]
-          atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+  if ([group isKindOfClass:[ALAssetsGroup class]]) {
+    NSNumber *typeNum = [group valueForProperty:ALAssetsGroupPropertyType];
+    if (typeNum) {
+      NSInteger type = [typeNum integerValue];
+      // if it's the camera roll, scroll to the bottom so that the newest
+      //  content is the most easily accessible
+      if (type & ALAssetsGroupSavedPhotos) {
+        NSUInteger rows = 
+          [self tableView:self.tableView numberOfRowsInSection:0];
+        if (rows > 0) {
+          [self.tableView 
+            scrollToRowAtIndexPath:
+              [NSIndexPath indexPathForRow:(rows - 1) inSection:0]
+            atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+        }
       }
     }
   }
@@ -133,6 +141,16 @@
     animated:YES];
 }
 
+- (NSUInteger)numberOfAssets {
+  if ([group isKindOfClass:[ALAssetsGroup class]]) {
+    return([group numberOfAssets]);
+  }
+  else if ([group isKindOfClass:[PHFetchResult class]]) {
+    return([group count]);
+  }
+  return(0);
+}
+
 // UITableViewDataSource ******************************************************
 #pragma mark - UITableViewDataSource
 
@@ -143,7 +161,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   // group the thumbnails into rows
-  return((NSInteger)ceil((double)[group numberOfAssets] / 
+  return((NSInteger)ceil((double)[self numberOfAssets] / 
                          (double)[self thumbnailsPerRow]));
 }
 
@@ -152,7 +170,7 @@
   // get the index of the first and last thumbnail on this row
   NSUInteger columns = [self thumbnailsPerRow];
   NSUInteger firstIndex = indexPath.row * columns;
-  NSUInteger lastIndex = MIN(firstIndex + columns, [group numberOfAssets]) - 1;
+  NSUInteger lastIndex = MIN(firstIndex + columns, [self numberOfAssets]) - 1;
   // set up a reusable cell to represent this row
   static NSString *AlbumRowCellIdentifier = @"AlbumRowCell";
   AlbumRowCell *cell = (AlbumRowCell *)[self.tableView 
@@ -190,13 +208,25 @@
     // get a list of selected assets
     NSMutableArray *selectedAssets = 
       [[NSMutableArray alloc] initWithCapacity:selectedIndices.count];
-    [group enumerateAssetsUsingBlock:
-      ^(ALAsset *asset, NSUInteger index, BOOL *stop) {
-        if ([selectedIndices containsObject:
-            [NSNumber numberWithInteger:index]]) {
-          [selectedAssets addObject:asset];
-        }
-      }];
+    // iterate based on the library we're using
+    if ([group isKindOfClass:[ALAssetsGroup class]]) {
+      [group enumerateAssetsUsingBlock:
+        ^(ALAsset *asset, NSUInteger index, BOOL *stop) {
+          if ([selectedIndices containsObject:
+              [NSNumber numberWithInteger:index]]) {
+            [selectedAssets addObject:asset];
+          }
+        }];
+    }
+    else if ([group isKindOfClass:[PHFetchResult class]]) {
+      [group enumerateObjectsUsingBlock:
+        ^(PHAsset *asset, NSUInteger index, BOOL *stop) {
+          if ([selectedIndices containsObject:
+              [NSNumber numberWithInteger:index]]) {
+            [selectedAssets addObject:asset];
+          }
+        }];
+    }
     // tell the parent that assets were selected
     [(AssetPickerController *)self.navigationController 
       didSelectAssets:selectedAssets];

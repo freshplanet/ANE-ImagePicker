@@ -25,7 +25,7 @@
 //  (the usual way of testing this is extremely ugly and cumbersome)
 + (BOOL)hasLargeScreen;
 
-// return whether the device prefers a flat interface as introduced in iOS 7.0
-+ (BOOL)hasFlatInterface;
+// return whether the device supports the Photos framework
++ (BOOL)hasPhotosFramework;
 
 @end

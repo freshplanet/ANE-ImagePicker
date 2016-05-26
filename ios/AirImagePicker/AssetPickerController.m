@@ -55,6 +55,7 @@
   if (progressVC) {
     [progressVC release], progressVC = nil;
   }
+  [super dealloc];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

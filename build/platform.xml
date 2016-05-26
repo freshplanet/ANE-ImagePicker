@@ -1,6 +1,7 @@
 <platform xmlns="http://ns.adobe.com/air/extension/19.0">
-    <sdkVersion>6.0</sdkVersion>
+    <sdkVersion>8.0</sdkVersion>
     <linkerOptions>
     	<option>-framework AssetsLibrary</option>
-    </linkerOptions> 
+    	<option>-framework Photos</option>
+    </linkerOptions>
 </platform>

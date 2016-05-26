@@ -129,13 +129,20 @@ static AirImagePicker *sharedInstance = nil;
       UIDocumentMenuViewController *docPicker = [[[UIDocumentMenuViewController alloc] 
         initWithDocumentTypes:types inMode:UIDocumentPickerModeImport] 
           autorelease];
-      // add the option to use the photos app like a document provider
+      // add the option to use a photo picker like a document provider
       [docPicker addOptionWithTitle:@"Photos" image:nil order:UIDocumentMenuOrderFirst handler:^{
-          UIImagePickerController *imagePicker = [[[UIImagePickerController alloc] init] autorelease];
-          if (allowVideo) imagePicker.mediaTypes = videoTypes;
-          imagePicker.delegate = self;
-          self.picker = imagePicker;
-          [rootViewController presentModalViewController:self.picker animated:YES];
+          #if FORCE_NATIVE_PICKER
+            UIImagePickerController *imagePicker = [[[UIImagePickerController alloc] init] autorelease];
+            if (allowVideo) imagePicker.mediaTypes = videoTypes;
+            imagePicker.delegate = self;
+            self.picker = imagePicker;
+            [rootViewController presentModalViewController:self.picker animated:YES];
+          #else
+            self.picker = [[[AssetPickerController alloc] init] autorelease];
+            AssetPickerController *assetPicker = (AssetPickerController *)self.picker;
+            assetPicker.delegate = self;
+            [rootViewController presentModalViewController:self.picker animated:YES];
+          #endif
         }];
       // respond to selected documents
       docPicker.delegate = self;

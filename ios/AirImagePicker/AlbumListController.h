@@ -18,6 +18,12 @@
 
 #import <Foundation/Foundation.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import <Photos/PHPhotoLibrary.h>
+#import <Photos/PHFetchOptions.h>
+#import <Photos/PHFetchResult.h>
+#import <Photos/PHCollection.h>
+#import <Photos/PHAsset.h>
+#import <Photos/PHImageManager.h>
 
 #import "PrefabTableViewController.h"
 
@@ -27,7 +33,8 @@
   NSMutableArray *albumCells;
   // a reference to the asset library being accessed
   ALAssetsLibrary *library;
-  // a list of asset groups, one for each album
+  // a list of asset groups, one for each album, which will contain 
+  //  pointers to instances of either ALAssetGroup or PHAssetCollection 
   NSMutableArray *groups;
   
 }

@@ -25,18 +25,8 @@
     [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad);
 }
 
-+ (BOOL)hasFlatInterface {
-  static BOOL cached;
-  static BOOL value;
-  if (! cached) {
-    cached = YES;
-    if ([UIDevice.currentDevice.systemVersion
-      compare:@"7.0" options:NSNumericSearch] != NSOrderedAscending)
-        value = YES;
-    else
-      value = NO;
-  }
-  return(value);
++ (BOOL)hasPhotosFramework {
+  return([[UIDevice currentDevice].systemVersion intValue] >= 8);
 }
 
 @end

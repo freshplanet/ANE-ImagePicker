@@ -19,15 +19,20 @@
 #import <Foundation/Foundation.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 
+#import <Photos/PHFetchResult.h>
+#import <Photos/PHCollection.h>
+#import <Photos/PHAsset.h>
+#import <Photos/PHImageManager.h>
+
 @interface AlbumController : UITableViewController {
 
-  ALAssetsGroup *group;
+  id group;
   NSMutableSet *selectedIndices;
   
   UIBarButtonItem *doneButton;
   
 }
 
-- (id)initWithGroup:(ALAssetsGroup *)inGroup;
+- (id)initWithGroup:(id)inGroup;
 
 @end

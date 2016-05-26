@@ -27,7 +27,7 @@ extern NSString *AlbumRowSelectionDidChangeNotification;
 @interface AlbumRowCell : FastCell {
   
   // the asset group to display thumbnails from
-  ALAssetsGroup *group;
+  id group;
   // the indices of the thumbnails to display
   NSIndexSet *indices;
   // a set that stores the indices of all selected assets
@@ -39,7 +39,7 @@ extern NSString *AlbumRowSelectionDidChangeNotification;
   
 }
 
-@property(nonatomic,retain) ALAssetsGroup *group;
+@property(nonatomic,retain) id group;
 @property(nonatomic,retain) NSIndexSet *indices;
 @property(nonatomic,retain) NSMutableSet *selectedIndices;
 @property(nonatomic) CGFloat thumbnailWidth;
