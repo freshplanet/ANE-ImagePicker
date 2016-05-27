@@ -31,6 +31,8 @@
   
   UIBarButtonItem *doneButton;
   
+  PHImageManager *imageManager;
+  
 }
 
 - (id)initWithGroup:(id)inGroup;

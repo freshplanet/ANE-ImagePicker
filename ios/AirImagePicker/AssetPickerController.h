@@ -18,6 +18,10 @@
 
 #import <UIKit/UIKit.h>
 
+#import <Photos/PHAssetResource.h>
+#import <Photos/PHAssetResourceManager.h>
+#import <Photos/PHImageManager.h>
+
 #import "ProgressController.h"
 
 @protocol AssetPickerControllerDelegate <NSObject>
@@ -33,6 +37,12 @@
   NSUInteger totalBytes;
   // the number of asset bytes copied so far
   NSUInteger processedBytes;
+  // progress indicators keyed by object for async progress
+  NSMutableDictionary *progressDict;
+  NSUInteger assetsTotal;
+  NSUInteger assetsCompleted;
+  // internal storage for progress
+  float _progress;
 }
 
 // the progress on the current asset being processed

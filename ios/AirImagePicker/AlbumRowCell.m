@@ -24,7 +24,6 @@
 #import <Photos/PHFetchResult.h>
 #import <Photos/PHCollection.h>
 #import <Photos/PHAsset.h>
-#import <Photos/PHImageManager.h>
 
 NSString *AlbumRowSelectionDidChangeNotification =  
   @"AlbumRowSelectionDidChangeNotification";
@@ -39,7 +38,7 @@ NSString *AlbumRowSelectionDidChangeNotification =
 
 @implementation AlbumRowCell
 
-@synthesize group, indices, selectedIndices;
+@synthesize group, indices, selectedIndices, imageManager;
 @synthesize thumbnailWidth, thumbnailSpacing;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
@@ -55,6 +54,8 @@ NSString *AlbumRowSelectionDidChangeNotification =
 - (void)dealloc {
   [group release], group = nil;
   [indices release], indices = nil;
+  [imageManager release], imageManager = nil;
+  [thumbnailImages release], thumbnailImages = nil;
   [super dealloc];
 }
 
@@ -192,16 +193,35 @@ NSString *AlbumRowSelectionDidChangeNotification =
       }];
   }
   else if ([group isKindOfClass:[PHFetchResult class]]) {
+    // make sure we have a dictionary to store thumbnails as we get them
+    if (thumbnailImages == nil) 
+      thumbnailImages = [[NSMutableDictionary alloc] init];
+    // fetch and draw thumbnails
     [group enumerateObjectsAtIndexes:indices options:0 usingBlock:
       ^(PHAsset *asset, NSUInteger index, BOOL *stop) {
-        PHImageRequestOptions *options = [[[PHImageRequestOptions alloc] init] autorelease];
-        options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
-        CGFloat thumbSize = thumbnailWidth * [UIScreen mainScreen].scale;
-        [[PHImageManager defaultManager] requestImageForAsset:asset 
-          targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
-          options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
-            [self drawThumbnailWithImage:thumb.CGImage index:index duration:0];
-          }];
+        // once the image has loaded, we can draw it
+        UIImage *thumb = [thumbnailImages objectForKey:[NSNumber numberWithInteger:index]];
+        // if the image is already loaded, draw it
+        if (thumb) {
+          [self drawThumbnailWithImage:thumb.CGImage index:index 
+              duration:[asset duration]];
+        }
+        // otherwise it needs to be requested from the image manager
+        else {
+          PHImageRequestOptions *options = [[[PHImageRequestOptions alloc] init] autorelease];
+          options.networkAccessAllowed = YES;
+          options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+          CGFloat thumbSize = thumbnailWidth * [UIScreen mainScreen].scale;
+          if (imageManager == nil) imageManager = [PHImageManager defaultManager];
+          [imageManager requestImageForAsset:asset 
+            targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
+            options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
+              // store the image
+              [thumbnailImages setObject:thumb forKey:[NSNumber numberWithInteger:index]];
+              // force a refresh to use the newly stored image
+              [contentView setNeedsDisplay];
+            }];
+        }
       }];
   }
 }

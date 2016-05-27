@@ -18,6 +18,7 @@
 
 #import <UIKit/UIKit.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import <Photos/PHImageManager.h>
 
 #import "FastCell.h"
 
@@ -36,12 +37,16 @@ extern NSString *AlbumRowSelectionDidChangeNotification;
   CGFloat thumbnailWidth;
   // the space to leave between thumbnails
   CGFloat thumbnailSpacing;
-  
+  // a caching image manager for the Photos framework
+  PHImageManager *imageManager;
+  // stored thumbnails to render
+  NSMutableDictionary *thumbnailImages;
 }
 
 @property(nonatomic,retain) id group;
 @property(nonatomic,retain) NSIndexSet *indices;
 @property(nonatomic,retain) NSMutableSet *selectedIndices;
+@property(nonatomic,retain) PHImageManager *imageManager;
 @property(nonatomic) CGFloat thumbnailWidth;
 @property(nonatomic) CGFloat thumbnailSpacing;
 

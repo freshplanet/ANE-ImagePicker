@@ -56,6 +56,7 @@
     else if ([inGroup isKindOfClass:[PHAssetCollection class]]) {
       self.title = [inGroup localizedTitle];
       group = [[PHAsset fetchAssetsInAssetCollection:inGroup options:nil] retain];
+      imageManager = [[PHCachingImageManager alloc] init];
     }
     // make a button for the user to finish
     doneButton = [[UIBarButtonItem alloc] 
@@ -69,6 +70,7 @@
   [group release], group = nil;
   [selectedIndices release], selectedIndices = nil;
   [doneButton release], doneButton = nil;
+  [imageManager release], imageManager = nil;
   [super dealloc];
 }
 
@@ -180,11 +182,14 @@
       initWithStyle:UITableViewCellStyleDefault
       reuseIdentifier:AlbumRowCellIdentifier]
         autorelease];
+    // use a caching image manager
+    cell.imageManager = imageManager;
     // the row itself can't be selected, even if its thumbnails are
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     // set up the cell's layout
     cell.thumbnailWidth = [self thumbnailWidth];
     cell.thumbnailSpacing = [self thumbnailSpacing];
+    
   }
   // link the cell to the central store of which assets are selected
   cell.selectedIndices = selectedIndices;

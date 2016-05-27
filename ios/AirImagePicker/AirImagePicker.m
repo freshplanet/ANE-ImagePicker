@@ -234,9 +234,9 @@ static AirImagePicker *sharedInstance = nil;
 - (void)assetPickerControllerDidFinish:(AssetPickerController *)picker
 { 
   NSLog(@"Entering assetPickerControllerDidFinish:");
-  [self dismissPicker];
   FREDispatchStatusEventAsync(AirIPCtx, 
     (const uint8_t *)"DID_FINISH", (const uint8_t *)"OK");
+  [self dismissPicker];
   NSLog(@"Exiting assetPickerControllerDidFinish:");
 }
 
@@ -407,7 +407,7 @@ static AirImagePicker *sharedInstance = nil;
   }
   else {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    [rootViewController dismissModalViewControllerAnimated:YES];
+    [rootViewController dismissViewControllerAnimated:YES completion:nil];
   }
   self.popover = nil;
   self.picker = nil;

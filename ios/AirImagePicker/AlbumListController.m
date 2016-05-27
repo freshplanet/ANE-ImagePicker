@@ -130,6 +130,11 @@
   }
 }
 - (void)addAlbumForCollection:(PHAssetCollection *)coll {
+  // load assets for the collection
+  PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:coll options:nil];
+  PHAsset *first = (PHAsset *)[result firstObject];
+  // skip any collections with no assets
+  if (first == nil) return;
   // add the group to the groups list
   if (! groups) groups = [[NSMutableArray alloc] init];
   [groups addObject:coll];
@@ -145,21 +150,18 @@
   }
   albumCell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
   // load a thumbnail using the first asset in the collection
-  PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:coll options:nil];
-  PHAsset *first = (PHAsset *)[result firstObject];
-  if (first != nil) {
-    PHImageRequestOptions *options = [[[PHImageRequestOptions alloc] init] autorelease];
-    options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
-    // retain the cell so it stays in memory until the async call completes
-    [albumCell retain];
-    CGFloat thumbSize = 55.0 * [UIScreen mainScreen].scale;
-    [[PHImageManager defaultManager] requestImageForAsset:first 
-      targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
-      options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
-        albumCell.imageView.image = thumb;
-        [albumCell release];
-      }];
-  }
+  PHImageRequestOptions *options = [[[PHImageRequestOptions alloc] init] autorelease];
+  options.networkAccessAllowed = YES;
+  options.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+  // retain the cell so it stays in memory until the async call completes
+  [albumCell retain];
+  CGFloat thumbSize = 55.0 * [UIScreen mainScreen].scale;
+  [[PHImageManager defaultManager] requestImageForAsset:first 
+    targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
+    options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
+      albumCell.imageView.image = thumb;
+      [albumCell release];
+    }];
   // add it to the cell list
   [albumCells addObject:albumCell];
 }
