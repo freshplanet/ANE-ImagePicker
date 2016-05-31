@@ -18,15 +18,6 @@
 
 #import <UIKit/UIKit.h>
 
-// a protocol for cells that have dynamic height, implement
-//  it to give a cell in this table self-determined height
-@protocol DynamicHeightCell
-
-@property(nonatomic,readonly) BOOL needsReload;
-@property(nonatomic,readonly) CGFloat rowHeight;
-
-@end
-
 // This class implements a table view controller where all the 
 //  cells are pre-loaded. It is designed for convenience, not
 //  performance, so it should only be used to create small tables.
@@ -36,6 +27,8 @@
   NSMutableArray *sections;
   // an array of section titles
   NSMutableArray *sectionTitles;
+  // whether a reload is required
+  bool needsReload;
 
 }
 
@@ -44,6 +37,7 @@
 // allow the subclass to easily respond to row selection
 - (void)didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 // reload any dynamic cells that might not be sized properly
-- (void)reloadDynamicCellsIfNeeded;
+- (void)reloadIfNeeded;
+- (void)setNeedsReload;
 
 @end

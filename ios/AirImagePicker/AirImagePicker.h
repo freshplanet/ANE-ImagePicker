@@ -36,10 +36,16 @@
     UIPopoverControllerDelegate,
     UIDocumentMenuDelegate,
     UIDocumentPickerDelegate
-  >
+  > {
+ 
+  UIImagePickerControllerSourceType sourceType;
+  CGRect anchor;
+  
+}
 
 @property (nonatomic, retain) UIViewController *picker;
 @property (nonatomic, retain) UIPopoverController *popover;
+@property (nonatomic, retain) UIPopoverPresentationController *popoverPresentation;
 
 + (id)sharedInstance;
 
@@ -53,6 +59,7 @@
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
 
 - (void) returnMediaURL:(NSURL*)mediaURL;
+- (void) presentPicker;
 - (void) dismissPicker;
 
 - (void)documentMenu:(UIDocumentMenuViewController *)documentMenu

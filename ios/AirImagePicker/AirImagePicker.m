@@ -41,6 +41,7 @@ FREContext AirIPCtx = nil;
 
 @synthesize picker = _picker;
 @synthesize popover = _popover;
+@synthesize popoverPresentation = _popoverPresentation;
 
 static AirImagePicker *sharedInstance = nil;
 
@@ -67,6 +68,7 @@ static AirImagePicker *sharedInstance = nil;
 {
     [_picker release];
     [_popover release];
+    [_popoverPresentation release];
     [_overlay release];
     [super dealloc];
 }
@@ -77,17 +79,17 @@ static AirImagePicker *sharedInstance = nil;
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"LOGGING", (const uint8_t *)[message UTF8String]);
 }
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)inSourceType 
           allowVideo:(BOOL)allowVideo allowDocument:(BOOL)allowDocument 
           allowMultiple:(BOOL)allowMultiple crop:(BOOL)crop  
-          anchor:(CGRect)anchor
-{
-    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    
+          anchor:(CGRect)inAnchor
+{   
     // determine what kind of picker to use
     BOOL singleCroppedImage = (! allowVideo) && (! allowDocument) && (! allowMultiple) && (crop);
     BOOL useCamera = (sourceType == UIImagePickerControllerSourceTypeCamera);
-    
+    sourceType = inSourceType;    
+    anchor = inAnchor;
+
     // use the native picker if required by a compile directive, 
     //  if we need the camera, or if we're selecting a single image 
     //  with cropping
@@ -98,11 +100,11 @@ static AirImagePicker *sharedInstance = nil;
       nativePicker.allowsEditing = crop;
       nativePicker.delegate = self;
       if (allowVideo == true) {
-          // there are memory leaks that are not occuring if we use CoreFoundation C code
-          CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
-          CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
-          nativePicker.mediaTypes = (NSArray*) mTypesArray;
-          CFRelease(mTypesArray);
+        // there are memory leaks that are not occuring if we use CoreFoundation C code
+        CFStringRef mTypes[2] = { kUTTypeImage, kUTTypeMovie };
+        CFArrayRef mTypesArray = CFArrayCreate(CFAllocatorGetDefault(), (const void **)mTypes, 2, &kCFTypeArrayCallBacks);
+        nativePicker.mediaTypes = (NSArray*) mTypesArray;
+        CFRelease(mTypesArray);
       }
     }
     // on iOS 8+, iCloud does not work correctly with the ALAsset framework,
@@ -136,13 +138,12 @@ static AirImagePicker *sharedInstance = nil;
             if (allowVideo) imagePicker.mediaTypes = videoTypes;
             imagePicker.delegate = self;
             self.picker = imagePicker;
-            [rootViewController presentModalViewController:self.picker animated:YES];
           #else
             self.picker = [[[AssetPickerController alloc] init] autorelease];
             AssetPickerController *assetPicker = (AssetPickerController *)self.picker;
             assetPicker.delegate = self;
-            [rootViewController presentModalViewController:self.picker animated:YES];
           #endif
+          [self presentPicker];
         }];
       // respond to selected documents
       docPicker.delegate = self;
@@ -156,21 +157,8 @@ static AirImagePicker *sharedInstance = nil;
         assetPicker.delegate = self;
       #endif
     }
-    
-    // Image picker should always be presented fullscreen on iPhone and iPod Touch.
-    // It should be presented fullscreen on iPad only if it's the camera. Otherwise, we use a popover.
-    if ((sourceType == UIImagePickerControllerSourceTypeCamera) || 
-        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone))
-    {
-        [rootViewController presentModalViewController:self.picker animated:YES];
-    }
-    else
-    {
-        self.popover = [[[UIPopoverController alloc] initWithContentViewController:self.picker] autorelease];
-        self.popover.delegate = self;
-        [self.popover presentPopoverFromRect:anchor inView:rootViewController.view
-                    permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
-    }
+    // present the picker
+    [self presentPicker];
 }
 
 - (void)displayOverlay:(UIImage *)overlay
@@ -401,15 +389,43 @@ static AirImagePicker *sharedInstance = nil;
     NSLog(@"Exiting onVideoPickedWithVideoPath");
 }
 
-- (void)dismissPicker {
+- (void) presentPicker {
+  UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+  // present full-screen on phones or when using the camera, 
+  //  otherwise use a popover on iPad
+  if ((UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone) && 
+      (sourceType != UIImagePickerControllerSourceTypeCamera)) {
+    if ([[UIDevice currentDevice].systemVersion intValue] >= 8) {
+      self.picker.modalPresentationStyle = UIModalPresentationPopover;
+      [rootViewController presentViewController:self.picker animated:YES completion:nil];
+      self.popoverPresentation =
+         [self.picker popoverPresentationController];
+      self.popoverPresentation.permittedArrowDirections = UIPopoverArrowDirectionAny;
+      self.popoverPresentation.sourceView = rootViewController.view;
+      self.popoverPresentation.sourceRect = anchor;
+    }
+    else {
+      self.popover = [[[UIPopoverController alloc] initWithContentViewController:self.picker] autorelease];
+      self.popover.delegate = self;
+      [self.popover presentPopoverFromRect:anchor inView:rootViewController.view
+                  permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    }
+  }
+  else {
+    [rootViewController presentModalViewController:self.picker animated:YES];
+  }
+}
+
+- (void) dismissPicker {
   if (self.popover) {
-      [self.popover dismissPopoverAnimated:YES];
+    [self.popover dismissPopoverAnimated:YES];
   }
   else {
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     [rootViewController dismissViewControllerAnimated:YES completion:nil];
   }
   self.popover = nil;
+  self.popoverPresentation = nil;
   self.picker = nil;
 }
 

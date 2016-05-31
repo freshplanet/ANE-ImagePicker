@@ -159,8 +159,14 @@
   [[PHImageManager defaultManager] requestImageForAsset:first 
     targetSize:CGSizeMake(thumbSize, thumbSize) contentMode:PHImageContentModeAspectFill
     options:options resultHandler:^(UIImage *thumb, NSDictionary *info) {
+      // update the image
       albumCell.imageView.image = thumb;
       [albumCell release];
+      // refresh the cell to show the loaded image, deferring the actual
+      //  reload to aggregate multiple loads in the same period
+      [self setNeedsReload];
+      [self performSelector:@selector(reloadIfNeeded)
+        withObject:nil afterDelay:0.1];
     }];
   // add it to the cell list
   [albumCells addObject:albumCell];

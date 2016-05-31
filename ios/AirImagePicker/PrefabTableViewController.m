@@ -29,6 +29,7 @@
 }
 - (id)initWithStyle:(UITableViewStyle)style {
   if ((self = [super initWithStyle:style])) {
+    needsReload = NO;
     // set up the cell storage
     sections = [[NSMutableArray alloc] init];
     sectionTitles = [[NSMutableArray alloc] init];
@@ -98,54 +99,20 @@
 // this should be subclassed if the table is active
 - (void)didSelectRowAtIndexPath:(NSIndexPath *)indexPath { }
 
-// DYNAMIC ROW HEIGHT *********************************************************
-#pragma mark -
-#pragma mark Dynamic Row Height
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-  // return cell heights
-  UITableViewCell *cell = [self tableView:tableView cellForRowAtIndexPath:indexPath];
-  // if the cell defines a custom height, use it
-  if ([cell conformsToProtocol:@protocol(DynamicHeightCell)]) {
-    UITableViewCell<DynamicHeightCell> *dCell = 
-      (UITableViewCell<DynamicHeightCell> *)cell;
-    return([dCell rowHeight]);
-  }
-  // otherwise fall back on the default row height
-  else {
-    return(tableView.rowHeight);
-  }
-}
-
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
-  [self reloadDynamicCellsIfNeeded];
+  [self performSelector:@selector(reloadIfNeeded)
+      withObject:nil afterDelay:0.1];
 }
 
-// check that dynamic cells are properly sized
-- (void)reloadDynamicCellsIfNeeded {
-  // assume we will not need to reload
-  BOOL needsReload = NO;
-  // check all cells
-  for (NSArray *section in sections) {
-    for (UITableViewCell *cell in section) {
-      // look for dynamic cells
-      if ([cell conformsToProtocol:@protocol(DynamicHeightCell)]) {
-        UITableViewCell<DynamicHeightCell> *dCell = 
-          (UITableViewCell<DynamicHeightCell> *)cell;
-        // if any cells need to be reloaded, reload everything
-        if ([dCell needsReload]) {
-          needsReload = YES;
-          break;
-        }
-      }
-    }
-  }
-  // reload if needed (with a small delay because otherwise 
-  //  UITableView sometimes won't do it)
+- (void)setNeedsReload {
+  needsReload = YES;
+}
+
+- (void)reloadIfNeeded {
   if (needsReload) {
-    [self.tableView performSelector:@selector(reloadData)
-      withObject:nil afterDelay:0.1];
+    [self.tableView reloadData];
+    needsReload = NO;
   }
 }
 
