@@ -162,7 +162,6 @@
   ALAssetRepresentation *rep = [(ALAsset *)asset defaultRepresentation];
   // copy the asset data to the temp file in chunks
   long long offset = 0;
-  NSUInteger size = [rep size];
   NSUInteger bytesRead = 0;
   uint8_t buffer[16 * 1024]; // 16K data buffer
   NSError *error = nil;
@@ -192,7 +191,8 @@
   // return the URL to the client
   dispatch_async(dispatch_get_main_queue(), ^{
     if ([self.delegate respondsToSelector:@selector(assetPickerController:didPickMediaWithURL:)]) {
-      [self.delegate assetPickerController:self didPickMediaWithURL:toURL];
+      [(NSObject<AssetPickerControllerDelegate> *)self.delegate 
+        assetPickerController:self didPickMediaWithURL:toURL];
     }
   });
 }
@@ -230,7 +230,8 @@
             dispatch_async(dispatch_get_main_queue(), ^{
               if (error) NSLog(@"AirImagePicker:  Resource request failed: %@", error); 
               else if ([self.delegate respondsToSelector:@selector(assetPickerController:didPickMediaWithURL:)]) {
-                [self.delegate assetPickerController:self didPickMediaWithURL:toURL];
+                [(NSObject<AssetPickerControllerDelegate> *)self.delegate 
+                  assetPickerController:self didPickMediaWithURL:toURL];
               }
               assetsCompleted++;
               if (assetsCompleted >= assetsTotal) {
@@ -243,8 +244,8 @@
       return;
     }
     // if we get here, there are no supported resource types
-    NSLog(@"AirImagePicker:  The expected resource type %i was not found for media type %i.", 
-      expectedType, asset.mediaType);
+    NSLog(@"AirImagePicker:  The expected resource type %li was not found for media type %li.", 
+      (long)expectedType, (long)asset.mediaType);
     assetsCompleted++;
   }
   // use the imagemanager to source data in iOS 8
@@ -285,7 +286,6 @@
   long long offset = 0;
   NSUInteger size = [data length];
   uint8_t buffer[16 * 1024]; // 16K data buffer
-  NSError *error = nil;
   NSFileHandle *fileHandle = [self fileHandleForUrl:toURL];
   if (fileHandle == nil) return;
     int fd = [fileHandle fileDescriptor];
@@ -312,7 +312,8 @@
     // notify the delegate
     dispatch_async(dispatch_get_main_queue(), ^{
       if ([self.delegate respondsToSelector:@selector(assetPickerController:didPickMediaWithURL:)]) {
-        [self.delegate assetPickerController:self didPickMediaWithURL:toURL];
+        [(NSObject<AssetPickerControllerDelegate> *)self.delegate 
+          assetPickerController:self didPickMediaWithURL:toURL];
       }
     });
 }
@@ -320,7 +321,8 @@
 - (void)assetProcessingDidFinish {
   dispatch_async(dispatch_get_main_queue(), ^{
     if ([self.delegate respondsToSelector:@selector(assetPickerControllerDidFinish:)]) {
-      [self.delegate assetPickerControllerDidFinish:self];
+      [(NSObject<AssetPickerControllerDelegate> *)self.delegate 
+        assetPickerControllerDidFinish:self];
     }
   });
 }
