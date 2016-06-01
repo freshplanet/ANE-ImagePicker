@@ -25,6 +25,12 @@
         </exec>
 
         <copy file="../temp/ios/build/Release-iphoneos/lib${name}.a" todir="../temp/ios" overwrite="true"/>
+        
+        <copy todir="../temp/ios">
+            <fileset dir="../ios/images" casesensitive="yes">
+              <include name="**/*.png"/>
+          </fileset>
+        </copy>
 
         <delete dir="../temp/ios/build/"/>
     </target>
@@ -57,7 +63,7 @@
         <delete dir="../android/temp"/>
         <mkdir dir="../android/temp/classes"/>
 
-        <javac source="1.6" srcdir="../android/src" destdir="../android/temp/classes" includeantruntime="false">
+        <javac source="1.7" target="1.7" srcdir="../android/src" destdir="../android/temp/classes" includeantruntime="false">
             <classpath>
                 <pathelement location="${android.sdk}/android.jar"/>
                 <pathelement location="${flex.sdk}/lib/android/FlashRuntimeExtensions.jar"/>
@@ -66,7 +72,7 @@
 
         <mkdir dir="../temp/android/"/>
         <jar basedir="../android/temp/classes" destfile="../temp/android/lib${name}.jar"/>
-        <copy todir="../temp/android/res/">
+        <copy todir="../temp/android/res/" failonerror="false">
             <fileset dir="../android/res"/>
         </copy>
         <delete dir="../android/temp"/>
@@ -110,7 +116,7 @@
             <arg value="../build/extension.xml"/>
             <arg line="-swc swc/${name}.swc"/>
             <arg line="-platform iPhone-ARM -platformoptions ../build/platform.xml -C ios/ ."/>
-            <arg line="-platform iPhone-x86 -C ios-simulator/ ."/>
+            <arg line="-platform iPhone-x86 -platformoptions ../build/platform.xml -C ios-simulator/ ."/>
             <arg line="-platform Android-ARM -C android/ ."/>
             <arg line="-platform default -C default/ ."/>
         </exec>

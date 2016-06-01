@@ -2,6 +2,8 @@
 //
 //  Copyright 2012 Freshplanet (http://freshplanet.com | opensource@freshplanet.com)
 //
+//  Copyright 2016 VoiceThread (https://voicethread.com/)
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
@@ -18,23 +20,55 @@
 
 #import "FlashRuntimeExtensions.h"
 
-@interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
+// whether to always use the native pickers (no multiselect support)
+#define FORCE_NATIVE_PICKER NO
 
-@property (nonatomic, retain) UIImagePickerController *imagePicker;
+#if ! FORCE_NATIVE_PICKER
+  #import "AssetPickerController.h"
+#endif
+
+@interface AirImagePicker : NSObject <
+  #if ! FORCE_NATIVE_PICKER
+    AssetPickerControllerDelegate,
+  #endif
+    UINavigationControllerDelegate, 
+    UIImagePickerControllerDelegate, 
+    UIPopoverControllerDelegate,
+    UIDocumentMenuDelegate,
+    UIDocumentPickerDelegate
+  > {
+ 
+  UIImagePickerControllerSourceType sourceType;
+  CGRect anchor;
+  
+}
+
+@property (nonatomic, retain) UIViewController *picker;
 @property (nonatomic, retain) UIPopoverController *popover;
-@property (nonatomic, readonly) UIImage *pickedImage;
-@property (nonatomic, readonly) NSData *pickedImageJPEGData;
-@property (nonatomic, strong) NSString *customImageAlbumName;
-@property (nonatomic, strong) NSString *videoPath;
+@property (nonatomic, retain) UIPopoverPresentationController *popoverPresentation;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
+- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType 
+          allowVideo:(BOOL)allowVideo allowDocument:(BOOL)allowDocument allowMultiple:(BOOL)allowMultiple 
+          crop:(BOOL)crop anchor:(CGRect)anchor;
 
 - (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
 - (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
+
+- (void) returnMediaURL:(NSURL*)mediaURL;
+- (void) presentPicker;
+- (void) dismissPicker;
+
+- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu
+          didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker;
+- (void)documentMenuWasCancelled:(UIDocumentMenuViewController *)documentMenu;
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller
+  didPickDocumentAtURL:(NSURL *)url;
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller;
 
 - (void)displayOverlay:(UIImage *)overlay;
 - (void)removeOverlay;
@@ -47,12 +81,6 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable);
 DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
-DEFINE_ANE_FUNCTION(getPickedImageWidth);
-DEFINE_ANE_FUNCTION(getPickedImageHeight);
-DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
-DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
-DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
-DEFINE_ANE_FUNCTION(getVideoPath);
 DEFINE_ANE_FUNCTION(displayOverlay);
 DEFINE_ANE_FUNCTION(removeOverlay);
 
