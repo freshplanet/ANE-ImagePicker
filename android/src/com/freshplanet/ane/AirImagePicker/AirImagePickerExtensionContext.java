@@ -45,15 +45,14 @@ import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsCropAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
 import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
+import com.freshplanet.ane.AirImagePicker.functions.RecentPhotosFetcher;
 
 public class AirImagePickerExtensionContext extends FREContext 
 {
-	
-
-	
 	private String selectedImagePath;
 	private String selectedVideoPath;
 	private Bitmap _pickedImage;
+	private RecentPhotosFetcher recentPhotosFetcher;
 	
 	@Override
 	public void dispose() 
@@ -75,7 +74,10 @@ public class AirImagePickerExtensionContext extends FREContext
 	public Map<String, FREFunction> getFunctions() 
 	{
 		Map<String, FREFunction> functions = new HashMap<String, FREFunction>();
-
+//
+		if(recentPhotosFetcher == null) {
+			recentPhotosFetcher = new RecentPhotosFetcher(this.getActivity().getContentResolver());
+		}
 		functions.put("isImagePickerAvailable", new IsImagePickerAvailableFunction());
 		functions.put("displayImagePicker", new DisplayImagePickerFunction());
 		functions.put("isCameraAvailable", new IsCameraAvailableFunction());
@@ -89,6 +91,10 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("removeOverlay", new RemoveOverlayFunction()); // not implemented
 		functions.put("cleanUpTemporaryDirectoryContent", new CleanUpTemporaryDirectoryContent());
 		functions.put("isCropAvailable", new IsCropAvailableFunction());
+		functions.put("getRecentImageIds", this.recentPhotosFetcher.getRecentImageIds);
+		functions.put("fetchImages", this.recentPhotosFetcher.fetchImages);
+		functions.put("retrieveFetchedImage", this.recentPhotosFetcher.retrieveFetchedImage);
+		functions.put("cancelImageFetch", this.recentPhotosFetcher.cancelImageFetch);
 
 		return functions;	
 	}

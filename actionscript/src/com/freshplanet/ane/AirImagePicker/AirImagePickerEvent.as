@@ -24,6 +24,8 @@ package com.freshplanet.ane.AirImagePicker
     {
         //for getting recent images directly from Photos
         public static const ANE_ERROR:String = "ANE_ERROR";
+        public static const IMAGE_LIST_SUCCEEDED:String = "IMAGE_LIST_SUCCEEDED";
+        public static const IMAGE_LIST_ERROR:String = "IMAGE_LIST_ERROR";
         public static const IMAGE_LOAD_ERROR:String = "IMAGE_LOAD_ERROR";
         public static const IMAGE_LOAD_TEMP:String = "IMAGE_LOAD_TEMP"; // a temp. crappy placeholder until the fetch completes
         public static const IMAGE_LOAD_CANCELLED:String = "IMAGE_LOAD_CANCELLED";

@@ -271,9 +271,6 @@ package com.freshplanet.ane.AirImagePicker
 		//Returns ids of <num> most recent photos. You can pass these ids to fetchImages to get whatever size you need
 		public function getRecentImageIds(num:int):Array
 		{
-			if (Capabilities.manufacturer.indexOf("iOS") == -1) {
-				return [];
-			}
 			return _context.call("getRecentImageIds", num) as Array || [];
 		}
 
