@@ -70,12 +70,6 @@ package com.freshplanet.ane.AirImagePicker
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
 
-		//for getting recent images directly from Photos
-		public static const ANE_ERROR:String = "ANE_ERROR";
-		public static const IMAGE_LOAD_ERROR:String = "IMAGE_LOAD_ERROR";
-		public static const IMAGE_LOAD_TEMP:String = "IMAGE_LOAD_TEMP"; // a temp. crappy placeholder until the fetch completes
-		public static const IMAGE_LOAD_CANCELLED:String = "IMAGE_LOAD_CANCELLED";
-		public static const IMAGE_LOAD_SUCCEEDED:String = "IMAGE_LOAD_SUCCEEDED";
 
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean

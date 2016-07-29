@@ -22,6 +22,13 @@ package com.freshplanet.ane.AirImagePicker
 
     public class AirImagePickerEvent extends Event
     {
+        //for getting recent images directly from Photos
+        public static const ANE_ERROR:String = "ANE_ERROR";
+        public static const IMAGE_LOAD_ERROR:String = "IMAGE_LOAD_ERROR";
+        public static const IMAGE_LOAD_TEMP:String = "IMAGE_LOAD_TEMP"; // a temp. crappy placeholder until the fetch completes
+        public static const IMAGE_LOAD_CANCELLED:String = "IMAGE_LOAD_CANCELLED";
+        public static const IMAGE_LOAD_SUCCEEDED:String = "IMAGE_LOAD_SUCCEEDED";
+
         private var _data:Object;
         private var _requestId:int = -1;
         private var _error:String;
