@@ -33,6 +33,9 @@ FREContext AirIPCtx = nil;
 @interface AirImagePicker ()
 {
     UIView *_overlay;
+@private
+    NSMutableDictionary *_fetchedImages;
+    
 }
 
 
@@ -53,10 +56,24 @@ FREContext AirIPCtx = nil;
 @synthesize customImageAlbumName = _customImageAlbumName;
 @synthesize videoPath = _videoPath;
 
+static NSString * ANE_ERROR = @"ANE_ERROR";
+static NSString * IMAGE_LOAD_ERROR = @"IMAGE_LOAD_ERROR";
+static NSString * IMAGE_LOAD_TEMP = @"IMAGE_LOAD_TEMP";
+static NSString * IMAGE_LOAD_CANCELLED = @"IMAGE_LOAD_CANCELLED";
+static NSString * IMAGE_LOAD_SUCCEEDED = @"IMAGE_LOAD_SUCCEEDED";
+
 static AirImagePicker *sharedInstance = nil;
 static CGSize _maxDimensions;
 static BOOL _crop;
 
+- (id) init
+{
+    self = [super init];
+    if(self) {
+        _fetchedImages = [[NSMutableDictionary alloc] init];
+    }
+    return self;
+}
 
 + (AirImagePicker *)sharedInstance
 {
@@ -87,6 +104,25 @@ static BOOL _crop;
 + (void)status:(NSString*)code level:(NSString*)level
 {
     FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)[code UTF8String], (const uint8_t *)[level UTF8String]);
+}
+
+- (void)storeUIImage:(PHImageRequestID)requestId image:(UIImage *)fetchedImage
+{
+    @synchronized (self) {
+        [_fetchedImages setObject:fetchedImage forKey:[NSNumber numberWithInt:requestId]];
+    }
+}
+
+- (UIImage*)retrieveUIImage:(PHImageRequestID)requestId
+{
+    UIImage * image = nil;
+    @synchronized (self) {
+        image = [_fetchedImages objectForKey:[NSNumber numberWithInt:requestId]];
+        if(image != nil) {
+            [_fetchedImages removeObjectForKey:[NSNumber numberWithInt:requestId]];
+        }
+    }
+    return image;
 }
 
 - (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions
@@ -127,6 +163,7 @@ static BOOL _crop;
                     permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
     }
 }
+
 
 - (void)displayOverlay:(UIImage *)overlay
 {
@@ -689,6 +726,135 @@ DEFINE_ANE_FUNCTION(getPickedImageHeight)
     }
 }
 
+//Don't call this from a block
+FREObject createBitmapData(uint32_t width, uint32_t height)
+{
+    FREObject widthObj;
+    FRENewObjectFromInt32(width, &widthObj);
+    FREObject heightObj;
+    FRENewObjectFromInt32(height, &heightObj);
+    FREObject transparent;
+    FRENewObjectFromBool( 0, &transparent);
+    FREObject fillColor;
+    FRENewObjectFromUint32( 0x000000, &fillColor);
+    
+    FREObject params[4] = { widthObj, heightObj, transparent, fillColor };
+    
+    FREObject freBitmap;
+    FRENewObject((uint8_t *)"flash.display.BitmapData", 4, params, &freBitmap , NULL);
+    
+    return freBitmap;
+}
+
+//Don't call this from a block
+FREResult fillBitmapData(FREContext ctx, FREObject obj, UIImage *image)
+{
+    if(obj == NULL) {
+        FREObject widthObj;
+        FRENewObjectFromInt32(image.size.width, &widthObj);
+        FREObject heightObj;
+        FRENewObjectFromInt32(image.size.height, &heightObj);
+        FREObject transparent;
+        FRENewObjectFromBool( 0, &transparent);
+        FREObject fillColor;
+        FRENewObjectFromUint32( 0x000000, &fillColor);
+        
+        FREObject params[4] = { widthObj, heightObj, transparent, fillColor };
+        
+        FREObject freBitmap;
+        FRENewObject((uint8_t *)"flash.display.BitmapData", 4, params, &freBitmap , NULL);
+        obj = freBitmap;
+    }
+    
+    [AirImagePicker log:@"Entering fillBitmapData"];
+    FREResult result;
+    FREBitmapData bitmapData;
+    result = FREAcquireBitmapData(obj, &bitmapData);
+    if (result != FRE_OK) {
+        switch (result) {
+            case FRE_ILLEGAL_STATE:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData FRE_ILLEGAL_STATE"];
+                break;
+            case FRE_INVALID_ARGUMENT:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData FRE_INVALID_ARGUMENT"];
+                break;
+            case FRE_INVALID_OBJECT:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData FRE_INVALID_OBJECT"];
+                break;
+            case FRE_TYPE_MISMATCH:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData FRE_TYPE_MISMATCH"];
+                break;
+            case FRE_WRONG_THREAD:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData FRE_WRONG_THREAD"];
+                break;
+            default:
+                [AirImagePicker log:@"Couldn't acquire in fillBitmapData for some other reason"];
+                break;
+        }
+        [AirImagePicker log:@"Couldn't acquire in fillBitmapData"];
+        return result;
+    }
+    
+    // Pull the raw pixels values out of the image data
+    CGImageRef imageRef = [image CGImage];
+    size_t width = CGImageGetWidth(imageRef);
+    size_t height = CGImageGetHeight(imageRef);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    unsigned char *rawData = malloc(height * width * 4);
+    size_t bytesPerPixel = 4;
+    size_t bytesPerRow = bytesPerPixel * width;
+    size_t bitsPerComponent = 8;
+    CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGColorSpaceRelease(colorSpace);
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
+    CGContextRelease(context);
+    
+    // Pixels are now it rawData in the format RGBA8888
+    // Now loop over each pixel to write them into the AS3 BitmapData memory
+    int x, y;
+    // There may be extra pixels in each row due to the value of lineStride32.
+    // We'll skip over those as needed.
+    int offset = bitmapData.lineStride32 - bitmapData.width;
+    size_t offset2 = bytesPerRow - bitmapData.width*4;
+    int byteIndex = 0;
+    uint32_t *bitmapDataPixels = bitmapData.bits32;
+    for (y=0; y<bitmapData.height; y++)
+    {
+        for (x=0; x<bitmapData.width; x++, bitmapDataPixels++, byteIndex += 4)
+        {
+            // Values are currently in RGBA7777, so each color value is currently a separate number.
+            int red     = (rawData[byteIndex]);
+            int green   = (rawData[byteIndex + 1]);
+            int blue    = (rawData[byteIndex + 2]);
+            int alpha   = (rawData[byteIndex + 3]);
+            
+            // Combine values into ARGB32
+            *bitmapDataPixels = (alpha << 24) | (red << 16) | (green << 8) | blue;
+        }
+        
+        bitmapDataPixels += offset;
+        byteIndex += offset2;
+    }
+    
+    // Free the memory we allocated
+    free(rawData);
+    // Tell Flash which region of the BitmapData changes (all of it here)
+    result = FREInvalidateBitmapDataRect(obj, 0, 0, bitmapData.width, bitmapData.height);
+    // Release our control over the BitmapData
+    if(result == FRE_OK) {
+       result = FREReleaseBitmapData(obj);
+        if(result != FRE_OK) {
+            [AirImagePicker log:@"Couldn't release in fillBitmapData"];
+        }
+    } else {
+        [AirImagePicker log:@"Couldn't invalidate in fillBitmapData"];
+    }
+    
+    
+    
+    return result;
+}
+
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
 {
     NSLog(@"Entering drawPickedImageToBitmapData");
@@ -697,122 +863,12 @@ DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData)
     
     if (pickedImage)
     {
-        // Get the AS3 BitmapData
-        FREBitmapData bitmapData;
-        FREAcquireBitmapData(argv[0], &bitmapData);
-        
-        // Pull the raw pixels values out of the image data
-        CGImageRef imageRef = [pickedImage CGImage];
-        NSUInteger width = CGImageGetWidth(imageRef);
-        NSUInteger height = CGImageGetHeight(imageRef);
-        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        unsigned char *rawData = malloc(height * width * 4);
-        NSUInteger bytesPerPixel = 4;
-        NSUInteger bytesPerRow = bytesPerPixel * width;
-        NSUInteger bitsPerComponent = 8;
-        CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-        CGColorSpaceRelease(colorSpace);
-        CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
-        CGContextRelease(context);
-        
-        // Pixels are now it rawData in the format RGBA8888
-        // Now loop over each pixel to write them into the AS3 BitmapData memory
-        int x, y;
-        // There may be extra pixels in each row due to the value of lineStride32.
-        // We'll skip over those as needed.
-        int offset = bitmapData.lineStride32 - bitmapData.width;
-        int offset2 = bytesPerRow - bitmapData.width*4;
-        int byteIndex = 0;
-        uint32_t *bitmapDataPixels = bitmapData.bits32;
-        for (y=0; y<bitmapData.height; y++)
-        {
-            for (x=0; x<bitmapData.width; x++, bitmapDataPixels++, byteIndex += 4)
-            {
-                // Values are currently in RGBA7777, so each color value is currently a separate number.
-                int red     = (rawData[byteIndex]);
-                int green   = (rawData[byteIndex + 1]);
-                int blue    = (rawData[byteIndex + 2]);
-                int alpha   = (rawData[byteIndex + 3]);
-                
-                // Combine values into ARGB32
-                *bitmapDataPixels = (alpha << 24) | (red << 16) | (green << 8) | blue;
-            }
-            
-            bitmapDataPixels += offset;
-            byteIndex += offset2;
-        }
-        
-        // Free the memory we allocated
-        free(rawData);
-        
-        // Tell Flash which region of the BitmapData changes (all of it here)
-        FREInvalidateBitmapDataRect(argv[0], 0, 0, bitmapData.width, bitmapData.height);
-        
-        // Release our control over the BitmapData
-        FREReleaseBitmapData(argv[0]);
+        fillBitmapData(context, argv[0], pickedImage);
     }
     
     NSLog(@"Exiting drawPickedImageToBitmapData");
     return nil;
 }
-
-//DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize)
-//{
-//    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
-//    
-//    if (jpegData)
-//    {
-//        FREObject result;
-//        if (FRENewObjectFromUint32(jpegData.length, &result) == FRE_OK)
-//        {
-//            return result;
-//        }
-//        else return nil;
-//    }
-//    else return nil;
-//}
-//
-//DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray)
-//{
-//    NSData *jpegData = [[AirImagePicker sharedInstance] pickedImageJPEGData];
-//    
-//    if (jpegData)
-//    {
-//        // Get the AS3 ByteArray
-//        FREByteArray byteArray;
-//        FREAcquireByteArray(argv[0], &byteArray);
-//        
-//        // Copy JPEG representation in ByteArray
-//        memcpy(byteArray.bytes, jpegData.bytes, jpegData.length);
-//        
-//        // Release our control over the ByteArray
-//        FREReleaseByteArray(argv[0]);
-//    }
-//    
-//    return nil;
-//}
-
-
-//DEFINE_ANE_FUNCTION(setCameraFlashMode)
-//{
-//    uint32_t stringLength;
-//    NSString *flashModeString = nil;
-//    const uint8_t *modeChars;
-//    if (FREGetObjectAsUTF8(argv[0], &stringLength, &modeChars) == FRE_OK)
-//    {
-//        flashModeString = [NSString stringWithUTF8String:(const char *)modeChars];
-//    }
-//    
-//    if ([flashModeString isEqualToString:@"on"]) {
-//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeOn];
-//    } else if ([flashModeString isEqualToString:@"off"]) {
-//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeOff];
-//    } else if ([flashModeString isEqualToString:@"auto"]) {
-//        [[AirImagePicker sharedInstance] setMyFlashMode: UIImagePickerControllerCameraFlashModeAuto];
-//    }
-//    
-//    return nil;
-//}
 
 DEFINE_ANE_FUNCTION(displayOverlay)
 {
@@ -913,13 +969,211 @@ DEFINE_ANE_FUNCTION(isCropAvailable)
     return retValue;
 }
 
+//don't call this from a block
+NSArray<NSString *> * as3ArrayToNSStringArray (FREObject obj)
+{
+    NSLog(@"Entering as3ArrayToNSStringArray");
+    uint32_t arrayLength;
+    if(FREGetArrayLength(obj, &arrayLength) != FRE_OK) {
+        [AirImagePicker log:@"Error getting array length in as3ArrayToNSStringArray"];
+        return nil;
+    }
+    NSMutableArray<NSString *> * myArray = [[NSMutableArray alloc] initWithCapacity:arrayLength];
+    for (uint32_t i = 0; i < arrayLength; ++i) {
+        FREObject stringObj;
+        const uint8_t * cstring;
+        uint32_t strLength;
+        if(FREGetArrayElementAt(obj, i, &stringObj) == FRE_OK) {
+            if (FREGetObjectAsUTF8(stringObj, &strLength, &cstring) == FRE_OK) {
+                NSString *objCString = [NSString stringWithUTF8String:(const char *)cstring];
+                [myArray addObject:objCString];
+            } else {
+                [AirImagePicker log:@"Error getting UTF8 string in as3ArrayToNSStringArray"];
+            }
+        } else {
+            [AirImagePicker log:@"Error getting array element in as3ArrayToNSStringArray"];
+        }
+    }
+    return myArray;
+}
+
+// Return an array of localIdentifiers for the most recent photo assets
+DEFINE_ANE_FUNCTION(getRecentImageIds)
+{
+    NSLog(@"Entering getRecentImageIds");
+    
+    int32_t fetchLimit;
+    if(FREGetObjectAsInt32(argv[0], &fetchLimit) != FRE_OK) {
+        return nil;
+    };
+    
+    PHFetchOptions *opts = [[PHFetchOptions alloc] init];
+    opts.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+    opts.includeHiddenAssets = false;
+    opts.includeAllBurstAssets = false;
+    opts.includeAssetSourceTypes = PHAssetSourceTypeUserLibrary;
+    opts.fetchLimit = fetchLimit; // TODO make this variable
+    
+    PHFetchResult *rslt = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:opts];
+    
+    FREObject idsToReturn;
+    FRENewObject((const uint8_t*)"Array", 0, NULL, &idsToReturn, nil);
+    FRESetArrayLength(idsToReturn, (uint32_t)rslt.count);
+    
+    for (uint32_t i=0; i < rslt.count; ++i) {
+        PHAsset * asset = [rslt objectAtIndex:i];
+        NSString * assetId = asset.localIdentifier;
+        const uint8_t * cAssetId = (const uint8_t *)[assetId UTF8String];
+        FREObject idForAS3;
+        FRENewObjectFromUTF8((uint32_t)strlen((const char *)cAssetId) + 1, cAssetId, &idForAS3);
+        FRESetArrayElementAt(idsToReturn, i, idForAS3);
+    }
+    
+    return idsToReturn;
+}
+
+// Takes an array of localIdentifier strings from AS3, and a width and height for the thumbnail
+// Returns an array of request IDs to use to track download progress and completion
+DEFINE_ANE_FUNCTION(fetchImages)
+{
+    NSLog(@"Entering fetchImages");
+    NSArray<NSString *> *assetIds = as3ArrayToNSStringArray(argv[0]);
+    
+    if(assetIds == nil) {
+        [AirImagePicker log:@"nil id array in fetchImages"];
+        return nil;
+    }
+    
+    FREObject imageMaxWidthObj = argv[1];
+    int32_t imageMaxWidth;
+    if(FREGetObjectAsInt32(imageMaxWidthObj, &imageMaxWidth) != FRE_OK) {
+        return nil;
+    };
+    
+    FREObject imageMaxHeightObj = argv[2];
+    int32_t imageMaxHeight;
+    if(FREGetObjectAsInt32(imageMaxHeightObj, &imageMaxHeight) != FRE_OK) {
+        return nil;
+    };
+    
+    uint32_t fillAll = NO;
+    if(argc > 3) {
+        FREObject fillAllObj = argv[3];
+        FREGetObjectAsBool(fillAllObj, &fillAll);
+    }
+    
+    //Here we handle the error or store the UIImage (can't make a BitmapData on another thread)
+    void (^imageResultBlock)(UIImage * _Nullable, NSDictionary * _Nullable) =
+        ^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+            
+            NSLog(@"Entering imageResultBlock");
+            
+            NSNumber *rid = [info objectForKey:PHImageResultRequestIDKey];
+            PHImageRequestID requestId;
+            if (rid != nil) {
+                requestId = [rid intValue];
+            } else {
+                requestId = -1;
+            }
+            
+            NSMutableDictionary *resultData = [[NSMutableDictionary alloc] init];
+            if(rid != nil) {
+                [resultData setObject:rid forKey:@"requestId"];
+            }
+            
+            NSString * eventCode = IMAGE_LOAD_ERROR;
+            NSError * error = [info valueForKey:PHImageErrorKey];
+            if(error != nil) {
+                [resultData setValue:[error localizedDescription] forKey:@"error"];
+            } else {
+                if(rid != nil && result != nil) {
+                    [[AirImagePicker sharedInstance] storeUIImage:requestId image:result];
+                    NSLog(@"%@Error getting image: %@", LOG_TAG, error.localizedDescription);
+                    NSNumber * isDegraded = [info objectForKey:PHImageResultIsDegradedKey];
+                    if([isDegraded boolValue] == YES) {
+                        eventCode = IMAGE_LOAD_TEMP;
+                    } else {
+                        eventCode = IMAGE_LOAD_SUCCEEDED;
+                        [AirImagePicker log:@"Image load succeeded"];
+                    }
+                    
+                } else {
+                    if ([info objectForKey:PHImageCancelledKey]){
+                        eventCode = IMAGE_LOAD_CANCELLED;
+                    }
+                }
+            }
+            NSData * resultJSON = [NSJSONSerialization dataWithJSONObject:resultData options:nil error:nil];
+            NSString * resultString = [[NSString alloc] initWithData:resultJSON encoding:NSUTF8StringEncoding];
+            [AirImagePicker status:eventCode level:resultString];
+        };
+    
+    PHImageManager *mgr = [PHImageManager defaultManager];
+    PHImageContentMode mode = fillAll ? PHImageContentModeAspectFill : PHImageContentModeDefault;
+    PHFetchResult *rslt = [PHAsset fetchAssetsWithLocalIdentifiers:assetIds options:nil];
+    [AirImagePicker log:[NSString stringWithFormat:@"result has %lu count, input had %lu count", (unsigned long)rslt.count, (unsigned long)assetIds.count]];
+    
+    FREObject idsToReturn;
+    FRENewObject((const uint8_t*)"Array", 0, NULL, &idsToReturn, nil);
+    FRESetArrayLength(idsToReturn, (uint32_t)rslt.count);
+    
+    for (uint32_t i=0; i < rslt.count; ++i) {
+        PHAsset * asset = [rslt objectAtIndex:i];
+        PHImageRequestID requestId = [mgr requestImageForAsset:asset targetSize:CGSizeMake(imageMaxWidth, imageMaxHeight)
+                                                   contentMode:mode options:nil resultHandler:imageResultBlock];
+        FREObject idForAS3;
+        FRENewObjectFromInt32(requestId, &idForAS3);
+        FRESetArrayElementAt(idsToReturn, i, idForAS3);
+    }
+     NSLog(@"Exiting fetchImages");
+
+    return idsToReturn;
+}
+
+// Takes a single request id, converts the fetched UIImage to a BitmapData, and deletes the reference to the UIImage
+DEFINE_ANE_FUNCTION(retrieveFetchedImage)
+{
+    NSLog(@"Entering retrieveFetchedImage");
+    PHImageRequestID requestId; // it's a typedef for int32_t
+    if(FREGetObjectAsInt32(argv[0], &requestId) != FRE_OK) {
+        return nil;
+    }
+    UIImage *image = [[AirImagePicker sharedInstance] retrieveUIImage:requestId];
+    if(image == nil) {
+        return nil;
+    }
+    FREObject newBitmap = createBitmapData(image.size.width, image.size.height);
+    if(newBitmap == nil) {
+        [AirImagePicker log:@"Couldn't create new bitmap!"];
+        return nil;
+    }
+    
+    if(fillBitmapData(context, newBitmap, image) != FRE_OK) {
+        [AirImagePicker log:@"Fill bitmapdata not FRE_OK!"];
+    }
+    return newBitmap;
+}
+
+//Cancel an image loading operation using a request id (or discard the image if it's loaded)
+DEFINE_ANE_FUNCTION(cancelImageFetch)
+{
+    PHImageRequestID requestId; // it's a typedef for int32_t
+    if(FREGetObjectAsInt32(argv[0], &requestId) != FRE_OK) {
+        return nil;
+    }
+    [[AirImagePicker sharedInstance] retrieveUIImage:requestId];
+    [[PHImageManager defaultManager] cancelImageRequest:requestId];
+    
+    return nil;
+}
+
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 13;
+    NSInteger nbFuntionsToLink = 17;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -983,6 +1237,25 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[12].name = (const uint8_t*) "isCropAvailable";
     func[12].functionData = NULL;
     func[12].function = &isCropAvailable;
+    
+    // in-app stuff to get recent photos
+    
+    func[13].name = (const uint8_t*) "getRecentImageIds";
+    func[13].functionData = NULL;
+    func[13].function = &getRecentImageIds;
+    
+    func[14].name = (const uint8_t*) "fetchImages";
+    func[14].functionData = NULL;
+    func[14].function = &fetchImages;
+    
+    func[15].name = (const uint8_t*) "retrieveFetchedImage";
+    func[15].functionData = NULL;
+    func[15].function = &retrieveFetchedImage;
+    
+    func[16].name = (const uint8_t*) "cancelImageFetch";
+    func[16].functionData = NULL;
+    func[16].function = &cancelImageFetch;
+    
     
     *functionsToSet = func;
     

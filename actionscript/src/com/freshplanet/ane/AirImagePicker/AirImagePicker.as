@@ -70,6 +70,13 @@ package com.freshplanet.ane.AirImagePicker
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
 
+		//for getting recent images directly from Photos
+		public static const ANE_ERROR:String = "ANE_ERROR";
+		public static const IMAGE_LOAD_ERROR:String = "IMAGE_LOAD_ERROR";
+		public static const IMAGE_LOAD_TEMP:String = "IMAGE_LOAD_TEMP"; // a temp. crappy placeholder until the fetch completes
+		public static const IMAGE_LOAD_CANCELLED:String = "IMAGE_LOAD_CANCELLED";
+		public static const IMAGE_LOAD_SUCCEEDED:String = "IMAGE_LOAD_SUCCEEDED";
+
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
 		{
@@ -96,11 +103,8 @@ package com.freshplanet.ane.AirImagePicker
 				throw Error("This is a singleton, use getInstance(), do not call the constructor directly.");
 			}
 		}
-		
-		public static function getInstance() : AirImagePicker
-		{
-			return _instance ? _instance : new AirImagePicker();
-		}
+
+
 		
 		/**
 		 * If you use Stage3D, displaying the camera or the image gallery will cause a
@@ -264,8 +268,44 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			return _context.call("isCropAvailable");
 		}
-		
-		
+
+
+		///////////////////////////////////////////////////////////////////////////////////////////////
+		// Get images directly from gallery
+		///////////////////////////////////////////////////////////////////////////////////////////////
+
+		//Returns ids of <num> most recent photos. You can pass these ids to fetchImages to get whatever size you need
+		public function getRecentImageIds(num:int):Array
+		{
+			if (Capabilities.manufacturer.indexOf("iOS") == -1) {
+				return [];
+			}
+			return _context.call("getRecentImageIds", num) as Array || [];
+		}
+
+		//If you call this and never cancel or retrieve the image fetches, they will stay in memory forever.
+		public function fetchImages(imageIds:Array, width:int, height:int, zoomedFillMode:Boolean):Array
+		{
+			return _context.call("fetchImages", imageIds, width, height, zoomedFillMode) as Array || [];
+		}
+
+		public function retrieveFetchedImage(requestId:int):BitmapData
+		{
+			return _context.call("retrieveFetchedImage", requestId) as BitmapData;
+		}
+
+		public function cancelImageFetch(requestId:int):void
+		{
+			_context.call("cancelImageFetch", requestId);
+		}
+
+
+		public static function getInstance() : AirImagePicker
+		{
+			return _instance ? _instance : new AirImagePicker();
+		}
+
+
 		// --------------------------------------------------------------------------------------//
 		//																						 //
 		// 									 	PRIVATE API										 //
@@ -331,74 +371,62 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			//For some reason, the following trace statement prevents a bug where the status event doesn't get
 			//dispatched on Android in landscape until you rotate to portrait. Please leave it in...
-			trace("[AirImagePicker] onStatus: ", event.code, event.level);
+			//trace("[AirImagePicker] onStatus: ", event.code, event.level);
 			
 			var callback:Function = _callback;
-			
-			if (event.code == "PICKING_ERROR")
-			{
-				if (_callback != null)
-				{
-					log("Error while picking = "+event.level);
-					callback(STATUS_ERROR, event.level);
-				}
-			}
-			else if (event.code == "ERROR_GENERATING_VIDEO")
-			{
-				if (_callback != null)
-				{
-					log("Error while generating video = "+event.level);
-					callback(STATUS_ERROR, event.level);
-				}
-			}
-			else if (event.code == "DID_FINISH_PICKING")
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					
-					var mediaType:String = event.level;
-					if (mediaType == "IMAGE")
-					{
-						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
-						var pickedImagePath:String = _context.call("getImagePath") as String;
-						callback(STATUS_OK, pickedImagePath);
-					}
-					else if (mediaType == "VIDEO")
-					{
-						// Video File path on device
-						var videoPath:String = _context.call("getVideoPath") as String;
-						
-						var thumbnailImagePath:String = _context.call("getImagePath") as String;
-						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
 
-						callback(STATUS_OK, videoPath, thumbnailImagePath);
+			switch (event.code) {
+				case "PICKING_ERROR":
+					if (_callback != null) {
+						log("Error while picking = "+event.level);
+						callback(STATUS_ERROR, event.level);
 					}
-				}
-			}
-			else if (event.code == STATUS_DID_CANCEL)
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_DID_CANCEL);
-				}
-			}
-			else if (event.code == STATUS_PICASSA_NOT_SUPPORTED)
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_PICASSA_NOT_SUPPORTED);
-				}
-			}
-			else if (event.code == "LOGGING") // Simple log message
-			{
-				log(event.level);
+					break;
+				case "ERROR_GENERATING_VIDEO":
+					if (_callback != null) {
+						log("Error while generating video = "+event.level);
+						callback(STATUS_ERROR, event.level);
+					}
+					break;
+				case "DID_FINISH_PICKING":
+					if (callback != null) {
+						_callback = null;
+
+						var mediaType:String = event.level;
+						if (mediaType == "IMAGE") {
+							var pickedImagePath:String = _context.call("getImagePath") as String;
+							callback(STATUS_OK, pickedImagePath);
+						}
+						else if (mediaType == "VIDEO") {
+							// Video File path on device
+							var videoPath:String = _context.call("getVideoPath") as String;
+							var thumbnailImagePath:String = _context.call("getImagePath") as String;
+							callback(STATUS_OK, videoPath, thumbnailImagePath);
+						}
+					}
+					break;
+				case STATUS_DID_CANCEL:
+					if (callback != null) {
+						_callback = null;
+						callback(STATUS_DID_CANCEL);
+					}
+					break;
+				case STATUS_PICASSA_NOT_SUPPORTED:
+					if (callback != null) {
+						_callback = null;
+						callback(STATUS_PICASSA_NOT_SUPPORTED);
+					}
+					break;
+				case "LOGGING":
+					log(event.level);
+					break;
+				default:
+					dispatchEvent(new AirImagePickerEvent(event.code, JSON.parse(event.level)));
+					break;
 			}
 		}
+
+
 		
 		private function log( message : String ) : void
 		{
