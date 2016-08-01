@@ -39,8 +39,6 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
             AirImagePickerExtension.context.dispatchResultEvent(IMAGE_LIST_ERROR, "No images available");
         }
 
-        while(cursor.)
-
         for (int i = 0; i < maxResults; ++i) {
             AirImagePickerExtension.log(cursor.getString(cursor.getColumnIndex(MediaStore.Images.ImageColumns.MINI_THUMB_MAGIC)));
             int id = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID));
