@@ -222,7 +222,7 @@ public abstract class ImagePickerActivityBase extends Activity
 		long current = System.currentTimeMillis();
 		Log.d(TAG, "[ImagePickerActivityBase] Entering notifyGalleryOfNewImage");
 		ContentValues values = new ContentValues();
-		values.put(MediaStore.Images.Media.TITLE, "My HelloPop Image " + current);
+		values.put(MediaStore.Images.Media.TITLE, "My Image " + current);
 		values.put(MediaStore.Images.Media.DATE_ADDED, (int) (current/1000));
 		values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
 		values.put(MediaStore.Images.Media.DATA, picture.getAbsolutePath());

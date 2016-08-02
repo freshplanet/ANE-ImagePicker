@@ -29,9 +29,7 @@ import android.graphics.Bitmap.Config;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.adobe.fre.FREBitmapData;
-import com.adobe.fre.FREContext;
-import com.adobe.fre.FREFunction;
+import com.adobe.fre.*;
 import com.freshplanet.ane.AirImagePicker.functions.CleanUpTemporaryDirectoryContent;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayCameraFunction;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayImagePickerFunction;
@@ -76,7 +74,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		Map<String, FREFunction> functions = new HashMap<String, FREFunction>();
 //
 		if(recentPhotosFetcher == null) {
+			AirImagePickerExtension.log("creating recentPhotosFetcher");
 			recentPhotosFetcher = new RecentPhotosFetcher(this.getActivity().getContentResolver());
+			AirImagePickerExtension.log("created recentPhotosFetcher");
 		}
 		functions.put("isImagePickerAvailable", new IsImagePickerAvailableFunction());
 		functions.put("displayImagePicker", new DisplayImagePickerFunction());
@@ -148,39 +148,17 @@ public class AirImagePickerExtensionContext extends FREContext
 		try
 		{
 			bitmapData.acquire();
-			ByteBuffer bitmapBits = bitmapData.getBits();
-
-			try
-			{
-				ByteBuffer pickedImageBits = ByteBuffer.allocate(4*_pickedImage.getWidth()*_pickedImage.getHeight());
-				Bitmap copyImage = _pickedImage.copy(Config.ARGB_8888, true);
-				copyImage.copyPixelsToBuffer(pickedImageBits);
-				
-				// Copy image in BitmapData and convert from RGBA to BGRA
-				int i;
-				byte a, r, g, b;
-				int capacity = pickedImageBits.capacity();
-				for (i=0; i<capacity; i+=4)
-				{
-					r = pickedImageBits.get(i);
-					g = pickedImageBits.get(i+1);
-					b = pickedImageBits.get(i+2);
-					a = pickedImageBits.get(i+3);
-
-					bitmapBits.put(i, b);
-					bitmapBits.put(i+1, g);
-					bitmapBits.put(i+2, r);
-					bitmapBits.put(i+3, a);
-				}
-			}
-			finally
-			{
-				bitmapData.release();
-			}
+			_pickedImage.copyPixelsToBuffer(bitmapData.getBits());
 		}
-		catch (Exception exception)
+		catch (Exception e)
 		{
-			AirImagePickerExtension.log(exception.getMessage());
+			AirImagePickerExtension.log("drawPickedImageToBitmapData", e);
+		}
+
+		try {
+			bitmapData.release();
+		} catch (Exception e) {
+			AirImagePickerExtension.log("drawPickedImageToBitmapData() releasing bitmapdata", e);
 		}
 	}
 

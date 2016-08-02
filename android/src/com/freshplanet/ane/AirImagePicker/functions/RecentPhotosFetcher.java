@@ -2,15 +2,22 @@ package com.freshplanet.ane.AirImagePicker.functions;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import com.adobe.fre.*;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import org.json.JSONArray;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by peternicolai on 7/29/16.
  */
-public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListener
+public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQueryCompleteListener,
+        RecentPhotosTasks.BitmapFactoryTask.OnBitmapLoadedListener
 {
 
     public static final String ANE_ERROR = "ANE_ERROR";
@@ -21,12 +28,16 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
     public static final String  IMAGE_LOAD_CANCELLED = "IMAGE_LOAD_CANCELLED";
     public static final String  IMAGE_LOAD_SUCCEEDED = "IMAGE_LOAD_SUCCEEDED";
 
-    private MyQueryHandler queryHandler;
+    private RecentPhotosTasks.MediaQueryTask queryHandler;
     private int queryCount = 0;
+    private int fetchCount = 0;
+
+    private ConcurrentHashMap<Integer, Bitmap> loadedBitmaps;
 
     public RecentPhotosFetcher(ContentResolver cr)
     {
-        queryHandler = new MyQueryHandler(cr, this);
+        queryHandler = new RecentPhotosTasks.MediaQueryTask(cr, this);
+        loadedBitmaps = new ConcurrentHashMap<Integer, Bitmap>();
     }
 
     @Override
@@ -40,9 +51,10 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
         }
 
         for (int i = 0; i < maxResults; ++i) {
-            AirImagePickerExtension.log(cursor.getString(cursor.getColumnIndex(MediaStore.Images.ImageColumns.MINI_THUMB_MAGIC)));
+
             int id = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID));
             results.put(id);
+
             if(!cursor.moveToNext()) {
                 break;
             }
@@ -60,16 +72,13 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
             try {
                 maxResults = freObjects[0].getAsInt();
                 String[] projection = new String[]{
-                        MediaStore.Images.ImageColumns._ID,
-                        MediaStore.Images.ImageColumns.DATA,
-                        MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-                        MediaStore.Images.ImageColumns.DATE_TAKEN,
-                        MediaStore.Images.ImageColumns.MIME_TYPE,
-                        MediaStore.Images.ImageColumns.MINI_THUMB_MAGIC
+                        MediaStore.Images.Media._ID,
+                        MediaStore.Images.Media.DATE_TAKEN,
+                        MediaStore.Images.Media.MIME_TYPE,
                 };
 
                 queryHandler.startQuery(queryCount++, this, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
-                        null, MediaStore.Images.ImageColumns.DATE_TAKEN +
+                        null, MediaStore.Images.Media.DATE_TAKEN +
                                 String.format(" DESC LIMIT %d", maxResults));
 
                 return null;
@@ -81,6 +90,7 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
             } catch (FRETypeMismatchException e) {
                 e.printStackTrace();
             }
+
             return null;
         }
     };
@@ -98,10 +108,20 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
             try {
                 AirImagePickerExtension.log("Entering fetchImages");
                 FREArray imageIds = (FREArray)freObjects[0];
+                FREArray requestIds = FREArray.newArray((int)imageIds.getLength());
+
                 int width = freObjects[1].getAsInt();
                 int height = freObjects[2].getAsInt();
                 boolean zoomedFillMode = freObjects[3].getAsBool();
-
+                for (int i = 0; i < imageIds.getLength(); ++i) {
+                    int reqId = fetchCount++;
+                    RecentPhotosTasks.BitmapFactoryTask bitmapFactoryTask = new RecentPhotosTasks.BitmapFactoryTask(
+                            freContext.getActivity().getContentResolver(), RecentPhotosFetcher.this,
+                            imageIds.getObjectAt(i).getAsString(), reqId, width, height);
+                    bitmapFactoryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    requestIds.setObjectAt(i, FREObject.newObject(reqId));
+                }
+                return requestIds;
 
             } catch (FRETypeMismatchException e) {
                 e.printStackTrace();
@@ -109,11 +129,26 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
                 e.printStackTrace();
             } catch (FREWrongThreadException e) {
                 e.printStackTrace();
+            } catch (FREASErrorException e) {
+                e.printStackTrace();
             }
             return null;
         }
     };
-//
+
+    @Override
+    public void onBitmapLoaded(int reqId, Bitmap bitmap)
+    {
+        String responseJSON =  String.format("{\"requestId\": %d}", reqId);
+        if(bitmap == null) {
+            AirImagePickerExtension.context.dispatchResultEvent(IMAGE_LOAD_ERROR, responseJSON);
+            return;
+        }
+        loadedBitmaps.put(reqId, bitmap);
+        AirImagePickerExtension.context.dispatchResultEvent(IMAGE_LOAD_SUCCEEDED, responseJSON);
+    }
+
+    //
 //    public function retrieveFetchedImage(requestId:int):BitmapData
 //    {
 //        return _context.call("retrieveFetchedImage", requestId) as BitmapData;
@@ -123,14 +158,46 @@ public class RecentPhotosFetcher implements MyQueryHandler.OnQueryCompleteListen
         @Override
         public FREObject call(FREContext freContext, FREObject[] freObjects) {
             AirImagePickerExtension.log("Entering retrieveFetchedImage");
+
+            try {
+                int requestId = freObjects[0].getAsInt();
+                if(!loadedBitmaps.containsKey(requestId)) {
+                    AirImagePickerExtension.log("retrieveFetchedImage has no key for request id");
+                    return null;
+                }
+                Bitmap bitmap = loadedBitmaps.get(requestId);
+                loadedBitmaps.remove(requestId);
+
+                Byte color[] = {0, 0, 0, 0};
+                FREBitmapData as3BitmapData = null;
+
+                try {
+                    as3BitmapData = FREBitmapData.newBitmapData(bitmap.getWidth(),
+                            bitmap.getHeight(), false, color);
+                    as3BitmapData.acquire();
+                    bitmap.copyPixelsToBuffer(as3BitmapData.getBits());
+                    as3BitmapData.release();
+                } catch (Exception e) {
+                    AirImagePickerExtension.log("retrieveFetchedImage error trying to create bitmapdata", e);
+                }
+
+                return as3BitmapData;
+
+            } catch (FRETypeMismatchException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            } catch (FREInvalidObjectException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            } catch (FREWrongThreadException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            }
+            AirImagePickerExtension.log("retrieveFetchedImage returning null!");
             return null;
         }
+
     };
-//
-//    public function cancelImageFetch(requestId:int):void
-//    {
-//        _context.call("cancelImageFetch", requestId);
-//    }
 
     public final FREFunction cancelImageFetch = new FREFunction() {
         @Override

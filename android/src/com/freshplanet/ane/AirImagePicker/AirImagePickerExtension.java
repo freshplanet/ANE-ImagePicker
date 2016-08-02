@@ -52,4 +52,10 @@ public class AirImagePickerExtension implements FREExtension
 		if (PRINT_LOG) Log.d(TAG, "[AirImagePickerExtension] " + message);
 		context.dispatchStatusEventAsync("LOGGING", message);
 	}
+
+	public static void log(String message, Throwable e)
+	{
+		Log.e(TAG, "[AirImagePickerExtension] ", e);
+		context.dispatchStatusEventAsync("LOGGING", message + " " + e.getLocalizedMessage());
+	}
 }
