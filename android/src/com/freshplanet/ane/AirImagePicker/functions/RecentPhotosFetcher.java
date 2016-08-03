@@ -3,15 +3,12 @@ package com.freshplanet.ane.AirImagePicker.functions;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import com.adobe.fre.*;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import org.json.JSONArray;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,13 +94,6 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
         }
     };
 
-//
-//    //If you call this and never cancel or retrieve the image fetches, they will stay in memory forever.
-//    public function fetchImages(imageIds:Array, width:int, height:int, zoomedFillMode:Boolean):Array
-//    {
-//        return _context.call("fetchImages", imageIds, width, height, zoomedFillMode) as Array || [];
-//    }
-
     public final FREFunction fetchImages = new FREFunction() {
         @Override
         public FREObject call(FREContext freContext, FREObject[] freObjects) {
@@ -149,12 +139,6 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
         loadedBitmaps.put(reqId, bitmap);
         AirImagePickerExtension.context.dispatchResultEvent(IMAGE_LOAD_SUCCEEDED, responseJSON);
     }
-
-    //
-//    public function retrieveFetchedImage(requestId:int):BitmapData
-//    {
-//        return _context.call("retrieveFetchedImage", requestId) as BitmapData;
-//    }
 
     public final FREFunction retrieveFetchedImage = new FREFunction() {
         @Override
@@ -216,9 +200,6 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
                 int maxWidth = freObjects[1].getAsInt();
                 int maxHeight = freObjects[2].getAsInt();
 
-
-
-
                 Bitmap bitmap = loadedBitmaps.get(requestId);
                 loadedBitmaps.remove(requestId);
 
@@ -237,18 +218,11 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
                 FREByteArray as3bytes = null;
                 try {
                     as3bytes = FREByteArray.newByteArray();
-                    AirImagePickerExtension.log("retrieveFetchedImage 1");
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    AirImagePickerExtension.log("retrieveFetchedImage 2");
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 75, out);
-                    AirImagePickerExtension.log("retrieveFetchedImage 3");
                     as3bytes.setProperty("length", FREObject.newObject(out.size()));
-                    AirImagePickerExtension.log("retrieveFetchedImage 4");
                     as3bytes.acquire();
-                    AirImagePickerExtension.log("retrieveFetchedImage 5");
                     as3bytes.getBytes().put(out.toByteArray());
-                    AirImagePickerExtension.log("retrieveFetchedImage 6");
-
                 } catch (Exception e) {
                     AirImagePickerExtension.log(e.getStackTrace().toString());
                 }

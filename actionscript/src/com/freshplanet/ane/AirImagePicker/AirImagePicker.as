@@ -26,8 +26,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.external.ExtensionContext;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
-import flash.utils.ByteArray;
-
+	import flash.utils.ByteArray;
 
 /**
 	*  Take care of picking images and videos on iOS/Android
