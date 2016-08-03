@@ -94,7 +94,9 @@ public class AirImagePickerExtensionContext extends FREContext
 		functions.put("getRecentImageIds", this.recentPhotosFetcher.getRecentImageIds);
 		functions.put("fetchImages", this.recentPhotosFetcher.fetchImages);
 		functions.put("retrieveFetchedImage", this.recentPhotosFetcher.retrieveFetchedImage);
+		functions.put("retrieveFetchedImageAsFile", this.recentPhotosFetcher.retrieveFetchedImageAsFile);
 		functions.put("cancelImageFetch", this.recentPhotosFetcher.cancelImageFetch);
+
 
 		return functions;	
 	}

@@ -385,7 +385,7 @@ static BOOL _crop;
     [library saveVideo:videoUrl toAlbum:albumName
         withCompletionBlock:^(NSError* error, ALAsset *asset){
             NSLog(@"finished saving to album: %@ with error: %@ and asset: %@", albumName, error, asset);
-        }];
+}];
 }
 
 - (NSURL *) saveImageToTemporaryDirectory:(UIImage *)image {
@@ -1154,6 +1154,65 @@ DEFINE_ANE_FUNCTION(retrieveFetchedImage)
     return newBitmap;
 }
 
+// Takes a single request id, converts the fetched UIImage to JPEG bytes, and deletes the reference to the UIImage
+DEFINE_ANE_FUNCTION(retrieveFetchedImageAsFile)
+{
+    NSLog(@"Entering retrieveFetchedImageAsFile");
+    PHImageRequestID requestId; // it's a typedef for int32_t
+    if(FREGetObjectAsInt32(argv[0], &requestId) != FRE_OK) {
+        return nil;
+    }
+    
+    int32_t maxWidth;
+    int32_t maxHeight;
+    
+    if(FREGetObjectAsInt32(argv[1], &maxWidth) != FRE_OK) {
+        return nil;
+    }
+    if(FREGetObjectAsInt32(argv[2], &maxHeight) != FRE_OK) {
+        return nil;
+    }
+    
+    
+    UIImage *image = [[AirImagePicker sharedInstance] retrieveUIImage:requestId];
+    if(image == nil) {
+        return nil;
+    }
+    
+    image = [AirImagePicker resizeImage:image toMaxDimension:CGSizeMake((CGFloat) maxWidth, (CGFloat) maxWidth)];
+    
+    NSData *imageJPEGData = UIImageJPEGRepresentation(image, 0.8);
+    
+    FREObject newByteArray;
+    if(FRENewObject((uint8_t *)"flash.utils.ByteArray", 0, NULL, &newByteArray , NULL) != FRE_OK) {
+        return nil;
+    };
+    
+    FREObject dataLength;
+    FRENewObjectFromUint32((uint32_t) imageJPEGData.length, &dataLength);
+    if (FRESetObjectProperty(newByteArray, (const uint8_t *)"length", dataLength, NULL) != FRE_OK) {
+        return nil;
+    }
+    
+    
+    FREByteArray byteArray;
+    if(FREAcquireByteArray(newByteArray, &byteArray) != FRE_OK) {
+        return nil;
+    };
+    
+    // Copy JPEG representation in ByteArray
+     NSLog(@"do memcopy:");
+    memcpy(byteArray.bytes, imageJPEGData.bytes, imageJPEGData.length);
+     NSLog(@"did memcopy:");
+    
+    // Release our control over the ByteArray
+    if(FREReleaseByteArray(newByteArray) != FRE_OK) {
+        return nil;
+    };
+    
+    return newByteArray;
+}
+
 //Cancel an image loading operation using a request id (or discard the image if it's loaded)
 DEFINE_ANE_FUNCTION(cancelImageFetch)
 {
@@ -1173,7 +1232,7 @@ DEFINE_ANE_FUNCTION(cancelImageFetch)
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 17;
+    NSInteger nbFuntionsToLink = 18;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -1252,9 +1311,13 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[15].functionData = NULL;
     func[15].function = &retrieveFetchedImage;
     
-    func[16].name = (const uint8_t*) "cancelImageFetch";
+    func[16].name = (const uint8_t*) "retrieveFetchedImageAsFile";
     func[16].functionData = NULL;
-    func[16].function = &cancelImageFetch;
+    func[16].function = &retrieveFetchedImageAsFile;
+    
+    func[17].name = (const uint8_t*) "cancelImageFetch";
+    func[17].functionData = NULL;
+    func[17].function = &cancelImageFetch;
     
     
     *functionsToSet = func;

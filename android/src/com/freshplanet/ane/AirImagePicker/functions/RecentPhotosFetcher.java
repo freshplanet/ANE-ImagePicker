@@ -11,6 +11,8 @@ import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import org.json.JSONArray;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -194,6 +196,80 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
                 e.printStackTrace();
             }
             AirImagePickerExtension.log("retrieveFetchedImage returning null!");
+            return null;
+        }
+
+    };
+
+    public final FREFunction retrieveFetchedImageAsFile = new FREFunction() {
+        @Override
+        public FREObject call(FREContext freContext, FREObject[] freObjects) {
+            AirImagePickerExtension.log("Entering retrieveFetchedImageAsFile");
+
+            try {
+                int requestId = freObjects[0].getAsInt();
+                if(!loadedBitmaps.containsKey(requestId)) {
+                    AirImagePickerExtension.log("retrieveFetchedImage has no key for request id");
+                    return null;
+                }
+
+                int maxWidth = freObjects[1].getAsInt();
+                int maxHeight = freObjects[2].getAsInt();
+
+
+
+
+                Bitmap bitmap = loadedBitmaps.get(requestId);
+                loadedBitmaps.remove(requestId);
+
+                if(bitmap == null) {
+                    return null;
+                }
+
+                double maxScale = Math.min((double)maxWidth / bitmap.getWidth(), (double)maxHeight / bitmap.getHeight());
+
+                if (maxScale < 1.0) {
+                    maxWidth = (int)(maxScale * maxWidth + 0.5);
+                    maxHeight = (int)(maxScale * maxHeight + 0.5);
+                    bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, true);
+                }
+
+                FREByteArray as3bytes = null;
+                try {
+                    as3bytes = FREByteArray.newByteArray();
+                    AirImagePickerExtension.log("retrieveFetchedImage 1");
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    AirImagePickerExtension.log("retrieveFetchedImage 2");
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 75, out);
+                    AirImagePickerExtension.log("retrieveFetchedImage 3");
+                    as3bytes.setProperty("length", FREObject.newObject(out.size()));
+                    AirImagePickerExtension.log("retrieveFetchedImage 4");
+                    as3bytes.acquire();
+                    AirImagePickerExtension.log("retrieveFetchedImage 5");
+                    as3bytes.getBytes().put(out.toByteArray());
+                    AirImagePickerExtension.log("retrieveFetchedImage 6");
+
+                } catch (Exception e) {
+                    AirImagePickerExtension.log(e.getStackTrace().toString());
+                }
+
+                if(as3bytes != null) {
+                    as3bytes.release();
+                }
+
+                return as3bytes;
+
+            } catch (FRETypeMismatchException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            } catch (FREInvalidObjectException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            } catch (FREWrongThreadException e) {
+                AirImagePickerExtension.log("retrieveFetchedImage", e);
+                e.printStackTrace();
+            }
+            AirImagePickerExtension.log("retrieveFetchedImageAsFile returning null!");
             return null;
         }
 

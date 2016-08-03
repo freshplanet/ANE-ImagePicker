@@ -26,9 +26,10 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.external.ExtensionContext;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
-	
+import flash.utils.ByteArray;
 
-	/**
+
+/**
 	*  Take care of picking images and videos on iOS/Android
 	*
 	*  CALLBACKS:   
@@ -287,6 +288,11 @@ package com.freshplanet.ane.AirImagePicker
 		public function retrieveFetchedImage(requestId:int):BitmapData
 		{
 			return _context.call("retrieveFetchedImage", requestId) as BitmapData;
+		}
+
+		public function retrieveFetchedImageAsFile(requestId:int, maxWidth:int, maxHeight:int):ByteArray
+		{
+			return _context.call("retrieveFetchedImageAsFile", requestId,  maxWidth, maxHeight) as ByteArray;
 		}
 
 		public function cancelImageFetch(requestId:int):void
