@@ -272,6 +272,9 @@ import flash.utils.ByteArray;
 		//Returns ids of <num> most recent photos. You can pass these ids to fetchImages to get whatever size you need
 		public function getRecentImageIds(num:int):void
 		{
+			if(!isSupported) {
+				return;
+			}
 			// on iOS it's possible to do this synchronously although maybe not the best idea
 			var syncResult:Array = _context.call("getRecentImageIds", num) as Array;
 			if(syncResult) {
@@ -282,22 +285,32 @@ import flash.utils.ByteArray;
 		//If you call this and never cancel or retrieve the image fetches, they will stay in memory forever.
 		public function fetchImages(imageIds:Array, width:int, height:int, zoomedFillMode:Boolean):Array
 		{
+			if(!isSupported) {
+				return [];
+			}
 			return _context.call("fetchImages", imageIds, width, height, zoomedFillMode) as Array || [];
 		}
 
 		public function retrieveFetchedImage(requestId:int):BitmapData
 		{
+			if(!isSupported) {
+				return null;
+			}
 			return _context.call("retrieveFetchedImage", requestId) as BitmapData;
 		}
 
 		public function retrieveFetchedImageAsFile(requestId:int, maxWidth:int, maxHeight:int):ByteArray
 		{
+			if(!isSupported) {
+				return null;
+			}
 			return _context.call("retrieveFetchedImageAsFile", requestId,  maxWidth, maxHeight) as ByteArray;
 		}
 
 		public function cancelImageFetch(requestId:int):void
 		{
-			_context.call("cancelImageFetch", requestId);
+			if(isSupported)
+				_context.call("cancelImageFetch", requestId);
 		}
 
 
