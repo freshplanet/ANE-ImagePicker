@@ -69,6 +69,10 @@ package com.freshplanet.ane.AirImagePicker
 		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
+		public static const PERMISSION_AUTHORIZED:String = "PERMISSION_AUTHORIZED";
+		public static const PERMISSION_DENIED:String = "PERMISSION_DENIED";
+		public static const PERMISSION_RESTRICTED:String = "PERMISSION_RESTRICTED";
+		public static const PERMISSION_NOT_DETERMINED:String = "PERMISSION_NOT_DETERMINED";
 
 
 		/** AirImagePicker is supported on iOS and Android devices. */
@@ -312,12 +316,51 @@ package com.freshplanet.ane.AirImagePicker
 				_context.call("cancelImageFetch", requestId);
 		}
 
+		public function getCameraPermissionsState():String
+		{
+			if(!isSupported) {
+				return PERMISSION_DENIED;
+			}
+			if(_isAndroid) {
+				return PERMISSION_AUTHORIZED; // this might change?
+			}
+			return _context.call("getCameraPermissionsState") as String;
+		}
+
+		public function getGalleryPermissionsState():String
+		{
+			if(!isSupported) {
+				return PERMISSION_DENIED;
+			}
+			if(_isAndroid) {
+				return PERMISSION_AUTHORIZED; // this might change?
+			}
+			return _context.call("getGalleryPermissionsState") as String;
+		}
+
+		public function canOpenSettings():Boolean
+		{
+			trace("*** canOpenSettings");
+			if(!isSupported || _isAndroid) {
+				return false;
+			}
+			return _context.call("canOpenSettings");
+		}
+
+		public function tryToOpenSettings():void
+		{
+			trace("*** tryToOpenSettingszz");
+			if(isSupported || _isAndroid) {
+				return;
+			}
+			_context.call("AirImagePicker_tryToOpenSettings");
+			trace("*** tryToOpenSettings done");
+		}
 
 		public static function getInstance() : AirImagePicker
 		{
 			return _instance ? _instance : new AirImagePicker();
 		}
-
 
 		// --------------------------------------------------------------------------------------//
 		//																						 //

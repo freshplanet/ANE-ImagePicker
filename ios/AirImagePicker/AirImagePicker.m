@@ -16,11 +16,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
+#import <UIKit/UIApplication.h>
 #import "AirImagePicker.h"
 #include <MobileCoreServices/MobileCoreServices.h>
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import "UIImage+Resize.h"
+
 
 #define PRINT_LOG   YES
 #define LOG_TAG     @"AirImagePicker"
@@ -1226,13 +1228,83 @@ DEFINE_ANE_FUNCTION(cancelImageFetch)
     return nil;
 }
 
+//Cancel an image loading operation using a request id (or discard the image if it's loaded)
+DEFINE_ANE_FUNCTION(getCameraPermissionsState)
+{
+    AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+    NSString * authState;
+    switch (status) {
+        case AVAuthorizationStatusAuthorized:
+            authState = @"PERMISSION_AUTHORIZED";
+            break;
+        case AVAuthorizationStatusRestricted:
+            authState = @"PERMISSION_RESTRICTED";
+            break;
+        case AVAuthorizationStatusDenied:
+            authState = @"PERMISSION_DENIED";
+            break;
+        default:
+            authState = @"PERMISSION_NOT_DETERMINED";
+            break;
+    }
+    FREObject returnVal;
+    FRENewObjectFromUTF8((uint32_t)authState.length, (const uint8_t *)[authState UTF8String], &returnVal);
+    return returnVal;
+}
+
+
+//Cancel an image loading operation using a request id (or discard the image if it's loaded)
+DEFINE_ANE_FUNCTION(getGalleryPermissionsState)
+{
+    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+    NSString * authState;
+    switch (status) {
+        case PHAuthorizationStatusAuthorized:
+            authState = @"PERMISSION_AUTHORIZED";
+            break;
+        case PHAuthorizationStatusRestricted:
+            authState = @"PERMISSION_RESTRICTED";
+            break;
+        case PHAuthorizationStatusDenied:
+            authState = @"PERMISSION_DENIED";
+            break;
+        default:
+            authState = @"PERMISSION_NOT_DETERMINED";
+            break;
+    }
+    FREObject returnVal;
+    FRENewObjectFromUTF8((uint32_t)authState.length, (const uint8_t *)[authState UTF8String], &returnVal);
+    return returnVal;
+}
+
+DEFINE_ANE_FUNCTION(canOpenSettings)
+{
+    NSLog(@"Entering imagePickerController:canOpenSettings");
+    BOOL canOpenSettings = (&UIApplicationOpenSettingsURLString != NULL);
+    FREObject returnVal;
+    FRENewObjectFromBool(canOpenSettings, &returnVal);
+    return returnVal;
+}
+
+
+DEFINE_ANE_FUNCTION(tryToOpenSettings)
+{
+    NSLog(@"Entering tryToOpenSettings");
+    BOOL canOpenSettings = (&UIApplicationOpenSettingsURLString != NULL);
+    if (canOpenSettings) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    }
+    FREObject returnVal;
+    FRENewObjectFromBool(canOpenSettings, &returnVal);
+    return returnVal;
+}
 
 // ANE setup
 
 void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToTest, const FRENamedFunction** functionsToSet)
 {
     // Register the links btwn AS3 and ObjC. (dont forget to modify the nbFuntionsToLink integer if you are adding/removing functions)
-    NSInteger nbFuntionsToLink = 18;
+    NSInteger nbFuntionsToLink = 22;
     *numFunctionsToTest = nbFuntionsToLink;
     
     FRENamedFunction* func = (FRENamedFunction*) malloc(sizeof(FRENamedFunction) * nbFuntionsToLink);
@@ -1319,6 +1391,22 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
     func[17].functionData = NULL;
     func[17].function = &cancelImageFetch;
     
+    func[18].name = (const uint8_t*) "getCameraPermissionsState";
+    func[18].functionData = NULL;
+    func[18].function = &getCameraPermissionsState;
+    
+    func[19].name = (const uint8_t*) "getGalleryPermissionsState";
+    func[19].functionData = NULL;
+    func[19].function = &getGalleryPermissionsState;
+    
+    func[20].name = (const uint8_t*) "canOpenSettings";
+    func[20].functionData = NULL;
+    func[20].function = &canOpenSettings;
+    
+    //TODO Peter try to figure out why this doesn't work:
+    func[21].name = (const uint8_t*) "tryToOpenSettings";
+    func[21].functionData = NULL;
+    func[21].function = &tryToOpenSettings;
     
     *functionsToSet = func;
     
