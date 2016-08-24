@@ -214,8 +214,7 @@ public class AirImagePickerUtils {
 
 	public static Boolean isPicasa(String path) 
 	{
-		return path.contains("com.google.android.gallery3d") || 
-				path.contains("com.sec.android.gallery3d");
+		return false;
 	}
 
 	public static Bitmap createThumbnailForVideo(String videoPath)

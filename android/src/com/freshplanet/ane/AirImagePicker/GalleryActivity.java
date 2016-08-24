@@ -42,12 +42,7 @@ public class GalleryActivity extends ImagePickerActivityBase {
 		result.imagePath = getPath(selectedImageUri);
 		
 		Log.d(TAG, "[GalleryActivity] selectedImagePath = " + result.imagePath);
-		
-		if (AirImagePickerUtils.isPicasa(result.imagePath))
-		{
-			sendErrorToContext("PICASSA_NOT_SUPPORTED");
-			return;
-		}
+
 		
 		Boolean isVideo = getContentResolver().getType(selectedImageUri).indexOf("video") != -1;
 		
