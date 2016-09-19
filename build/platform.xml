@@ -3,5 +3,6 @@
     <linkerOptions>
     	<option>-framework AssetsLibrary</option>
     	<option>-framework Photos</option>
+    	<option>-framework UIKit</option>
     </linkerOptions> 
 </platform>

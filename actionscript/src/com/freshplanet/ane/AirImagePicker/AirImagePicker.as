@@ -353,7 +353,7 @@ package com.freshplanet.ane.AirImagePicker
 			if(isSupported || _isAndroid) {
 				return;
 			}
-			_context.call("AirImagePicker_tryToOpenSettings");
+			_context.call("tryToOpenSettings");
 			trace("*** tryToOpenSettings done");
 		}
 
@@ -477,6 +477,7 @@ package com.freshplanet.ane.AirImagePicker
 					log(event.level);
 					break;
 				default:
+						trace("[Warn] " + event.code + " " + event.level);
 					dispatchEvent(new AirImagePickerEvent(event.code, JSON.parse(event.level)));
 					break;
 			}

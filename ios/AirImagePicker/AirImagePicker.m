@@ -554,6 +554,8 @@ static BOOL _crop;
 
 
 
+
+
 @end
 
 // C API
@@ -999,6 +1001,37 @@ NSArray<NSString *> * as3ArrayToNSStringArray (FREObject obj)
     return myArray;
 }
 
+PHFetchResult * fetchRecentResult(uint32_t fetchLimit)
+{
+    PHFetchOptions *opts = [[PHFetchOptions alloc] init];
+    opts.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+    opts.includeHiddenAssets = false;
+    opts.includeAllBurstAssets = false;
+    opts.includeAssetSourceTypes = PHAssetSourceTypeUserLibrary;
+    opts.fetchLimit = fetchLimit; // TODO make this variable
+    
+    PHFetchResult *rslt = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:opts];
+    return rslt;
+}
+
+void dispatchFetchRecentEvent(PHFetchResult * rslt)
+{
+    NSMutableArray<NSString *> *idsToReturn = [[NSMutableArray<NSString *> alloc] init];
+    for (uint32_t i=0; i < rslt.count; ++i) {
+        PHAsset * asset = [rslt objectAtIndex:i];
+        NSString * assetId = asset.localIdentifier;
+        [idsToReturn addObject:assetId];
+    }
+    NSError * err = nil;
+    NSData *jsonArray = [NSJSONSerialization dataWithJSONObject:idsToReturn options:NSJSONWritingPrettyPrinted error:&err];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonArray encoding:NSUTF8StringEncoding];
+    if (err == nil) {
+        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"IMAGE_LIST_SUCCEEDED", (const uint8_t *)[jsonString UTF8String]);
+    } else {
+        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"IMAGE_LIST_ERROR", (const uint8_t *)"{\"error\": \"JSON parse error\"}");
+    }
+}
+
 // Return an array of localIdentifiers for the most recent photo assets
 DEFINE_ANE_FUNCTION(getRecentImageIds)
 {
@@ -1009,30 +1042,32 @@ DEFINE_ANE_FUNCTION(getRecentImageIds)
         return nil;
     };
     
-    PHFetchOptions *opts = [[PHFetchOptions alloc] init];
-    opts.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
-    opts.includeHiddenAssets = false;
-    opts.includeAllBurstAssets = false;
-    opts.includeAssetSourceTypes = PHAssetSourceTypeUserLibrary;
-    opts.fetchLimit = fetchLimit; // TODO make this variable
-    
-    PHFetchResult *rslt = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:opts];
-    
-    FREObject idsToReturn;
-    FRENewObject((const uint8_t*)"Array", 0, NULL, &idsToReturn, nil);
-    FRESetArrayLength(idsToReturn, (uint32_t)rslt.count);
-    
-    for (uint32_t i=0; i < rslt.count; ++i) {
-        PHAsset * asset = [rslt objectAtIndex:i];
-        NSString * assetId = asset.localIdentifier;
-        const uint8_t * cAssetId = (const uint8_t *)[assetId UTF8String];
-        FREObject idForAS3;
-        FRENewObjectFromUTF8((uint32_t)strlen((const char *)cAssetId) + 1, cAssetId, &idForAS3);
-        FRESetArrayElementAt(idsToReturn, i, idForAS3);
+    PHAuthorizationStatus  status = [PHPhotoLibrary authorizationStatus];
+    if (status == PHAuthorizationStatusNotDetermined) {
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            
+            if (status == PHAuthorizationStatusAuthorized) {
+                // Access has been granted.
+                PHFetchResult *rslt = fetchRecentResult(fetchLimit);
+                dispatchFetchRecentEvent(rslt);
+            }
+            
+            else {
+                FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"IMAGE_LIST_ERROR", (const uint8_t *)"{\"error\": \"Photo permission not granted\"}");
+            }
+        }];
+        return nil;
+    } else if (status != PHAuthorizationStatusAuthorized) {
+        FREDispatchStatusEventAsync(AirIPCtx, (const uint8_t *)"IMAGE_LIST_ERROR", (const uint8_t *)"{\"error\": \"Photo permission not granted\"}");
+        return nil;
     }
     
-    return idsToReturn;
+    PHFetchResult *rslt = fetchRecentResult(fetchLimit);
+    dispatchFetchRecentEvent(rslt);
+    
+    return nil;
 }
+
 
 // Takes an array of localIdentifier strings from AS3, and a width and height for the thumbnail
 // Returns an array of request IDs to use to track download progress and completion
@@ -1290,13 +1325,7 @@ DEFINE_ANE_FUNCTION(canOpenSettings)
 DEFINE_ANE_FUNCTION(tryToOpenSettings)
 {
     NSLog(@"Entering tryToOpenSettings");
-    BOOL canOpenSettings = (&UIApplicationOpenSettingsURLString != NULL);
-    if (canOpenSettings) {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-    }
-    FREObject returnVal;
-    FRENewObjectFromBool(canOpenSettings, &returnVal);
-    return returnVal;
+    NSLog(@"Let's log some stuff [AirImagePicker]");
 }
 
 // ANE setup
