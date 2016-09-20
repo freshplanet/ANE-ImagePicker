@@ -804,11 +804,17 @@ FREResult fillBitmapData(FREContext ctx, FREObject obj, UIImage *image)
     size_t width = CGImageGetWidth(imageRef);
     size_t height = CGImageGetHeight(imageRef);
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if(colorSpace == NULL) {
+        return FRE_INVALID_OBJECT;
+    }
     unsigned char *rawData = malloc(height * width * 4);
     size_t bytesPerPixel = 4;
     size_t bytesPerRow = bytesPerPixel * width;
     size_t bitsPerComponent = 8;
     CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    if(context == NULL) {
+        return FRE_INVALID_OBJECT;
+    }
     CGColorSpaceRelease(colorSpace);
     CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
     CGContextRelease(context);
@@ -853,8 +859,6 @@ FREResult fillBitmapData(FREContext ctx, FREObject obj, UIImage *image)
     } else {
         [AirImagePicker log:@"Couldn't invalidate in fillBitmapData"];
     }
-    
-    
     
     return result;
 }
