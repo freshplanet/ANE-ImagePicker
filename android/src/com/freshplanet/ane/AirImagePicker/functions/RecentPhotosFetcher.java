@@ -2,7 +2,7 @@ package com.freshplanet.ane.AirImagePicker.functions;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
+import android.graphics.*;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import com.adobe.fre.*;
@@ -158,6 +158,7 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
                 FREBitmapData as3BitmapData = null;
 
                 try {
+                    bitmap = RecentPhotosTasks.BitmapFactoryTask.swapColors(bitmap);
                     as3BitmapData = FREBitmapData.newBitmapData(bitmap.getWidth(),
                             bitmap.getHeight(), false, color);
                     as3BitmapData.acquire();
@@ -182,7 +183,6 @@ public class RecentPhotosFetcher implements RecentPhotosTasks.MediaQueryTask.OnQ
             AirImagePickerExtension.log("retrieveFetchedImage returning null!");
             return null;
         }
-
     };
 
     public final FREFunction retrieveFetchedImageAsFile = new FREFunction() {

@@ -30,20 +30,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.adobe.fre.*;
-import com.freshplanet.ane.AirImagePicker.functions.CleanUpTemporaryDirectoryContent;
-import com.freshplanet.ane.AirImagePicker.functions.DisplayCameraFunction;
-import com.freshplanet.ane.AirImagePicker.functions.DisplayImagePickerFunction;
-import com.freshplanet.ane.AirImagePicker.functions.DisplayOverlayFunction;
-import com.freshplanet.ane.AirImagePicker.functions.DrawPickedImageToBitmapDataFunction;
-import com.freshplanet.ane.AirImagePicker.functions.GetImagePath;
-import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageHeightFunction;
-import com.freshplanet.ane.AirImagePicker.functions.GetPickedImageWidthFunction;
-import com.freshplanet.ane.AirImagePicker.functions.GetVideoPath;
-import com.freshplanet.ane.AirImagePicker.functions.IsCameraAvailableFunction;
-import com.freshplanet.ane.AirImagePicker.functions.IsCropAvailableFunction;
-import com.freshplanet.ane.AirImagePicker.functions.IsImagePickerAvailableFunction;
-import com.freshplanet.ane.AirImagePicker.functions.RemoveOverlayFunction;
-import com.freshplanet.ane.AirImagePicker.functions.RecentPhotosFetcher;
+import com.freshplanet.ane.AirImagePicker.functions.*;
 
 public class AirImagePickerExtensionContext extends FREContext 
 {
@@ -193,7 +180,7 @@ public class AirImagePickerExtensionContext extends FREContext
 		return _pickedImage; 
 	}
 	public void setPickedImage(Bitmap bitmap) {
-		_pickedImage = bitmap;
+		_pickedImage = RecentPhotosTasks.BitmapFactoryTask.swapColors(bitmap);
 	}
 	
 	

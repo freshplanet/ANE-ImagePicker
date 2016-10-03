@@ -3,8 +3,7 @@ package com.freshplanet.ane.AirImagePicker.functions;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.*;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
@@ -116,13 +115,34 @@ public final class RecentPhotosTasks  {
 
             // Decode bitmap with inSampleSize set
             options.inJustDecodeBounds = false;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
             try {
                 is = contentResolver.openInputStream(imageUri);
             } catch (FileNotFoundException e) {
                 return null;
             }
+
             return BitmapFactory.decodeStream(is, null, options);
+        }
+
+        public static Bitmap swapColors(Bitmap inBitmap)
+        {
+            AirImagePickerExtension.log("[Error] Entering swapColors()");
+            float matrix[] = new float[] {
+                    0, 0, 1, 0, 0,
+                    0, 1, 0, 0, 0,
+                    1, 0, 0, 0, 0,
+                    0, 0, 0, 1, 0
+            };
+            ColorMatrix rbSwap = new ColorMatrix(matrix);
+            Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+            paint.setColorFilter(new ColorMatrixColorFilter(rbSwap));
+
+            Bitmap outBitmap = Bitmap.createBitmap(inBitmap.getWidth(), inBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(outBitmap);
+            canvas.drawBitmap(inBitmap, 0, 0, paint);
+            return outBitmap;
         }
 
         @Override
