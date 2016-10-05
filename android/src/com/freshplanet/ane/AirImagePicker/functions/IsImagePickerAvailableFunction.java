@@ -5,6 +5,7 @@ import com.adobe.fre.FREFunction;
 import com.adobe.fre.FREObject;
 import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 
 public class IsImagePickerAvailableFunction implements FREFunction
 {
@@ -13,7 +14,7 @@ public class IsImagePickerAvailableFunction implements FREFunction
 	{
 		try
 		{
-			return FREObject.newObject(AirImagePickerExtension.context.isImagePickerAvailable());
+			return FREObject.newObject(AirImagePickerUtils.isImagePickerAvailable(context.getActivity()));
 		}
 		catch (FREWrongThreadException exception)
 		{

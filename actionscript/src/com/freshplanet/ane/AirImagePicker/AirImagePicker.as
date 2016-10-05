@@ -28,7 +28,7 @@ package com.freshplanet.ane.AirImagePicker
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
 
-	/**
+/**
 	*  Take care of picking images and videos on iOS/Android
 	*
 	*  CALLBACKS:   
@@ -69,6 +69,11 @@ package com.freshplanet.ane.AirImagePicker
 		public static const STATUS_DID_CANCEL:String = "DID_CANCEL";
 		public static const STATUS_NOT_SUPPORTED:String = "NOT_SUPPORTED";
 		public static const STATUS_PICASSA_NOT_SUPPORTED:String = "PICASSA_NOT_SUPPORTED";
+		public static const PERMISSION_AUTHORIZED:String = "PERMISSION_AUTHORIZED";
+		public static const PERMISSION_DENIED:String = "PERMISSION_DENIED";
+		public static const PERMISSION_RESTRICTED:String = "PERMISSION_RESTRICTED";
+		public static const PERMISSION_NOT_DETERMINED:String = "PERMISSION_NOT_DETERMINED";
+
 
 		/** AirImagePicker is supported on iOS and Android devices. */
 		public static function get isSupported() : Boolean
@@ -80,6 +85,7 @@ package com.freshplanet.ane.AirImagePicker
 		{
 			if (!_instance)
 			{
+				_isAndroid = Capabilities.manufacturer.indexOf("Android") > -1;
 				_context = ExtensionContext.createExtensionContext(EXTENSION_ID, null);
 				if (!_context)
 				{
@@ -95,11 +101,8 @@ package com.freshplanet.ane.AirImagePicker
 				throw Error("This is a singleton, use getInstance(), do not call the constructor directly.");
 			}
 		}
-		
-		public static function getInstance() : AirImagePicker
-		{
-			return _instance ? _instance : new AirImagePicker();
-		}
+
+
 		
 		/**
 		 * If you use Stage3D, displaying the camera or the image gallery will cause a
@@ -170,6 +173,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * @param callback A callback function of the following form:
 		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
 		 * explanation of the arguments passed to the callback.
+		 * @param maxImageWidth Maximum width of the image.  only applies to image capture, not videos. default value is -1 (ignore)
+		 * @param maxImageHeight Maximum height of the image.  only applies to image capture, not videos. default value is -1 (ignore)		 
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -183,14 +188,21 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isImagePickerAvailable()
 		 */
-		public function displayImagePicker( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, anchor : Rectangle = null ) : void
+		public function displayImagePicker( callback : Function, 
+			maxImageWidth:int = -1, 
+			maxImageHeight:int = -1,
+			allowVideo:Boolean = false, 
+			crop : Boolean = false, 
+			anchor : Rectangle = null) : void
 		{
 			if (!isImagePickerAvailable()) callback(STATUS_NOT_SUPPORTED, null);
 			
 			_callback = callback;
 			
-			if (anchor != null) _context.call("displayImagePicker", allowVideo, crop, anchor);
-			else _context.call("displayImagePicker", allowVideo, crop);
+			if (anchor != null) _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop, anchor);
+			else _context.call("displayImagePicker", maxImageWidth, maxImageHeight, allowVideo, crop);
+			
+			
 		}
 		
 		/**
@@ -215,6 +227,8 @@ package com.freshplanet.ane.AirImagePicker
 		 * @param callback A callback function of the following form:
 		 * <code>function( status:String, ...mediaArgs ):void</code>. See the ASDoc for this class for a in-depth
 		 * explanation of the arguments passed to the callback.
+		 * @param maxImageWidth Maximum width of the image.  only applies to image capture, not videos. default value is -1 (ignore)
+		 * @param maxImageHeight Maximum height of the image.  only applies to image capture, not videos. default value is -1 (ignore)
 		 * @param allowVideo if <code>true</code>, the picker will show videos stored on the device as well.
 		 * @param crop If <code>true</code>, the image will be cropped with a 1:1 aspect
 		 * ratio. A native UI will be displayed to allow the user to do the cropping
@@ -224,18 +238,130 @@ package com.freshplanet.ane.AirImagePicker
 		 * 
 		 * @see #isCameraAvailable()
 		 */
-		public function displayCamera( callback : Function, allowVideo:Boolean = false, crop : Boolean = false, albumName:String = null ) : void
+		public function displayCamera( callback : Function,
+			maxImageWidth:int = -1, 
+			maxImageHeight:int = -1,
+			allowVideo:Boolean = false, 
+			crop : Boolean = false, 
+			albumName:String = null,
+		    chatLink:String = null) : void
 		{
 			if (!isCameraAvailable()) callback(STATUS_NOT_SUPPORTED, null);
-			
 			prepareToDisplayNativeUI(callback);
-			
-			if (albumName != null) _context.call("displayCamera", allowVideo, crop, albumName);
-			else _context.call("displayCamera", allowVideo, crop);
-			
+			if(_isAndroid) {
+				if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName, chatLink);
+				else _context.call("displayCamera", allowVideo, crop);
+			} else {
+				if (albumName != null) _context.call("displayCamera", maxImageWidth, maxImageHeight, allowVideo, crop, albumName);
+				else _context.call("displayCamera", allowVideo, crop);
+			}
+		}
+
+		public function cleanUpTemporaryDirectoryContent () : Boolean
+		{
+			return _context.call("cleanUpTemporaryDirectoryContent");
 		}
 		
-		
+		public function isCropAvailable(): Boolean 
+		{
+			return _context.call("isCropAvailable");
+		}
+
+
+		///////////////////////////////////////////////////////////////////////////////////////////////
+		// Get images directly from gallery
+		///////////////////////////////////////////////////////////////////////////////////////////////
+
+		//Returns ids of <num> most recent photos. You can pass these ids to fetchImages to get whatever size you need
+		public function getRecentImageIds(num:int):void
+		{
+			if(!isSupported) {
+				return;
+			}
+			// on iOS it's possible to do this synchronously although maybe not the best idea
+			var syncResult:Array = _context.call("getRecentImageIds", num) as Array;
+			if(syncResult) {
+				dispatchEvent(new AirImagePickerEvent(AirImagePickerEvent.IMAGE_LIST_SUCCEEDED, syncResult));
+			}
+		}
+
+		//If you call this and never cancel or retrieve the image fetches, they will stay in memory forever.
+		public function fetchImages(imageIds:Array, width:int, height:int, zoomedFillMode:Boolean):Array
+		{
+			if(!isSupported) {
+				return [];
+			}
+			return _context.call("fetchImages", imageIds, width, height, zoomedFillMode) as Array || [];
+		}
+
+		public function retrieveFetchedImage(requestId:int):BitmapData
+		{
+			if(!isSupported) {
+				return null;
+			}
+			return _context.call("retrieveFetchedImage", requestId) as BitmapData;
+		}
+
+		public function retrieveFetchedImageAsFile(requestId:int, maxWidth:int, maxHeight:int):ByteArray
+		{
+			if(!isSupported) {
+				return null;
+			}
+			return _context.call("retrieveFetchedImageAsFile", requestId,  maxWidth, maxHeight) as ByteArray;
+		}
+
+		public function cancelImageFetch(requestId:int):void
+		{
+			if(isSupported)
+				_context.call("cancelImageFetch", requestId);
+		}
+
+		public function getCameraPermissionsState():String
+		{
+			if(!isSupported) {
+				return PERMISSION_DENIED;
+			}
+			if(_isAndroid) {
+				return PERMISSION_AUTHORIZED; // this might change?
+			}
+			return _context.call("getCameraPermissionsState") as String;
+		}
+
+		public function getGalleryPermissionsState():String
+		{
+			if(!isSupported) {
+				return PERMISSION_DENIED;
+			}
+			if(_isAndroid) {
+				return PERMISSION_AUTHORIZED; // this might change?
+			}
+			return _context.call("getGalleryPermissionsState") as String;
+		}
+
+		public function canOpenSettings():Boolean
+		{
+			trace("*** canOpenSettings");
+			if(!isSupported || _isAndroid) {
+				return false;
+			}
+			return _context.call("canOpenSettings");
+		}
+
+		public function tryToOpenSettings():void
+		{
+			trace("*** tryToOpenSettingszz");
+			if(isSupported || _isAndroid) {
+				return;
+			}
+			_context.call("tryToOpenSettings");
+			trace("*** tryToOpenSettings done");
+		}
+
+		public static function getInstance() : AirImagePicker
+		{
+			return _instance ? _instance : new AirImagePicker();
+		}
+
 		// --------------------------------------------------------------------------------------//
 		//																						 //
 		// 									 	PRIVATE API										 //
@@ -253,6 +379,7 @@ package com.freshplanet.ane.AirImagePicker
 		private var _stage3D : Stage3D;
 		private var _overlay : BitmapData;
 		private var _context3DLost : Boolean = false;
+		private var _isAndroid:Boolean;
 		
 		private function prepareToDisplayNativeUI( callback : Function ) : void
 		{
@@ -298,79 +425,65 @@ package com.freshplanet.ane.AirImagePicker
 		
 		private function onStatus( event : StatusEvent ) : void
 		{
-			var callback:Function = _callback;
+			//For some reason, the following trace statement prevents a bug where the status event doesn't get
+			//dispatched on Android in landscape until you rotate to portrait. Please leave it in...
+			//trace("[AirImagePicker] onStatus: ", event.code, event.level);
 			
-			if (event.code == "ERROR_GENERATING_VIDEO")
-			{
-				if (_callback != null)
-				{
-					log("Error while generating video = "+event.level);
-					callback(STATUS_ERROR, event.level);
-				}
-			}
-			else if (event.code == "DID_FINISH_PICKING")
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					
-					var mediaType:String = event.level;
-					if (mediaType == "IMAGE")
-					{
-						// Load BitmapData
-						var pickedImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var pickedImageHeight:int = _context.call("getPickedImageHeight") as int;
-						var pickedImageBitmapData:BitmapData = new BitmapData(pickedImageWidth, pickedImageHeight);
-						_context.call("drawPickedImageToBitmapData", pickedImageBitmapData);
-						
-						// Load JPEG-encoded ByteArray
-						var pickedImageByteArray:ByteArray = new ByteArray();
-						pickedImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", pickedImageByteArray);
-						
-						callback(STATUS_OK, pickedImageBitmapData, pickedImageByteArray);
+			var callback:Function = _callback;
+
+			switch (event.code) {
+				case "PICKING_ERROR":
+					if (_callback != null) {
+						log("Error while picking = "+event.level);
+						callback(STATUS_ERROR, event.level);
 					}
-					else if (mediaType == "VIDEO")
-					{
-						// Video File path on device
-						var videoPath:String = _context.call("getVideoPath") as String;
-
-						// Picked Image Data corresponds to the thumbnail of the video.
-						var thumbnailImageWidth:int = _context.call("getPickedImageWidth") as int;
-						var thumbnailImageHeight:int = _context.call("getPickedImageHeight") as int;
-						var thumbnailImageBitmapData:BitmapData = new BitmapData(thumbnailImageWidth, thumbnailImageHeight);
-						_context.call("drawPickedImageToBitmapData", thumbnailImageBitmapData);
-
-						// Load JPEG-encoded ByteArray of the thumbnail
-						var thumbnailImageByteArray:ByteArray = new ByteArray();
-						thumbnailImageByteArray.length = _context.call("getPickedImageJPEGRepresentationSize") as int;
-						_context.call("copyPickedImageJPEGRepresentationToByteArray", thumbnailImageByteArray);
-
-						callback(STATUS_OK, videoPath, thumbnailImageBitmapData, thumbnailImageByteArray);
+					break;
+				case "ERROR_GENERATING_VIDEO":
+					if (_callback != null) {
+						log("Error while generating video = "+event.level);
+						callback(STATUS_ERROR, event.level);
 					}
-				}
-			}
-			else if (event.code == STATUS_DID_CANCEL)
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_DID_CANCEL);
-				}
-			}
-			else if (event.code == STATUS_PICASSA_NOT_SUPPORTED)
-			{
-				if (callback != null)
-				{
-					_callback = null;
-					callback(STATUS_PICASSA_NOT_SUPPORTED);
-				}
-			}
-			else if (event.code == "LOGGING") // Simple log message
-			{
-				log(event.level);
+					break;
+				case "DID_FINISH_PICKING":
+					if (callback != null) {
+						_callback = null;
+
+						var mediaType:String = event.level;
+						if (mediaType == "IMAGE") {
+							var pickedImagePath:String = _context.call("getImagePath") as String;
+							callback(STATUS_OK, pickedImagePath);
+						}
+						else if (mediaType == "VIDEO") {
+							// Video File path on device
+							var videoPath:String = _context.call("getVideoPath") as String;
+							var thumbnailImagePath:String = _context.call("getImagePath") as String;
+							callback(STATUS_OK, videoPath, thumbnailImagePath);
+						}
+					}
+					break;
+				case STATUS_DID_CANCEL:
+					if (callback != null) {
+						_callback = null;
+						callback(STATUS_DID_CANCEL);
+					}
+					break;
+				case STATUS_PICASSA_NOT_SUPPORTED:
+					if (callback != null) {
+						_callback = null;
+						callback(STATUS_PICASSA_NOT_SUPPORTED);
+					}
+					break;
+				case "LOGGING":
+					log(event.level);
+					break;
+				default:
+						trace("[Warn] " + event.code + " " + event.level);
+					dispatchEvent(new AirImagePickerEvent(event.code, JSON.parse(event.level)));
+					break;
 			}
 		}
+
+
 		
 		private function log( message : String ) : void
 		{

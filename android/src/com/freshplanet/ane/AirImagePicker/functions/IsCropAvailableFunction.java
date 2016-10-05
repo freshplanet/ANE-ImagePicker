@@ -9,27 +9,26 @@ import com.adobe.fre.FREWrongThreadException;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 
-public class IsCameraAvailableFunction implements FREFunction
-{
+public class IsCropAvailableFunction implements FREFunction {
+
 	private static String TAG = "AirImagePicker";
-	
 	@Override
-	public FREObject call(FREContext context, FREObject[] args)
-	{
-		Log.d(TAG, "[IsCameraAvailableFunction] entering call()");
+	public FREObject call(FREContext context, FREObject[] arg1) {
+		Log.d(TAG, "[IsCropAvailableFunction] entering call()");
 		try
 		{
-			Boolean isAvailable = AirImagePickerUtils.isCameraAvailable(context.getActivity());
+			Boolean isAvailable = AirImagePickerUtils.isCropAvailable(context.getActivity());
 			FREObject retValue = FREObject.newObject(isAvailable);
 			
-			Log.d(TAG, "[IsCameraAvailableFunction] exiting call()");
+			Log.d(TAG, "[IsCropAvailableFunction] exiting call(), available == " + (isAvailable ? "true" : "false"));
 			return retValue;
 		}
 		catch (FREWrongThreadException exception)
 		{
 			AirImagePickerExtension.log(exception.getMessage());
-			Log.e(TAG, "[IsCameraAvailableFunction] exiting call()");
+			Log.e(TAG, "[IsCropAvailableFunction] exiting call() with WrongThreadException");
 			return null;
 		}
 	}
+
 }

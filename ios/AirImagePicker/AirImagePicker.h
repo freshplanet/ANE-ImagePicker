@@ -17,27 +17,35 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #import "FlashRuntimeExtensions.h"
+#import "Photos/Photos.h"
 
 @interface AirImagePicker : NSObject <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 
-@property (nonatomic, retain) UIImagePickerController *imagePicker;
-@property (nonatomic, retain) UIPopoverController *popover;
-@property (nonatomic, readonly) UIImage *pickedImage;
-@property (nonatomic, readonly) NSData *pickedImageJPEGData;
-@property (nonatomic, strong) NSString *customImageAlbumName;
+//@property (nonatomic, retain) UIImagePickerController *imagePicker;
+//@property (nonatomic, retain) UIPopoverController *popover;
+//@property (nonatomic, retain) UIImage *pickedImage;
+//@property (nonatomic, retain) NSData *pickedImageJPEGData;
 @property (nonatomic, strong) NSString *videoPath;
+@property (nonatomic, strong) NSString *imagePath;
 
 + (id)sharedInstance;
 
 + (void)log:(NSString *)message;
++ (void)status:(NSString*)code level:(NSString*)level;
 
-- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor;
+- (void)storeUIImage:(PHImageRequestID)requestId image:(UIImage*)fetchedImage;
+- (UIImage *)retrieveUIImage:(PHImageRequestID)requestId;
 
-- (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
-- (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
-
-- (void)displayOverlay:(UIImage *)overlay;
-- (void)removeOverlay;
+//- (void)displayImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType allowVideo:(BOOL)allowVideo crop:(BOOL)crop albumName:(NSString*)albumName anchor:(CGRect)anchor maxDimensions:(CGSize)maxDimensions;
+//
+//- (void) onImagePickedWithOriginalImage:(UIImage*)originalImage editedImage:(UIImage*)editedImage;
+//- (void) onVideoPickedWithMediaURL:(NSURL*)mediaURL;
+//
+//- (void) exportToMP4:(NSURL *)originalMediaURL withExportURL:(NSURL*)exportUrl;
+//- (void) onVideoExported:(NSURL*)mediaURL;
+//
+//- (void)displayOverlay:(UIImage *)overlay;
+//- (void)removeOverlay;
 
 @end
 
@@ -47,14 +55,31 @@ DEFINE_ANE_FUNCTION(isImagePickerAvailable);
 DEFINE_ANE_FUNCTION(displayImagePicker);
 DEFINE_ANE_FUNCTION(isCameraAvailable);
 DEFINE_ANE_FUNCTION(displayCamera);
+
+//DEFINE_ANE_FUNCTION(setCameraFlashMode);
+
+//DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
+//DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+
+DEFINE_ANE_FUNCTION(displayOverlay);
+DEFINE_ANE_FUNCTION(removeOverlay);
+
+//image
+DEFINE_ANE_FUNCTION(getImagePath);
 DEFINE_ANE_FUNCTION(getPickedImageWidth);
 DEFINE_ANE_FUNCTION(getPickedImageHeight);
 DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
-DEFINE_ANE_FUNCTION(getPickedImageJPEGRepresentationSize);
-DEFINE_ANE_FUNCTION(copyPickedImageJPEGRepresentationToByteArray);
+
+//video
 DEFINE_ANE_FUNCTION(getVideoPath);
-DEFINE_ANE_FUNCTION(displayOverlay);
-DEFINE_ANE_FUNCTION(removeOverlay);
+
+// video thumnail
+//DEFINE_ANE_FUNCTION(getImagePath);
+//DEFINE_ANE_FUNCTION(getPickedImageWidth);
+//DEFINE_ANE_FUNCTION(getPickedImageHeight);
+//DEFINE_ANE_FUNCTION(drawPickedImageToBitmapData);
+DEFINE_ANE_FUNCTION(cleanUpTemporaryDirectoryContent);
+DEFINE_ANE_FUNCTION(isCropAvailable);
 
 
 // ANE Setup
