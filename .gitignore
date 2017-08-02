@@ -31,3 +31,6 @@ Thumbs.db
 # Test
 test/bin-debug
 test/src/Main-app.xml
+android/\.gradle/
+
+android/lib/build/

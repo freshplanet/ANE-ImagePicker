@@ -7,148 +7,129 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1128B52C17711C6900B671BC /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52B17711C6900B671BC /* AVFoundation.framework */; };
-		1128B52E17711C7300B671BC /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52D17711C7300B671BC /* CoreMedia.framework */; };
-		1128B53017711C8500B671BC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1128B52F17711C8500B671BC /* CoreGraphics.framework */; };
-		39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E60166E6B43004888F4 /* Foundation.framework */; };
-		39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 39898E65166E6B43004888F4 /* AirImagePicker.h */; };
-		39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 39898E67166E6B43004888F4 /* AirImagePicker.m */; };
-		39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39898E76166E6ED3004888F4 /* UIKit.framework */; };
-		65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */; };
-		B336640A1D480F4C00E0C9A9 /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B33664091D480F4C00E0C9A9 /* Photos.framework */; };
-		FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */; };
-		FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		A20193801F2638D5000D93FB /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = A201937F1F2638D5000D93FB /* UIImage+Resize.m */; };
+		A20193851F263AD9000D93FB /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = A20193821F263AD9000D93FB /* UIImage+Alpha.m */; };
+		A20193861F263AD9000D93FB /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = A20193841F263AD9000D93FB /* UIImage+RoundedCorner.m */; };
+		A20193881F264A25000D93FB /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A20193871F264A25000D93FB /* Photos.framework */; };
+		A2EDB9ED1F226F83003CDD74 /* AirImagePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = A2EDB9EC1F226F83003CDD74 /* AirImagePicker.m */; };
+		A2EDB9EE1F226F83003CDD74 /* AirImagePicker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = A2EDB9EB1F226F83003CDD74 /* AirImagePicker.h */; };
+		A2EDB9FA1F227721003CDD74 /* FPANEUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = A2EDB9F91F227721003CDD74 /* FPANEUtils.m */; };
+		B3EBA025ACDD262C52700FD8 /* libPods-AirImagePicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92B82A0722DDB26D003602FB /* libPods-AirImagePicker.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		39898E5B166E6B43004888F4 /* CopyFiles */ = {
+		A2EDB9E61F226F83003CDD74 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "include/${PRODUCT_NAME}";
+			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				39898E66166E6B43004888F4 /* AirImagePicker.h in CopyFiles */,
+				A2EDB9EE1F226F83003CDD74 /* AirImagePicker.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1128B52B17711C6900B671BC /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		1128B52D17711C7300B671BC /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
-		1128B52F17711C8500B671BC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		39898E5D166E6B43004888F4 /* libAirImagePicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAirImagePicker.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		39898E60166E6B43004888F4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AirImagePicker-Prefix.pch"; sourceTree = "<group>"; };
-		39898E65166E6B43004888F4 /* AirImagePicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AirImagePicker.h; sourceTree = "<group>"; };
-		39898E67166E6B43004888F4 /* AirImagePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AirImagePicker.m; sourceTree = "<group>"; };
-		39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlashRuntimeExtensions.h; sourceTree = "<group>"; };
-		39898E76166E6ED3004888F4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		65577E94170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ALAssetsLibrary+CustomPhotoAlbum.h"; sourceTree = "<group>"; };
-		65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ALAssetsLibrary+CustomPhotoAlbum.m"; sourceTree = "<group>"; };
-		B33664091D480F4C00E0C9A9 /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
-		FAF67EB516CEC370006E40A6 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
-		FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
-		FAF67EB916CEC4BB006E40A6 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
-		FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Alpha.m"; sourceTree = "<group>"; };
-		FAF67EBB16CEC4BB006E40A6 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
-		FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
+		3DAB39A397B577417FFE82CE /* Pods-AirImagePicker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AirImagePicker.release.xcconfig"; path = "Pods/Target Support Files/Pods-AirImagePicker/Pods-AirImagePicker.release.xcconfig"; sourceTree = "<group>"; };
+		92B82A0722DDB26D003602FB /* libPods-AirImagePicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AirImagePicker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9CCC4FB828214022F977533B /* Pods-AirImagePicker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AirImagePicker.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AirImagePicker/Pods-AirImagePicker.debug.xcconfig"; sourceTree = "<group>"; };
+		A201937E1F2638D5000D93FB /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
+		A201937F1F2638D5000D93FB /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
+		A20193811F263AD9000D93FB /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
+		A20193821F263AD9000D93FB /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Alpha.m"; sourceTree = "<group>"; };
+		A20193831F263AD9000D93FB /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		A20193841F263AD9000D93FB /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
+		A20193871F264A25000D93FB /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
+		A2EDB9E81F226F83003CDD74 /* libAirImagePicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAirImagePicker.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2EDB9EB1F226F83003CDD74 /* AirImagePicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AirImagePicker.h; sourceTree = "<group>"; };
+		A2EDB9EC1F226F83003CDD74 /* AirImagePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AirImagePicker.m; sourceTree = "<group>"; };
+		A2EDB9F41F226FAD003CDD74 /* FlashRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlashRuntimeExtensions.h; sourceTree = "<group>"; };
+		A2EDB9F81F227721003CDD74 /* FPANEUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FPANEUtils.h; sourceTree = "<group>"; };
+		A2EDB9F91F227721003CDD74 /* FPANEUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FPANEUtils.m; sourceTree = "<group>"; };
+		A2EDB9FB1F227CF2003CDD74 /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		39898E5A166E6B43004888F4 /* Frameworks */ = {
+		A2EDB9E51F226F83003CDD74 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B336640A1D480F4C00E0C9A9 /* Photos.framework in Frameworks */,
-				1128B53017711C8500B671BC /* CoreGraphics.framework in Frameworks */,
-				1128B52E17711C7300B671BC /* CoreMedia.framework in Frameworks */,
-				1128B52C17711C6900B671BC /* AVFoundation.framework in Frameworks */,
-				39898E61166E6B43004888F4 /* Foundation.framework in Frameworks */,
-				39898E77166E6ED3004888F4 /* UIKit.framework in Frameworks */,
+				A20193881F264A25000D93FB /* Photos.framework in Frameworks */,
+				B3EBA025ACDD262C52700FD8 /* libPods-AirImagePicker.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		39898E52166E6B43004888F4 = {
+		2926A2B25DAC27717C2B945A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1128B52F17711C8500B671BC /* CoreGraphics.framework */,
-				1128B52D17711C7300B671BC /* CoreMedia.framework */,
-				1128B52B17711C6900B671BC /* AVFoundation.framework */,
-				39898E62166E6B43004888F4 /* AirImagePicker */,
-				39898E5F166E6B43004888F4 /* Frameworks */,
-				39898E5E166E6B43004888F4 /* Products */,
-			);
-			sourceTree = "<group>";
-		};
-		39898E5E166E6B43004888F4 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				39898E5D166E6B43004888F4 /* libAirImagePicker.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		39898E5F166E6B43004888F4 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				B33664091D480F4C00E0C9A9 /* Photos.framework */,
-				FAF67EB816CEC375006E40A6 /* UIImage */,
-				39898E60166E6B43004888F4 /* Foundation.framework */,
-				39898E76166E6ED3004888F4 /* UIKit.framework */,
+				A20193871F264A25000D93FB /* Photos.framework */,
+				92B82A0722DDB26D003602FB /* libPods-AirImagePicker.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		39898E62166E6B43004888F4 /* AirImagePicker */ = {
+		A2EDB9DF1F226F83003CDD74 = {
 			isa = PBXGroup;
 			children = (
-				39898E65166E6B43004888F4 /* AirImagePicker.h */,
-				39898E67166E6B43004888F4 /* AirImagePicker.m */,
-				39898E63166E6B43004888F4 /* Supporting Files */,
+				A2EDB9F41F226FAD003CDD74 /* FlashRuntimeExtensions.h */,
+				A2EDB9F81F227721003CDD74 /* FPANEUtils.h */,
+				A2EDB9F91F227721003CDD74 /* FPANEUtils.m */,
+				A2EDB9EA1F226F83003CDD74 /* AirImagePicker */,
+				A2EDB9E91F226F83003CDD74 /* Products */,
+				E8887CEEB016CED16B644A16 /* Pods */,
+				2926A2B25DAC27717C2B945A /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		A2EDB9E91F226F83003CDD74 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A2EDB9E81F226F83003CDD74 /* libAirImagePicker.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A2EDB9EA1F226F83003CDD74 /* AirImagePicker */ = {
+			isa = PBXGroup;
+			children = (
+				A20193811F263AD9000D93FB /* UIImage+Alpha.h */,
+				A20193821F263AD9000D93FB /* UIImage+Alpha.m */,
+				A20193831F263AD9000D93FB /* UIImage+RoundedCorner.h */,
+				A20193841F263AD9000D93FB /* UIImage+RoundedCorner.m */,
+				A201937E1F2638D5000D93FB /* UIImage+Resize.h */,
+				A201937F1F2638D5000D93FB /* UIImage+Resize.m */,
+				A2EDB9EB1F226F83003CDD74 /* AirImagePicker.h */,
+				A2EDB9EC1F226F83003CDD74 /* AirImagePicker.m */,
+				A2EDB9FB1F227CF2003CDD74 /* Constants.h */,
 			);
 			path = AirImagePicker;
 			sourceTree = "<group>";
 		};
-		39898E63166E6B43004888F4 /* Supporting Files */ = {
+		E8887CEEB016CED16B644A16 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				39898E64166E6B43004888F4 /* AirImagePicker-Prefix.pch */,
-				39898E74166E6C02004888F4 /* FlashRuntimeExtensions.h */,
-				65577E94170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.h */,
-				65577E95170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m */,
+				9CCC4FB828214022F977533B /* Pods-AirImagePicker.debug.xcconfig */,
+				3DAB39A397B577417FFE82CE /* Pods-AirImagePicker.release.xcconfig */,
 			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		FAF67EB816CEC375006E40A6 /* UIImage */ = {
-			isa = PBXGroup;
-			children = (
-				FAF67EB916CEC4BB006E40A6 /* UIImage+Alpha.h */,
-				FAF67EBA16CEC4BB006E40A6 /* UIImage+Alpha.m */,
-				FAF67EBB16CEC4BB006E40A6 /* UIImage+RoundedCorner.h */,
-				FAF67EBC16CEC4BB006E40A6 /* UIImage+RoundedCorner.m */,
-				FAF67EB516CEC370006E40A6 /* UIImage+Resize.h */,
-				FAF67EB616CEC370006E40A6 /* UIImage+Resize.m */,
-			);
-			name = UIImage;
-			path = AirImagePicker;
+			name = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		39898E5C166E6B43004888F4 /* AirImagePicker */ = {
+		A2EDB9E71F226F83003CDD74 /* AirImagePicker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 39898E6B166E6B43004888F4 /* Build configuration list for PBXNativeTarget "AirImagePicker" */;
+			buildConfigurationList = A2EDB9F11F226F83003CDD74 /* Build configuration list for PBXNativeTarget "AirImagePicker" */;
 			buildPhases = (
-				39898E59166E6B43004888F4 /* Sources */,
-				39898E5A166E6B43004888F4 /* Frameworks */,
-				39898E5B166E6B43004888F4 /* CopyFiles */,
+				562AA0A5DA3A90E08B76616A /* [CP] Check Pods Manifest.lock */,
+				A2EDB9E41F226F83003CDD74 /* Sources */,
+				A2EDB9E51F226F83003CDD74 /* Frameworks */,
+				A2EDB9E61F226F83003CDD74 /* CopyFiles */,
+				3A605D004EB00623A47A692A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -156,115 +137,197 @@
 			);
 			name = AirImagePicker;
 			productName = AirImagePicker;
-			productReference = 39898E5D166E6B43004888F4 /* libAirImagePicker.a */;
+			productReference = A2EDB9E81F226F83003CDD74 /* libAirImagePicker.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		39898E54166E6B43004888F4 /* Project object */ = {
+		A2EDB9E01F226F83003CDD74 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
-				ORGANIZATIONNAME = FreshPlanet;
+				LastUpgradeCheck = 0830;
+				ORGANIZATIONNAME = "Mateo Kozomara";
+				TargetAttributes = {
+					A2EDB9E71F226F83003CDD74 = {
+						CreatedOnToolsVersion = 8.3.3;
+						DevelopmentTeam = HWKC8H7H6U;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
-			buildConfigurationList = 39898E57166E6B43004888F4 /* Build configuration list for PBXProject "AirImagePicker" */;
+			buildConfigurationList = A2EDB9E31F226F83003CDD74 /* Build configuration list for PBXProject "AirImagePicker" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 39898E52166E6B43004888F4;
-			productRefGroup = 39898E5E166E6B43004888F4 /* Products */;
+			mainGroup = A2EDB9DF1F226F83003CDD74;
+			productRefGroup = A2EDB9E91F226F83003CDD74 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				39898E5C166E6B43004888F4 /* AirImagePicker */,
+				A2EDB9E71F226F83003CDD74 /* AirImagePicker */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		3A605D004EB00623A47A692A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AirImagePicker/Pods-AirImagePicker-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		562AA0A5DA3A90E08B76616A /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		39898E59166E6B43004888F4 /* Sources */ = {
+		A2EDB9E41F226F83003CDD74 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				39898E68166E6B43004888F4 /* AirImagePicker.m in Sources */,
-				FAF67EB716CEC370006E40A6 /* UIImage+Resize.m in Sources */,
-				FAF67EBD16CEC4BB006E40A6 /* UIImage+Alpha.m in Sources */,
-				FAF67EBE16CEC4BB006E40A6 /* UIImage+RoundedCorner.m in Sources */,
-				65577E96170DE0E2007D8D19 /* ALAssetsLibrary+CustomPhotoAlbum.m in Sources */,
+				A20193851F263AD9000D93FB /* UIImage+Alpha.m in Sources */,
+				A20193861F263AD9000D93FB /* UIImage+RoundedCorner.m in Sources */,
+				A2EDB9FA1F227721003CDD74 /* FPANEUtils.m in Sources */,
+				A2EDB9ED1F226F83003CDD74 /* AirImagePicker.m in Sources */,
+				A20193801F2638D5000D93FB /* UIImage+Resize.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		39898E69166E6B43004888F4 /* Debug */ = {
+		A2EDB9EF1F226F83003CDD74 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
 		};
-		39898E6A166E6B43004888F4 /* Release */ = {
+		A2EDB9F01F226F83003CDD74 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		39898E6C166E6B43004888F4 /* Debug */ = {
+		A2EDB9F21F226F83003CDD74 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9CCC4FB828214022F977533B /* Pods-AirImagePicker.debug.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
-				DSTROOT = /tmp/AirImagePicker.dst;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
+				DEVELOPMENT_TEAM = HWKC8H7H6U;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		39898E6D166E6B43004888F4 /* Release */ = {
+		A2EDB9F31F226F83003CDD74 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3DAB39A397B577417FFE82CE /* Pods-AirImagePicker.release.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = YES;
-				DSTROOT = /tmp/AirImagePicker.dst;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "AirImagePicker/AirImagePicker-Prefix.pch";
+				DEVELOPMENT_TEAM = HWKC8H7H6U;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -274,25 +337,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		39898E57166E6B43004888F4 /* Build configuration list for PBXProject "AirImagePicker" */ = {
+		A2EDB9E31F226F83003CDD74 /* Build configuration list for PBXProject "AirImagePicker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				39898E69166E6B43004888F4 /* Debug */,
-				39898E6A166E6B43004888F4 /* Release */,
+				A2EDB9EF1F226F83003CDD74 /* Debug */,
+				A2EDB9F01F226F83003CDD74 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		39898E6B166E6B43004888F4 /* Build configuration list for PBXNativeTarget "AirImagePicker" */ = {
+		A2EDB9F11F226F83003CDD74 /* Build configuration list for PBXNativeTarget "AirImagePicker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				39898E6C166E6B43004888F4 /* Debug */,
-				39898E6D166E6B43004888F4 /* Release */,
+				A2EDB9F21F226F83003CDD74 /* Debug */,
+				A2EDB9F31F226F83003CDD74 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 39898E54166E6B43004888F4 /* Project object */;
+	rootObject = A2EDB9E01F226F83003CDD74 /* Project object */;
 }

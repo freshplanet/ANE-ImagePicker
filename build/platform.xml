@@ -1,8 +1,0 @@
-<platform xmlns="http://ns.adobe.com/air/extension/20.0">
-    <sdkVersion>9.2</sdkVersion>
-    <linkerOptions>
-    	<option>-framework AssetsLibrary</option>
-    	<option>-framework Photos</option>
-    	<option>-framework UIKit</option>
-    </linkerOptions> 
-</platform>

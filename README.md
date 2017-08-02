@@ -7,35 +7,16 @@ This is an [Air native extension](http://www.adobe.com/devnet/air/native-extensi
 Usage
 -----
 
-    ```actionscript
-    // Take a picture/video with the camera
-    if (AirImagePicker.getInstance().isCameraAvailable())
-    {
-        AirImagePicker.getInstance().displayCamera(function(status:String, ...mediaArgs):void {
-            // Do something with the Media information returned
-        });
-    }
-
-    // Pick an image from the gallery
-    if (AirImagePicker.getInstance().isImagePickerAvailable())
-    {
-        AirImagePicker.getInstance().displayImagePicker(function(status:String, ...mediaArgs):void {
-            // Do something with the Media information returned
-        });
-    }
-    ```
+   Complete usage example is in the *sample* directory
     
-In the manifestAdditions section of your AIR app manifest, include this in the application element:
+In the manifestAdditions section of your AIR app manifest for Android, include this in the application element:
   ```xml
-  <activity
-    android:name="com.freshplanet.ane.AirImagePicker.AirImagePickerActivity"
-    android:configChanges="orientation|keyboard|keyboardHidden|screenSize|screenLayout|fontScale"
-  />
+  <activity android:name="com.freshplanet.ane.AirImagePicker.activities.GalleryActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+  <activity android:name="com.freshplanet.ane.AirImagePicker.activities.CropActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+  <activity android:name="com.freshplanet.ane.AirImagePicker.activities.CameraActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
   ```
 
-The "configChanges" attribute fixes crashes when returning to the app on some Samsung devices.
-
-Advanced features available: square cropping, custom positioning for the gallery image picker on iPad, custom overlay to avoid white screen when loosing Stage3D context.
+Advanced features available: square cropping, custom positioning for the gallery image picker on iPad.
 
 For more information, please look at the Actionscript documentation in [AirImagePicker.as](https://github.com/freshplanet/ANE-ImagePicker/blob/master/actionscript/src/com/freshplanet/ane/AirImagePicker/AirImagePicker.as).
 
@@ -43,7 +24,7 @@ For more information, please look at the Actionscript documentation in [AirImage
 Installation
 ---------
 
-The ANE binary (AirBurstly.ane) is located in the *bin* folder. You should add it to your application project's Build Path and make sure to package it with your app (more information [here](http://help.adobe.com/en_US/air/build/WS597e5dadb9cc1e0253f7d2fc1311b491071-8000.html)).
+The ANE binary (AirImagePicker.ane) is located in the *bin* folder. You should add it to your application project's Build Path and make sure to package it with your app (more information [here](http://help.adobe.com/en_US/air/build/WS597e5dadb9cc1e0253f7d2fc1311b491071-8000.html)).
 
 
 Build script
@@ -60,4 +41,4 @@ Should you need to edit the extension source code and/or recompile it, you will 
 Authors
 ------
 
-This ANE has been written by [Alexis Taugeron](http://alexistaugeron.com) and [Daniel Rodriguez](http://www.github.com/dornad/). It belongs to [FreshPlanet Inc.](http://freshplanet.com) and is distributed under the [Apache Licence, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+This ANE has been written by [Alexis Taugeron](http://alexistaugeron.com), [Daniel Rodriguez](http://www.github.com/dornad/) and [Mateo Kozomara](mateo.kozomara@gmail.com). It belongs to [FreshPlanet Inc.](http://freshplanet.com) and is distributed under the [Apache Licence, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
