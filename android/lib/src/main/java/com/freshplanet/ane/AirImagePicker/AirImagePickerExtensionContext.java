@@ -39,7 +39,6 @@ public class AirImagePickerExtensionContext extends FREContext {
 
 	public static Bitmap getStoredBitmap(String imagePath) {
 		Bitmap bitmap = _storedImages.get(imagePath);
-		_storedImages.remove(imagePath);
 		return bitmap;
 	}
 

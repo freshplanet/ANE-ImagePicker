@@ -74,7 +74,6 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
 
 - (UIImage *) getStoredImage:(NSString*)imageName{
     UIImage *image = [_storedImages valueForKey:imageName];
-    [_storedImages removeObjectForKey:imageName];
     return image;
 }
 
@@ -167,7 +166,6 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
     for (int i=0; i < rslt.count; ++i) {
         PHAsset *asset = [rslt objectAtIndex:i];
         NSString *assetId = asset.localIdentifier;
-        [self sendLog:[@"Requesting image for assetId: " stringByAppendingString:assetId]];
         [manager requestImageForAsset:asset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeDefault options:requestOpts resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
             loadedCount = loadedCount + 1;
@@ -200,23 +198,18 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
 -(void) imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
 
     [picker dismissViewControllerAnimated:true completion:nil];
-    [self sendLog:@"Image chosen"];
     
     UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
     UIImage *chosenEditedImage = info[UIImagePickerControllerEditedImage];
     NSURL *referenceURL = info[UIImagePickerControllerReferenceURL];
     NSString *imagePath = referenceURL == nil ? [[NSUUID UUID] UUIDString] : referenceURL.path ;
     
-    [self sendLog:[@"ref url is null " stringByAppendingString:referenceURL == nil ? @"YES" : @"NO"]];
-    
     if (chosenImage != nil) {
-        [self sendLog:@"has chosen image"];
         chosenImage = [chosenImage resizedImageWithContentMode:UIViewContentModeScaleAspectFit bounds:chosenImage.size interpolationQuality:kCGInterpolationDefault];
         chosenImage = [self resizeImage:chosenImage toMaxDimension:_maxDimensions forceSquare:false];
     }
    
     if (chosenEditedImage != nil) {
-        [self sendLog:@"has edited image"];
         chosenEditedImage = [self resizeImage:chosenEditedImage toMaxDimension:_maxDimensions forceSquare:true];
     }
     
@@ -261,12 +254,10 @@ DEFINE_ANE_FUNCTION(displayImagePicker) {
                 
                 if (status == PHAuthorizationStatusAuthorized) {
                     // Access has been granted.
-                    [controller sendLog:[@"ACCESS GRANTED: " stringByAppendingString:@""]];
                     [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
                 }
                 else {
                     // Access has not been granted.
-                    [controller sendLog:[@"ACCESS NOTT GRANTED: " stringByAppendingString:@""]];
                     [controller sendEvent:kAirImagePickerDataEvent_galleryPermissionError];
                 }
                 
@@ -274,11 +265,9 @@ DEFINE_ANE_FUNCTION(displayImagePicker) {
             }];
         }
         else if (status != PHAuthorizationStatusAuthorized) {
-            [controller sendLog:[@"ACCESS WAS NOTT GRANTED: " stringByAppendingString:@""]];
             [controller sendEvent:kAirImagePickerDataEvent_galleryPermissionError];
         }
         else {
-            [controller sendLog:[@"ACCESS WAS GRANTED: " stringByAppendingString:@""]];
             [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
         }
         
@@ -311,21 +300,17 @@ DEFINE_ANE_FUNCTION(displayCamera) {
             
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 if (granted) {
-                    [controller sendLog:[@"ACCESS GRANTED: " stringByAppendingString:@""]];
                     [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
                 } else {
-                     [controller sendLog:[@"ACCESS NOTT GRANTED: " stringByAppendingString:@""]];
                     [controller sendEvent:kAirImagePickerDataEvent_cameraPermissionError];
                 }
             }];
           
         }
         else if (status != AVAuthorizationStatusAuthorized) {
-            [controller sendLog:[@"ACCESS WAS NOTT GRANTED: " stringByAppendingString:@""]];
             [controller sendEvent:kAirImagePickerDataEvent_cameraPermissionError];
         }
         else {
-            [controller sendLog:[@"ACCESS WAS GRANTED: " stringByAppendingString:@""]];
             [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
         }
         
@@ -361,12 +346,10 @@ DEFINE_ANE_FUNCTION(loadRecentImages) {
                 
                 if (status == PHAuthorizationStatusAuthorized) {
                     // Access has been granted.
-                    [controller sendLog:[@"ACCESS GRANTED: " stringByAppendingString:@""]];
                     [controller getRecentImages:CGSizeMake(maxWidth, maxHeight) fetchLimit:fetchLimit];
                 }
                else {
                     // Access has not been granted.
-                    [controller sendLog:[@"ACCESS NOTT GRANTED: " stringByAppendingString:@""]];
                    [controller sendEvent:kAirImagePickerRecentImagesEvent_onPremissionError];
                 }
                 
@@ -374,11 +357,9 @@ DEFINE_ANE_FUNCTION(loadRecentImages) {
             }];
         }
         else if (status != PHAuthorizationStatusAuthorized) {
-           [controller sendLog:[@"ACCESS WAS NOTT GRANTED: " stringByAppendingString:@""]];
             [controller sendEvent:kAirImagePickerRecentImagesEvent_onPremissionError];
         }
         else {
-            [controller sendLog:[@"ACCESS WAS GRANTED: " stringByAppendingString:@""]];
             [controller getRecentImages:CGSizeMake(maxWidth, maxHeight) fetchLimit:fetchLimit];
         }
         
