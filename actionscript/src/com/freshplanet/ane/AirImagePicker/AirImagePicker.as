@@ -209,6 +209,7 @@ public class AirImagePicker extends EventDispatcher {
 			imagePath = event.level;
 			bitmapData = _context.call("internalGetChosenPhotoBitmapData", imagePath) as BitmapData;
 			byteArray = _context.call("internalGetChosenPhotoByteArray", imagePath) as ByteArray;
+			_context.call("internalRemoveStoredImage", imagePath);
 			this.dispatchEvent(new AirImagePickerDataEvent(AirImagePickerDataEvent.IMAGE_CHOSEN, new AirImagePickerImageData(bitmapData, byteArray)));
 		}
 		else if (event.code == "recentResult") {
@@ -219,6 +220,7 @@ public class AirImagePicker extends EventDispatcher {
 				imagePath = imagePathsArray[i];
 				bitmapData = _context.call("internalGetChosenPhotoBitmapData", imagePath) as BitmapData;
 				byteArray = _context.call("internalGetChosenPhotoByteArray", imagePath) as ByteArray;
+				_context.call("internalRemoveStoredImage", imagePath);
 				images.push(new AirImagePickerImageData(bitmapData, byteArray));
 
 			}

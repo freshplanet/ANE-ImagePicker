@@ -77,6 +77,11 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
     return image;
 }
 
+- (void) removeStoredImage:(NSString*)imageName{
+    [_storedImages removeObjectForKey:imageName];
+    
+}
+
 - (UIImage *) resizeImage:(UIImage *)image toMaxDimension:(CGSize)maxDimensions forceSquare:(BOOL)fSquare {
     
     if (fSquare && image.size.width != image.size.height) {
@@ -468,7 +473,24 @@ DEFINE_ANE_FUNCTION(internalGetChosenPhotoByteArray) {
     return nil;
 }
 
-
+DEFINE_ANE_FUNCTION(internalRemoveStoredImage) {
+    
+    AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
+    
+    if (!controller)
+        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+    
+    @try {
+        NSString *imagePath = FPANE_FREObjectToNSString((argv[0]));
+        [controller removeStoredImage:imagePath];
+        
+    }
+    @catch (NSException *exception) {
+        [controller sendLog:[@"Exception occured while trying to internalGetChosenPhotoByteArray: " stringByAppendingString:exception.reason]];
+        
+    }
+    return nil;
+}
 
 #pragma mark - ANE setup
 
@@ -486,7 +508,8 @@ void AirImagePickerContextInitializer(void* extData, const uint8_t* ctxType, FRE
         MAP_FUNCTION(getGalleryPermissionStatus, NULL),
         MAP_FUNCTION(openSettings, NULL),
         MAP_FUNCTION(internalGetChosenPhotoBitmapData, NULL),
-        MAP_FUNCTION(internalGetChosenPhotoByteArray, NULL)
+        MAP_FUNCTION(internalGetChosenPhotoByteArray, NULL),
+        MAP_FUNCTION(internalRemoveStoredImage, NULL),
     };
     
     *numFunctionsToTest = sizeof(functions) / sizeof(FRENamedFunction);
