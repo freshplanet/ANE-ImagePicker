@@ -33,8 +33,6 @@ public class GalleryActivity extends ImagePickerActivityBase {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		AirImagePickerExtension.context.dispatchStatusEventAsync("log", "GalleryActivity");
-
 		Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 		int action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
 		startActivityForResult(intent, action);

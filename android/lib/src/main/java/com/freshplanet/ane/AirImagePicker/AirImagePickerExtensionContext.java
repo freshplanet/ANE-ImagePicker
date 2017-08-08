@@ -25,6 +25,7 @@ import com.freshplanet.ane.AirImagePicker.functions.GetStoredBitmapDataFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetStoredByteArrayFunction;
 import com.freshplanet.ane.AirImagePicker.functions.LoadRecentPhotosFunction;
 import com.freshplanet.ane.AirImagePicker.functions.OpenSettingsFunction;
+import com.freshplanet.ane.AirImagePicker.functions.RemoveStoredImageFunction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,11 @@ public class AirImagePickerExtensionContext extends FREContext {
 
 	public static Bitmap getStoredBitmap(String imagePath) {
 		Bitmap bitmap = _storedImages.get(imagePath);
-		_storedImages.remove(imagePath);
 		return bitmap;
+	}
+
+	public static void removeStoredBitmap(String imagePath) {
+		_storedImages.remove(imagePath);
 	}
 
 	@Override
@@ -60,6 +64,7 @@ public class AirImagePickerExtensionContext extends FREContext {
 		functions.put("openSettings", new OpenSettingsFunction());
 		functions.put("internalGetChosenPhotoBitmapData", new GetStoredBitmapDataFunction());
 		functions.put("internalGetChosenPhotoByteArray", new GetStoredByteArrayFunction());
+		functions.put("internalRemoveStoredImage", new RemoveStoredImageFunction());
 		return functions;	
 	}
 
