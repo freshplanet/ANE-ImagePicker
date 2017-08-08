@@ -17,18 +17,6 @@
 #import "Constants.h"
 #import "UIImage+Resize.h"
 
-NSString* dictionaryToNSString(NSDictionary *dictionary){
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary
-                                                       options:NSJSONWritingPrettyPrinted // Pass 0 if you don't care about the readability of the generated string
-                                                         error:&error];
-    if (! jsonData) {
-        return @"";
-    } else {
-        return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    }
-}
-
 AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
     
     CFTypeRef controller;
@@ -80,6 +68,18 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
 - (void) removeStoredImage:(NSString*)imageName{
     [_storedImages removeObjectForKey:imageName];
     
+}
+
+- (NSString*) dictionaryToNSString:(NSDictionary*)dictionary {
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary
+                                                       options:NSJSONWritingPrettyPrinted // Pass 0 if you don't care about the readability of the generated string
+                                                         error:&error];
+    if (! jsonData) {
+        return @"";
+    } else {
+        return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    }
 }
 
 - (UIImage *) resizeImage:(UIImage *)image toMaxDimension:(CGSize)maxDimensions forceSquare:(BOOL)fSquare {
@@ -186,7 +186,7 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
                 if (loadedCount == rslt.count) {
                     // finished
                     [imagePathsResult setValue:imagePaths forKey:@"imagePaths"];
-                    [self sendEvent:kRecentResult level:dictionaryToNSString(imagePathsResult)];
+                    [self sendEvent:kRecentResult level:[self dictionaryToNSString:imagePathsResult]];
                     
                     
                 }
