@@ -209,8 +209,8 @@ public class AirImagePickerUtils {
 		Log.d(TAG, "[AirImagePickerUtils] Entering resizeImage: " + String.valueOf(maxWidth) + " x " + String.valueOf(maxHeight));
 		Bitmap result = image;
 		// make sure that the image has the correct height
-		if (image.getWidth() > maxWidth || image.getHeight() > maxHeight
-				&& maxWidth != -1 && maxHeight != -1) {
+		if ((image.getWidth() > maxWidth || image.getHeight() > maxHeight)
+				&& maxWidth > 0 && maxHeight > 0) {
 	        float reductionFactor = Math.max(Float.valueOf(image.getWidth()) / maxWidth, Float.valueOf(image.getHeight()) / maxHeight);
 	        
 			result = Bitmap.createScaledBitmap( image, (int)(image.getWidth()/reductionFactor), (int)(image.getHeight()/reductionFactor), true);

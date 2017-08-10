@@ -20,7 +20,10 @@ import com.adobe.fre.FREByteArray;
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREObject;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
+
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 public class GetStoredByteArrayFunction extends BaseFunction {
 
@@ -31,6 +34,7 @@ public class GetStoredByteArrayFunction extends BaseFunction {
 
 		String imagePath = getStringFromFREObject(args[0]);
 		Bitmap bitmap = AirImagePickerExtensionContext.getStoredBitmap(imagePath);
+		bitmap = AirImagePickerUtils.swapColors(bitmap);
 
 		if(bitmap == null) {
 			return null;
@@ -44,9 +48,8 @@ public class GetStoredByteArrayFunction extends BaseFunction {
 			as3bytes.setProperty("length", FREObject.newObject(out.size()));
 			as3bytes.acquire();
 			as3bytes.getBytes().put(out.toByteArray());
-			if(as3bytes != null) {
-				as3bytes.release();
-			}
+			as3bytes.release();
+
 		} catch (Exception e) {
 			context.dispatchStatusEventAsync("log", "displayImagePicker error trying to create byteArray "+ e.getLocalizedMessage());
 		}
