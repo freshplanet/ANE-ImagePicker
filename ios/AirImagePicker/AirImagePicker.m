@@ -141,8 +141,10 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
         picker.popoverPresentationController.sourceView = rootViewController.view;
         picker.popoverPresentationController.sourceRect = anchor;
     }
-
-    [rootViewController presentViewController:picker animated:true completion:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [rootViewController presentViewController:picker animated:true completion:nil];
+    });
+    
     
 }
 
@@ -259,7 +261,9 @@ DEFINE_ANE_FUNCTION(displayImagePicker) {
                 
                 if (status == PHAuthorizationStatusAuthorized) {
                     // Access has been granted.
+                    
                     [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
+                        
                 }
                 else {
                     // Access has not been granted.
