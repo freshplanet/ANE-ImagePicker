@@ -85,8 +85,21 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
 - (UIImage *) resizeImage:(UIImage *)image toMaxDimension:(CGSize)maxDimensions forceSquare:(BOOL)fSquare {
     
     if (fSquare && image.size.width != image.size.height) {
+        
+        CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
         // If image is not square (happens if the user didn't zoom enough when cropping), we add black areas around
-        CGFloat longestEdge = MAX(image.size.width, image.size.height);
+        CGFloat longestEdge;
+        
+        // hack for iPad issue on iOS 11 - remove when the issue is fixed
+        if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && image.size.width >= screenWidth) {
+            longestEdge = MIN(image.size.width, image.size.height);
+        }
+        else {
+            longestEdge = MAX(image.size.width, image.size.height);
+        }
+        
+        
+        
         CGRect drawRect = CGRectZero;
         drawRect.size = image.size;
         if (image.size.width > image.size.height){
