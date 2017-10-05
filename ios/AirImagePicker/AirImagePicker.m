@@ -91,7 +91,7 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
         CGFloat longestEdge;
         
         // hack for iPad issue on iOS 11 - remove when the issue is fixed
-        if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && image.size.width >= screenWidth) {
+        if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
             longestEdge = MIN(image.size.width, image.size.height);
         }
         else {
