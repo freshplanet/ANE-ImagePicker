@@ -20,24 +20,24 @@
 #define MAP_FUNCTION(fn, data) { (const uint8_t*)(#fn), (data), &(fn) }
 #define ROOT_VIEW_CONTROLLER [[[UIApplication sharedApplication] keyWindow] rootViewController]
 
-void FPANE_DispatchEvent(FREContext context, NSString* eventName);
-void FPANE_DispatchEventWithInfo(FREContext context, NSString* eventName, NSString* eventInfo);
-void FPANE_Log(FREContext context, NSString* message);
+void AirImagePicker_FPANE_DispatchEvent(FREContext context, NSString* eventName);
+void AirImagePicker_FPANE_DispatchEventWithInfo(FREContext context, NSString* eventName, NSString* eventInfo);
+void AirImagePicker_FPANE_Log(FREContext context, NSString* message);
 
-NSString* FPANE_FREObjectToNSString(FREObject object);
-NSArray* FPANE_FREObjectToNSArrayOfNSString(FREObject object);
-NSDictionary* FPANE_FREObjectsToNSDictionaryOfNSString(FREObject keys, FREObject values);
-BOOL FPANE_FREObjectToBool(FREObject object);
-NSInteger FPANE_FREObjectToInt(FREObject object);
-double FPANE_FREObjectToDouble(FREObject object);
+NSString* AirImagePicker_FPANE_FREObjectToNSString(FREObject object);
+NSArray* AirImagePicker_FPANE_FREObjectToNSArrayOfNSString(FREObject object);
+NSDictionary* AirImagePicker_FPANE_FREObjectsToNSDictionaryOfNSString(FREObject keys, FREObject values);
+BOOL AirImagePicker_FPANE_FREObjectToBool(FREObject object);
+NSInteger AirImagePicker_FPANE_FREObjectToInt(FREObject object);
+double AirImagePicker_FPANE_FREObjectToDouble(FREObject object);
 
-FREObject FPANE_BOOLToFREObject(BOOL boolean);
-FREObject FPANE_IntToFREObject(NSInteger i);
-FREObject FPANE_DoubleToFREObject(double d);
-FREObject FPANE_NSStringToFREObject(NSString* string);
-FREObject FPANE_CreateError(NSString* error, NSInteger* id);
-FREObject FPANE_UIImageToFREBitmapData(UIImage *image);
-FREObject FPANE_UIImageToFREByteArray(UIImage *image);
+FREObject AirImagePicker_FPANE_BOOLToFREObject(BOOL boolean);
+FREObject AirImagePicker_FPANE_IntToFREObject(NSInteger i);
+FREObject AirImagePicker_FPANE_DoubleToFREObject(double d);
+FREObject AirImagePicker_FPANE_NSStringToFREObject(NSString* string);
+FREObject AirImagePicker_FPANE_CreateError(NSString* error, NSInteger* id);
+FREObject AirImagePicker_FPANE_UIImageToFREBitmapData(UIImage *image);
+FREObject AirImagePicker_FPANE_UIImageToFREByteArray(UIImage *image);
 
-UIImage* FPANE_FREBitmapDataToUIImage(FREObject object);
-NSArray* FPANE_FREObjectToNSArrayOfUIImage(FREObject object);
+UIImage* AirImagePicker_FPANE_FREBitmapDataToUIImage(FREObject object);
+NSArray* AirImagePicker_FPANE_FREObjectToNSArrayOfUIImage(FREObject object);

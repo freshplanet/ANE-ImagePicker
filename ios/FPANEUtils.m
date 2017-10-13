@@ -16,24 +16,24 @@
 
 #pragma mark - Dispatch events
 
-void FPANE_DispatchEvent(FREContext context, NSString* eventName) {
+void AirImagePicker_FPANE_DispatchEvent(FREContext context, NSString* eventName) {
     
     FREDispatchStatusEventAsync(context, (const uint8_t*) [eventName UTF8String], (const uint8_t*) "");
 }
 
-void FPANE_DispatchEventWithInfo(FREContext context, NSString* eventName, NSString* eventInfo) {
+void AirImagePicker_FPANE_DispatchEventWithInfo(FREContext context, NSString* eventName, NSString* eventInfo) {
     
     FREDispatchStatusEventAsync(context, (const uint8_t*) [eventName UTF8String], (const uint8_t*) [eventInfo UTF8String]);
 }
 
-void FPANE_Log(FREContext context, NSString* message) {
+void AirImagePicker_FPANE_Log(FREContext context, NSString* message) {
     
-    FPANE_DispatchEventWithInfo(context, @"LOGGING", message);
+    AirImagePicker_FPANE_DispatchEventWithInfo(context, @"LOGGING", message);
 }
 
 #pragma mark - FREObject -> Obj-C
 
-NSString* FPANE_FREObjectToNSString(FREObject object) {
+NSString* AirImagePicker_FPANE_FREObjectToNSString(FREObject object) {
     
     uint32_t stringLength;
     const uint8_t* string;
@@ -41,7 +41,7 @@ NSString* FPANE_FREObjectToNSString(FREObject object) {
     return [NSString stringWithUTF8String:(char*) string];
 }
 
-NSArray* FPANE_FREObjectToNSArrayOfNSString(FREObject object) {
+NSArray* AirImagePicker_FPANE_FREObjectToNSArrayOfNSString(FREObject object) {
     
     uint32_t arrayLength;
     FREGetArrayLength(object, &arrayLength);
@@ -66,7 +66,7 @@ NSArray* FPANE_FREObjectToNSArrayOfNSString(FREObject object) {
     return [NSArray arrayWithArray:mutableArray];
 }
 
-UIImage* FPANE_FREBitmapDataToUIImage(FREObject object) {
+UIImage* AirImagePicker_FPANE_FREBitmapDataToUIImage(FREObject object) {
     
     
         FREBitmapData bitmapData;
@@ -116,7 +116,7 @@ UIImage* FPANE_FREBitmapDataToUIImage(FREObject object) {
     return image;
 }
 
-NSArray* FPANE_FREObjectToNSArrayOfUIImage(FREObject object) {
+NSArray* AirImagePicker_FPANE_FREObjectToNSArrayOfUIImage(FREObject object) {
     
     uint32_t arrayLength;
     FREGetArrayLength(object, &arrayLength);
@@ -126,14 +126,14 @@ NSArray* FPANE_FREObjectToNSArrayOfUIImage(FREObject object) {
         FREObject itemRaw;
         FREGetArrayElementAt(object, (uint) i, &itemRaw);
         
-        UIImage *image = FPANE_FREBitmapDataToUIImage(itemRaw);
+        UIImage *image = AirImagePicker_FPANE_FREBitmapDataToUIImage(itemRaw);
         [mutableArray addObject:image];
     }
     
     return [NSArray arrayWithArray:mutableArray];
 }
 
-NSDictionary* FPANE_FREObjectsToNSDictionaryOfNSString(FREObject keys, FREObject values) {
+NSDictionary* AirImagePicker_FPANE_FREObjectsToNSDictionaryOfNSString(FREObject keys, FREObject values) {
     
     uint32_t numKeys, numValues;
     FREGetArrayLength(keys, &numKeys);
@@ -162,21 +162,21 @@ NSDictionary* FPANE_FREObjectsToNSDictionaryOfNSString(FREObject keys, FREObject
     return [NSDictionary dictionaryWithDictionary:mutableDictionary];
 }
 
-BOOL FPANE_FREObjectToBool(FREObject object) {
+BOOL AirImagePicker_FPANE_FREObjectToBool(FREObject object) {
     
     uint32_t b;
     FREGetObjectAsBool(object, &b);
     return b != 0;
 }
 
-NSInteger FPANE_FREObjectToInt(FREObject object) {
+NSInteger AirImagePicker_FPANE_FREObjectToInt(FREObject object) {
     
     int32_t i;
     FREGetObjectAsInt32(object, &i);
     return i;
 }
 
-double FPANE_FREObjectToDouble(FREObject object) {
+double AirImagePicker_FPANE_FREObjectToDouble(FREObject object) {
     
     double x;
     FREGetObjectAsDouble(object, &x);
@@ -185,35 +185,35 @@ double FPANE_FREObjectToDouble(FREObject object) {
 
 #pragma mark - Obj-C -> FREObject
 
-FREObject FPANE_BOOLToFREObject(BOOL boolean) {
+FREObject AirImagePicker_FPANE_BOOLToFREObject(BOOL boolean) {
     
     FREObject result;
     FRENewObjectFromBool(boolean, &result);
     return result;
 }
 
-FREObject FPANE_IntToFREObject(NSInteger i) {
+FREObject AirImagePicker_FPANE_IntToFREObject(NSInteger i) {
     
     FREObject result;
     FRENewObjectFromInt32((int32_t) i, &result);
     return result;
 }
 
-FREObject FPANE_DoubleToFREObject(double d) {
+FREObject AirImagePicker_FPANE_DoubleToFREObject(double d) {
     
     FREObject result;
     FRENewObjectFromDouble(d, &result);
     return result;
 }
 
-FREObject FPANE_NSStringToFREObject(NSString* string) {
+FREObject AirImagePicker_FPANE_NSStringToFREObject(NSString* string) {
     
     FREObject result;
     FRENewObjectFromUTF8((int) string.length, (const uint8_t*) [string UTF8String], &result);
     return result;
 }
 
-FREObject FPANE_CreateError(NSString* error, NSInteger* id) {
+FREObject AirImagePicker_FPANE_CreateError(NSString* error, NSInteger* id) {
     
     FREObject ret;
     FREObject errorThrown;
@@ -221,7 +221,7 @@ FREObject FPANE_CreateError(NSString* error, NSInteger* id) {
     FREObject freId;
     FRENewObjectFromInt32((int32_t) *id, &freId);
     FREObject argV[] = {
-            FPANE_NSStringToFREObject(error),
+            AirImagePicker_FPANE_NSStringToFREObject(error),
             freId
     };
     FRENewObject((const uint8_t*) "Error", 2, argV, &ret, &errorThrown);
@@ -229,7 +229,7 @@ FREObject FPANE_CreateError(NSString* error, NSInteger* id) {
     return ret;
 }
 
-FREObject FPANE_UIImageToFREBitmapData(UIImage *image) {
+FREObject AirImagePicker_FPANE_UIImageToFREBitmapData(UIImage *image) {
     
     // create bitmap data
     FREObject widthObj;
@@ -315,7 +315,7 @@ FREObject FPANE_UIImageToFREBitmapData(UIImage *image) {
     return nil;
 }
 
-FREObject FPANE_UIImageToFREByteArray(UIImage *image) {
+FREObject AirImagePicker_FPANE_UIImageToFREByteArray(UIImage *image) {
     
     NSData *imageJPEGData = UIImageJPEGRepresentation(image, 1.0);
     

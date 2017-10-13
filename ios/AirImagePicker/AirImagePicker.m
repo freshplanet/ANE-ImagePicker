@@ -254,16 +254,16 @@ DEFINE_ANE_FUNCTION(displayImagePicker) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     @try {
-        NSInteger maxWidth = FPANE_FREObjectToInt(argv[0]);
-        NSInteger maxHeight = FPANE_FREObjectToInt(argv[1]);
-        BOOL crop = FPANE_FREObjectToBool(argv[2]);
+        NSInteger maxWidth = AirImagePicker_FPANE_FREObjectToInt(argv[0]);
+        NSInteger maxHeight = AirImagePicker_FPANE_FREObjectToInt(argv[1]);
+        BOOL crop = AirImagePicker_FPANE_FREObjectToBool(argv[2]);
         CGRect anchor;
         
         if (argc > 3) {
-            anchor = CGRectMake(FPANE_FREObjectToDouble(argv[3]), FPANE_FREObjectToDouble(argv[4]), FPANE_FREObjectToDouble(argv[5]), FPANE_FREObjectToDouble(argv[6]));
+            anchor = CGRectMake(AirImagePicker_FPANE_FREObjectToDouble(argv[3]), AirImagePicker_FPANE_FREObjectToDouble(argv[4]), AirImagePicker_FPANE_FREObjectToDouble(argv[5]), AirImagePicker_FPANE_FREObjectToDouble(argv[6]));
         }
         
         
@@ -310,12 +310,12 @@ DEFINE_ANE_FUNCTION(displayCamera) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     @try {
-        NSInteger maxWidth = FPANE_FREObjectToInt(argv[0]);
-        NSInteger maxHeight = FPANE_FREObjectToInt(argv[1]);
-        BOOL crop = FPANE_FREObjectToBool(argv[2]);
+        NSInteger maxWidth = AirImagePicker_FPANE_FREObjectToInt(argv[0]);
+        NSInteger maxHeight = AirImagePicker_FPANE_FREObjectToInt(argv[1]);
+        BOOL crop = AirImagePicker_FPANE_FREObjectToBool(argv[2]);
         
         AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
         if (status == AVAuthorizationStatusNotDetermined) {
@@ -353,13 +353,13 @@ DEFINE_ANE_FUNCTION(loadRecentImages) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     
     @try {
-        NSInteger fetchLimit = FPANE_FREObjectToInt(argv[0]);
-        NSInteger maxWidth = FPANE_FREObjectToInt(argv[1]);
-        NSInteger maxHeight = FPANE_FREObjectToInt(argv[2]);
+        NSInteger fetchLimit = AirImagePicker_FPANE_FREObjectToInt(argv[0]);
+        NSInteger maxWidth = AirImagePicker_FPANE_FREObjectToInt(argv[1]);
+        NSInteger maxHeight = AirImagePicker_FPANE_FREObjectToInt(argv[2]);
         
         PHAuthorizationStatus  status = [PHPhotoLibrary authorizationStatus];
         if (status == PHAuthorizationStatusNotDetermined) {
@@ -399,7 +399,7 @@ DEFINE_ANE_FUNCTION(getCameraPermissionStatus) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
     NSString * authState;
@@ -418,7 +418,7 @@ DEFINE_ANE_FUNCTION(getCameraPermissionStatus) {
             break;
     }
     
-    return FPANE_NSStringToFREObject(authState);
+    return AirImagePicker_FPANE_NSStringToFREObject(authState);
 }
 
 DEFINE_ANE_FUNCTION(getGalleryPermissionStatus) {
@@ -426,7 +426,7 @@ DEFINE_ANE_FUNCTION(getGalleryPermissionStatus) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
     NSString * authState;
@@ -444,7 +444,7 @@ DEFINE_ANE_FUNCTION(getGalleryPermissionStatus) {
             authState = @"not_determined";
             break;
     }
-    return FPANE_NSStringToFREObject(authState);
+    return AirImagePicker_FPANE_NSStringToFREObject(authState);
 }
 
 DEFINE_ANE_FUNCTION(openSettings) {
@@ -457,12 +457,12 @@ DEFINE_ANE_FUNCTION(internalGetChosenPhotoBitmapData) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     @try {
-        NSString *imagePath = FPANE_FREObjectToNSString((argv[0]));
+        NSString *imagePath = AirImagePicker_FPANE_FREObjectToNSString((argv[0]));
         UIImage *image= [controller getStoredImage:imagePath];
-        return FPANE_UIImageToFREBitmapData(image);
+        return AirImagePicker_FPANE_UIImageToFREBitmapData(image);
     }
     @catch (NSException *exception) {
         [controller sendLog:[@"Exception occured while trying to internalGetChosenPhoto: " stringByAppendingString:exception.reason]];
@@ -476,12 +476,12 @@ DEFINE_ANE_FUNCTION(internalGetChosenPhotoByteArray) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     @try {
-        NSString *imagePath = FPANE_FREObjectToNSString((argv[0]));
+        NSString *imagePath = AirImagePicker_FPANE_FREObjectToNSString((argv[0]));
         UIImage *image= [controller getStoredImage:imagePath];
-        return FPANE_UIImageToFREByteArray(image);
+        return AirImagePicker_FPANE_UIImageToFREByteArray(image);
     }
     @catch (NSException *exception) {
         [controller sendLog:[@"Exception occured while trying to internalGetChosenPhotoByteArray: " stringByAppendingString:exception.reason]];
@@ -495,10 +495,10 @@ DEFINE_ANE_FUNCTION(internalRemoveStoredImage) {
     AirImagePicker* controller = GetAirImagePickerContextNativeData(context);
     
     if (!controller)
-        return FPANE_CreateError(@"context's AirImagePicker is null", 0);
+        return AirImagePicker_FPANE_CreateError(@"context's AirImagePicker is null", 0);
     
     @try {
-        NSString *imagePath = FPANE_FREObjectToNSString((argv[0]));
+        NSString *imagePath = AirImagePicker_FPANE_FREObjectToNSString((argv[0]));
         [controller removeStoredImage:imagePath];
         
     }
