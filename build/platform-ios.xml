@@ -14,7 +14,7 @@
  */-->
 
 <platform xmlns="http://ns.adobe.com/air/extension/20.0">
-    <sdkVersion>8.0</sdkVersion>
+    <sdkVersion>9.0</sdkVersion>
     <linkerOptions>
     	<option>-framework Photos</option>
     	<option>-framework UIKit</option>
