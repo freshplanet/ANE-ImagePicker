@@ -18,7 +18,7 @@
 #import <UIKit/UIKit.h>
 #import "Photos/Photos.h"
 
-@interface AirImagePicker : NSObject<UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
+@interface AirImagePicker : NSObject<UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate> {
     FREContext _context;
     NSMutableDictionary* _storedImages;
     CGSize _maxDimensions;

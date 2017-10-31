@@ -149,11 +149,15 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
     picker.delegate = self;
     picker.allowsEditing = crop;
     picker.sourceType = sourceType;
-    if (sourceType == UIImagePickerControllerSourceTypePhotoLibrary && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && anchor.size.width > 0 && anchor.size.height > 0 ) {
+    if (sourceType == UIImagePickerControllerSourceTypePhotoLibrary && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && anchor.size.width > 0 && anchor.size.height > 0) {
         picker.modalPresentationStyle = UIModalPresentationPopover;
         picker.popoverPresentationController.sourceView = rootViewController.view;
+        picker.popoverPresentationController.delegate = self;
         picker.popoverPresentationController.sourceRect = anchor;
+        [picker.popoverPresentationController setPermittedArrowDirections:UIPopoverArrowDirectionLeft];
+        
     }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [rootViewController presentViewController:picker animated:true completion:nil];
     });
@@ -243,6 +247,12 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
     [picker dismissViewControllerAnimated:true completion:nil];
     [self sendEvent:kAirImagePickerDataEvent_cancelled];
     
+}
+
+#pragma mark - UIPopoverPresentationControllerDelegate
+
+-(void)popoverPresentationControllerDidDismissPopover:(UIPopoverPresentationController *)popoverPresentationController {
+    [self sendEvent:kAirImagePickerDataEvent_cancelled];
 }
 
 @end
