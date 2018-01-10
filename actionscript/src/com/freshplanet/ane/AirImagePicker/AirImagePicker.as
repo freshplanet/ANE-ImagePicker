@@ -128,10 +128,7 @@ public class AirImagePicker extends EventDispatcher {
 	 */
 	public function getCameraPermissionStatus():AirImagePickerPermissionStatus {
 		if(isSupported) {
-			if(isAndroid)
-				return AirImagePickerPermissionStatus.AUTHORIZED;
-			else
-				return AirImagePickerPermissionStatus.fromValue(_context.call("getCameraPermissionStatus") as String);
+			return AirImagePickerPermissionStatus.fromValue(_context.call("getCameraPermissionStatus") as String);
 		}
 
 		return AirImagePickerPermissionStatus.NOT_DETERMINED;
@@ -143,12 +140,8 @@ public class AirImagePicker extends EventDispatcher {
 	 */
 	public function getGalleryPermissionStatus():AirImagePickerPermissionStatus {
 		if(isSupported) {
-			if(isAndroid)
-				return AirImagePickerPermissionStatus.AUTHORIZED;
-			else
-				return AirImagePickerPermissionStatus.fromValue(_context.call("getGalleryPermissionStatus") as String);
+			return AirImagePickerPermissionStatus.fromValue(_context.call("getGalleryPermissionStatus") as String);
 		}
-
 
 		return AirImagePickerPermissionStatus.NOT_DETERMINED;
 	}
