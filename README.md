@@ -7,7 +7,13 @@ This is an [Air native extension](http://www.adobe.com/devnet/air/native-extensi
 Usage
 -----
 
+
    Complete usage example is in the *sample* directory
+   
+   The ANE in the *sample/libs* directory works standalone.
+   
+   The ANE in the *bin* directory is compiled without Android support libraries and will not work standalone.
+   
     
 In the manifestAdditions section of your AIR app manifest for Android, include this in the application element:
   ```xml
