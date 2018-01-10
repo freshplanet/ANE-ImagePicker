@@ -16,11 +16,14 @@
 package com.freshplanet.ane.AirImagePicker;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREFunction;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayCameraFunction;
 import com.freshplanet.ane.AirImagePicker.functions.DisplayImagePickerFunction;
+import com.freshplanet.ane.AirImagePicker.functions.GetCameraPermissionStatus;
+import com.freshplanet.ane.AirImagePicker.functions.GetGalleryPermissionStatus;
 import com.freshplanet.ane.AirImagePicker.functions.GetStoredBitmapDataFunction;
 import com.freshplanet.ane.AirImagePicker.functions.GetStoredByteArrayFunction;
 import com.freshplanet.ane.AirImagePicker.functions.LoadRecentPhotosFunction;
@@ -65,7 +68,9 @@ public class AirImagePickerExtensionContext extends FREContext {
 		functions.put("internalGetChosenPhotoBitmapData", new GetStoredBitmapDataFunction());
 		functions.put("internalGetChosenPhotoByteArray", new GetStoredByteArrayFunction());
 		functions.put("internalRemoveStoredImage", new RemoveStoredImageFunction());
-		return functions;	
+		functions.put("getCameraPermissionStatus", new GetCameraPermissionStatus());
+		functions.put("getGalleryPermissionStatus", new GetGalleryPermissionStatus());
+		return functions;
 	}
 
 

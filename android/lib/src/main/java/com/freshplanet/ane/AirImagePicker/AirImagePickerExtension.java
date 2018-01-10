@@ -15,6 +15,8 @@
 
 package com.freshplanet.ane.AirImagePicker;
 
+import android.util.Log;
+
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREExtension;
 

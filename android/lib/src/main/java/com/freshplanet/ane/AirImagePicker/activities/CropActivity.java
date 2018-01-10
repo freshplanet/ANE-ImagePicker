@@ -16,68 +16,86 @@
 package com.freshplanet.ane.AirImagePicker.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.support.v4.content.FileProvider;
 
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 import com.freshplanet.ane.AirImagePicker.Constants;
 
 import java.io.File;
+import java.util.List;
 
 public class CropActivity extends ImagePickerActivityBase {
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Set crop input
+		if(savedInstanceState != null) {
+			return;
+		}
 
 		Intent intent = new Intent("com.android.camera.action.CROP");
-		
+		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+
+		Context appContext = getApplicationContext();
+
 		String cropInputPath = result.imagePath;
-		intent.setDataAndType(Uri.fromFile(new File(cropInputPath)), "image/*");
+		Uri imageUri = (Uri)getIntent().getExtras().get("imageUri");
+
+		intent.setDataAndType(imageUri, "image/*");
 
 		// Set crop output
-		File tempFile = AirImagePickerUtils.getTemporaryFile(".jpg");
+		File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
+
 		result.imagePath = tempFile.getAbsolutePath();
 
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
 
-		// Cropped image should be square (aspect ratio 1:1)
-		intent.putExtra("aspectX", 1);
-		intent.putExtra("aspectY", 1);
-		intent.putExtra("scale", true);
+		Uri uri = FileProvider.getUriForFile(this,
+				appContext.getPackageName() + ".provider",
+				tempFile);
+		List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		for (ResolveInfo resolveInfo : resInfoList) {
+			String packageName = resolveInfo.activityInfo.packageName;
+			grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		}
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
 
 		// Set crop output size
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(cropInputPath, options);
 		int smallestEdge = Math.min(options.outWidth, options.outHeight);
+
+		// Cropped image should be square (aspect ratio 1:1)
 		intent.putExtra("outputX", smallestEdge);
 		intent.putExtra("outputY", smallestEdge);
+		intent.putExtra("crop", "true");
+		intent.putExtra("aspectX", 1);
+		intent.putExtra("aspectY", 1);
+		intent.putExtra("scale", true);
+		intent.putExtra("return-data", true);
+
 		startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-
 		if (resultCode == Activity.RESULT_OK) {
-			if(data.hasExtra(MediaStore.EXTRA_OUTPUT)) {
-				Uri extraImageUri = (Uri)data.getExtras().get(MediaStore.EXTRA_OUTPUT);
-				if(extraImageUri != null) {
-					result.imagePath = extraImageUri.getPath();
-				}
-			}
 
 			Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 			bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
@@ -88,6 +106,7 @@ public class CropActivity extends ImagePickerActivityBase {
 		}
 		else {
 			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			finish();
 		}
 
 

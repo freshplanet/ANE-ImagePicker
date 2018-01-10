@@ -16,6 +16,7 @@
 package com.freshplanet.ane.AirImagePicker;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -35,7 +36,6 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 
 public class AirImagePickerUtils {
@@ -123,11 +123,13 @@ public class AirImagePickerUtils {
 
 	public static final String TAG = "AirImagePicker";
 
-	static public File getTemporaryFile( String extension ) {
-		// Get or create folder for temp files
-		File tempFolder = new File(Environment.getExternalStorageDirectory()+File.separator+"airImagePicker");
+	static public File getTemporaryFile(Context context, String extension ) {
+
+		File tempFolder = new File(context.getCacheDir(), "airImagePicker");
+
 		if (!tempFolder.exists()) {
 			tempFolder.mkdirs();
+
 			try {
 				new File(tempFolder, ".nomedia").createNewFile();
 			}
@@ -138,7 +140,7 @@ public class AirImagePickerUtils {
 	
 		// Create temp file
 		try {
-		    return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+			return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
 		} catch (Exception e) {
 			Log.e(TAG, "Couldn't create temp file");
 		}
@@ -185,25 +187,6 @@ public class AirImagePickerUtils {
 		return picture;
 	}
 
-	public static String saveImageToTemporaryDirectory(Bitmap image) {
-		Log.d(TAG, "[AirImagePickerUtils] Entering saveImageToTemporaryDirectory");
-		String path = "";
-	    FileOutputStream outputStream;
-	    try {
-			File file = getTemporaryFile(".jpg");
-	    	outputStream = new FileOutputStream(file);
-	        outputStream.write(getJPEGRepresentationFromBitmap(image));
-	        outputStream.close();
-	        path = file.getAbsolutePath();
-			Log.d(TAG, "[AirImagePickerUtils] saveImageToTemporaryDirectory path:"+path);
-	    }
-	    catch (IOException e) {
-			Log.e(TAG, "[AirImagePickerUtils] saveImageToTemporaryDirectory error:"+e.toString());
-	        // Error while creating file
-	    }
-		Log.d(TAG, "[AirImagePickerUtils] Exiting saveImageToTemporaryDirectory");
-	    return path;
-	}
 
 	public static Bitmap resizeImage(Bitmap image, int maxWidth, int maxHeight) {
 		Log.d(TAG, "[AirImagePickerUtils] Entering resizeImage: " + String.valueOf(maxWidth) + " x " + String.valueOf(maxHeight));
@@ -235,7 +218,9 @@ public class AirImagePickerUtils {
 	public static final int CAMERA_IMAGE_ACTION = 2;
 	public static final int CAMERA_VIDEO_ACTION = 3;
 	public static final int CROP_ACTION = 4;
-	
+	public static final int REQUEST_CAMERA_PERMISSION_ACTION = 5;
+	public static final int REQUEST_GALLERY_PERMISSION_ACTION = 6;
+
 
 	public static Intent getIntentForAction(int action) {
 		Log.d(TAG, "[AirImagePickerUtils] Entering getIntentForAction");

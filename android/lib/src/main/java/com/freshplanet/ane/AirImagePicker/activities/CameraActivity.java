@@ -15,36 +15,83 @@
 
 package com.freshplanet.ane.AirImagePicker.activities;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
-
-import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils.SavedBitmap;
 import com.freshplanet.ane.AirImagePicker.Constants;
 
 import java.io.File;
+import java.util.List;
+
+import static com.freshplanet.ane.AirImagePicker.AirImagePickerExtension.context;
 
 public class CameraActivity extends ImagePickerActivityBase {
-	
+
+
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+//		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+//			// Do something for lollipop and above versions
+//		} else{
+//			// do something for phones running an SDK before lollipop
+//		}
+		if(savedInstanceState != null) {
+			return;
+		}
 
-		File tempFile = AirImagePickerUtils.getTemporaryFile(".jpg");
+		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, AirImagePickerUtils.REQUEST_CAMERA_PERMISSION_ACTION);
+		}
+		else  {
+			displayCamera();
+		}
+
+	}
+
+	private void displayCamera() {
+		Context appContext = getApplicationContext();
+		File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
 		result.imagePath = tempFile.getAbsolutePath();
-		
+
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
-		
+
+		imageUri = FileProvider.getUriForFile(appContext,
+				appContext.getPackageName() + ".provider",
+				tempFile);
+
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+
 		startActivityForResult(intent, AirImagePickerUtils.CAMERA_IMAGE_ACTION);
-		
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		int permissionCheck = PackageManager.PERMISSION_GRANTED;
+		for (int permission : grantResults) {
+			permissionCheck = permissionCheck + permission;
+		}
+		if ((grantResults.length > 0) && permissionCheck == PackageManager.PERMISSION_GRANTED) {
+			// granted
+			displayCamera();
+		} else {
+			// denied - do nothing
+			finish();
+		}
+
 	}
 
 	@Override
@@ -57,17 +104,16 @@ public class CameraActivity extends ImagePickerActivityBase {
 			}
 			else {
 				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-
 				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 				bitmap = AirImagePickerUtils.swapColors(bitmap);
 				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+				context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
 				finish();
-
 			}
 		}
 		else {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			finish();
 		}
 
 

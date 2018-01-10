@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--<files-path name="airImagePicker" path="airImagePicker/"/>-->
+    <!--<external-cache-path name="cache" path="airImagePickerCache/" />-->
+    <!--<external-files-path name="my_files" />-->
+    <!--<external-cache-path name="airImagePicker" path="airImagePicker/" />-->
+    <cache-path name="airImagePicker" path="airImagePicker/"/>
+    <external-cache-path name="airImagePicker" path="airImagePicker/" />
+    <external-path name="airImagePicker" path="airImagePicker/"/>
+    <external-files-path name="airImagePicker" path="airImagePicker/"/>
+    <files-path name="airImagePicker" path="airImagePicker/"/>
+    <!--<external-files-path name="airImagePicker" />-->
+    <!--<external-cache-path name="my_cache" path="./" />-->
+    <!--<external-cache-path name="external_files" path="airImagePicker"/>-->
+    <!--<external-path name="external_files" path="airImagePicker"/>-->
+    <!--<external-files-path name="external_files" path="airImagePicker"/>-->
+    <!--<files-path-->
+        <!--name="shared"-->
+        <!--path="shared/" />-->
+    <!--<external-path name="my_images" path="Android/data/air.com.freshplanet.AirImagePickerTest/files/Pictures" />-->
+    <!--<files-path name="shared" />-->
+</paths>

@@ -15,11 +15,16 @@
 
 package com.freshplanet.ane.AirImagePicker.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
@@ -33,10 +38,39 @@ public class GalleryActivity extends ImagePickerActivityBase {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		if(savedInstanceState != null) {
+			return;
+		}
+
+		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
+		}
+		else  {
+			displayImagePicker();
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		int permissionCheck = PackageManager.PERMISSION_GRANTED;
+		for (int permission : grantResults) {
+			permissionCheck = permissionCheck + permission;
+		}
+		if ((grantResults.length > 0) && permissionCheck == PackageManager.PERMISSION_GRANTED) {
+			// granted
+			displayImagePicker();
+		} else {
+			// denied - do nothing
+			finish();
+		}
+
+	}
+
+	private void displayImagePicker() {
 		Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 		int action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
 		startActivityForResult(intent, action);
-			
 	}
 
 	@Override
@@ -47,24 +81,27 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			Uri selectedImageUri = data.getData();
 
 			result.imagePath = getPath(selectedImageUri);
+			imageUri = selectedImageUri;
 
 			if(parameters.shouldCrop) {
 				finish();
 				doCrop();
-				return;
+			}
+			else {
+				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+
+				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
+				bitmap = AirImagePickerUtils.swapColors(bitmap);
+				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+				finish();
 			}
 
-			Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-
-			bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
-			bitmap = AirImagePickerUtils.swapColors(bitmap);
-			AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
-			finish();
 
 		}
 		else {
 			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			finish();
 		}
 	}
 
