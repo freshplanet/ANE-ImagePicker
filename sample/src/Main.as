@@ -19,6 +19,8 @@ import com.freshplanet.ane.AirImagePicker.AirImagePicker;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerImageData;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerDataEvent;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerRecentImagesEvent;
+
+import flash.display.Bitmap;
 import flash.display.Sprite;
 import flash.display.StageAlign;
 import flash.events.Event;
@@ -63,12 +65,12 @@ public class Main extends Sprite {
 
 
         var blocks:Array = [];
-
 	    blocks.push(new TestBlock("display camera", function():void {
-		    AirImagePicker.instance.displayCamera();
+		    trace("displaying camera");
+			AirImagePicker.instance.displayCamera(500,500,true);
 	    }));
         blocks.push(new TestBlock("display image picker", function():void {
-	        AirImagePicker.instance.displayImagePicker();
+	        AirImagePicker.instance.displayImagePicker(500,500,true);
         }));
 	    blocks.push(new TestBlock("getCameraPermissionStatus", function():void {
 		    trace("Camera permission status: ", AirImagePicker.instance.getCameraPermissionStatus().value);
@@ -77,7 +79,7 @@ public class Main extends Sprite {
 		    trace("Gallery permission status: ", AirImagePicker.instance.getGalleryPermissionStatus().value);
 	    }));
 	    blocks.push(new TestBlock("loadRecentImages", function():void {
-		   AirImagePicker.instance.loadRecentImages(1);
+		   AirImagePicker.instance.loadRecentImages(1, 500, 500);
 
 	    }));
 	    blocks.push(new TestBlock("openSettings", function():void {
