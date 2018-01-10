@@ -13,8 +13,6 @@
 
     <!-- All -->
     <target name="all" depends="ios,android,swc,package" description="Full build of extension"/>
-    <!--<target name="all" depends="ios,swc,package" description="Full build of extension"/>-->
-    <!--<target name="all-android-debug" depends="ios,swc,package" description="Full build of extension w/debugging on Android"/>-->
 
     <!-- iOS -->
     <target name="ios" description="Build iOS Library">
@@ -71,6 +69,7 @@
         <property name="build.intermediates" value="../android/lib/build/intermediates"/>
         <property name="build.release" value="${build.intermediates}/bundles/release"/>
         <property name="build.exploded-aar" value="${build.intermediates}/exploded-aar"/>
+        <property name="android.res" value="../android/lib/src/main/res"/>
 
         <!-- make the build directory -->
         <mkdir dir="temp/android"/>
@@ -105,6 +104,11 @@
                 </copy>
             </then>
         </if>
+
+        <!-- copy over additional assets -->
+        <copy todir="temp/android/${name}-res/xml" overwrite="true" failonerror="true">
+            <fileset dir="${android.res}/xml"/>
+        </copy>
 
         <!-- Copy over the bundled libs -->
         <copy todir="temp/android">
@@ -156,7 +160,7 @@
             <arg value="../extension.xml"/>
             <arg line="-swc swc/${name}.swc"/>
             <arg line="-platform iPhone-ARM -platformoptions ../platform-ios.xml -C ios/ . "/>
-            <arg line="-platform Android-ARM -C android/ ."/>
+            <arg line="-platform Android-ARM -platformoptions ../platform-android.xml -C android/ ."/>
             <arg line="-platform default -C default/ ."/>
         </exec>
 

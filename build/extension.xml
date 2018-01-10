@@ -13,7 +13,7 @@
  * limitations under the License.
  */-->
 
-<extension xmlns="http://ns.adobe.com/air/extension/20.0">
+<extension xmlns="http://ns.adobe.com/air/extension/22.0">
   <id>com.freshplanet.ane.AirImagePicker</id>
   <versionNumber>1</versionNumber>
   <platforms>
