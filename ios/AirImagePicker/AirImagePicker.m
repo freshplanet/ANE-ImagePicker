@@ -458,7 +458,9 @@ DEFINE_ANE_FUNCTION(getGalleryPermissionStatus) {
 }
 
 DEFINE_ANE_FUNCTION(openSettings) {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    
     return nil;
 }
 
