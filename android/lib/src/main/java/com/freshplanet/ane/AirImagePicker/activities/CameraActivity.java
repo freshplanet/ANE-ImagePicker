@@ -27,6 +27,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+
+import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 import com.freshplanet.ane.AirImagePicker.Constants;
@@ -104,15 +106,22 @@ public class CameraActivity extends ImagePickerActivityBase {
 			}
 			else {
 				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+
+				if(bitmap == null) {
+					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+					finish();
+					return;
+				}
+
 				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 				bitmap = AirImagePickerUtils.swapColors(bitmap);
 				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-				context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
 				finish();
 			}
 		}
 		else {
-			context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 

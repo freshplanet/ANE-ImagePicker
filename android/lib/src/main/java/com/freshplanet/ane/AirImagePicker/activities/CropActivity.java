@@ -98,6 +98,11 @@ public class CropActivity extends ImagePickerActivityBase {
 		if (resultCode == Activity.RESULT_OK) {
 
 			Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+			if(bitmap == null) {
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+				finish();
+				return;
+			}
 			bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 			bitmap = AirImagePickerUtils.swapColors(bitmap);
 			AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
