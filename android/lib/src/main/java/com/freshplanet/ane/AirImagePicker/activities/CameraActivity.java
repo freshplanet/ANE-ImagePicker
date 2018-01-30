@@ -54,12 +54,12 @@ public class CameraActivity extends ImagePickerActivityBase {
 			return;
 		}
 
-		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, AirImagePickerUtils.REQUEST_CAMERA_PERMISSION_ACTION);
-		}
-		else  {
+		// if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+		// 	ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, AirImagePickerUtils.REQUEST_CAMERA_PERMISSION_ACTION);
+		// }
+		// else  {
 			displayCamera();
-		}
+		//}
 
 	}
 

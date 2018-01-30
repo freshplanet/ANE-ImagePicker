@@ -126,12 +126,13 @@ public class AirImagePicker extends EventDispatcher {
 	 * Get Camera permission status
 	 * @return
 	 */
-	public function getCameraPermissionStatus():AirImagePickerPermissionStatus {
-		if(isSupported) {
+	public function getCameraPermissionStatus():AirImagePickerPermissionStatus 
+	{
+		if(isAndroid)	{
+			return AirImagePickerPermissionStatus.AUTHORIZED;		
+		} else {
 			return AirImagePickerPermissionStatus.fromValue(_context.call("getCameraPermissionStatus") as String);
 		}
-
-		return AirImagePickerPermissionStatus.NOT_DETERMINED;
 	}
 
 	/**
