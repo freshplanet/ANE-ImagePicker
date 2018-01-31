@@ -62,6 +62,7 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			displayImagePicker();
 		} else {
 			// denied - do nothing
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 

@@ -91,6 +91,7 @@ public class CameraActivity extends ImagePickerActivityBase {
 			displayCamera();
 		} else {
 			// denied - do nothing
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 
