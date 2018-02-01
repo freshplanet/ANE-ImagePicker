@@ -132,6 +132,7 @@ public abstract class ImagePickerActivityBase extends Activity {
 	    	b.putParcelable(RESULT, result);
 	    	intent.putExtra(airPackageName + RESULT, b);
 			intent.putExtra("imageUri", imageUri);
+			intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			startActivity(intent);
     	}
     }
