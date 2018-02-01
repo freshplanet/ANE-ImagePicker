@@ -18,6 +18,7 @@ package {
 import com.freshplanet.ane.AirImagePicker.AirImagePicker;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerImageData;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerDataEvent;
+import com.freshplanet.ane.AirImagePicker.events.AirImagePickerErrorEvent;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerRecentImagesEvent;
 
 import flash.display.Bitmap;
@@ -58,8 +59,9 @@ public class Main extends Sprite {
 
 	    AirImagePicker.instance.addEventListener(AirImagePickerDataEvent.CANCELLED, onImagePickCanceled);
 	    AirImagePicker.instance.addEventListener(AirImagePickerDataEvent.IMAGE_CHOSEN, onImageChosen);
-	    AirImagePicker.instance.addEventListener(AirImagePickerDataEvent.CAMERA_PERMISSION_ERROR, onCameraPermissionError);
-	    AirImagePicker.instance.addEventListener(AirImagePickerDataEvent.GALLERY_PERMISSION_ERROR, onGalleryPermissionError);
+	    AirImagePicker.instance.addEventListener(AirImagePickerErrorEvent.CAMERA_PERMISSION_ERROR, onCameraPermissionError);
+	    AirImagePicker.instance.addEventListener(AirImagePickerErrorEvent.GALLERY_PERMISSION_ERROR, onGalleryPermissionError);
+	    AirImagePicker.instance.addEventListener(AirImagePickerErrorEvent.ERROR, onError);
 	    AirImagePicker.instance.addEventListener(AirImagePickerRecentImagesEvent.ON_LOAD_RESULT, onRecentImagesResult);
 	    AirImagePicker.instance.addEventListener(AirImagePickerRecentImagesEvent.PERMISSION_ERROR, onRecentImagesPermissionError);
 
@@ -100,6 +102,10 @@ public class Main extends Sprite {
             nextY +=  block.height + indent;
         }
     }
+
+	private function onError(event:AirImagePickerErrorEvent):void {
+		trace("Error occurred: ", event.error);
+	}
 
 	private function onImagePickCanceled(event:AirImagePickerDataEvent):void {
 		trace("Image pick cancelled");
