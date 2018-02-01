@@ -45,51 +45,57 @@ public class CropActivity extends ImagePickerActivityBase {
 			return;
 		}
 
-		Intent intent = new Intent("com.android.camera.action.CROP");
-		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-		intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+		try {
+			Intent intent = new Intent("com.android.camera.action.CROP");
+			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
 
-		Context appContext = getApplicationContext();
+			Context appContext = getApplicationContext();
 
-		String cropInputPath = result.imagePath;
-		Uri imageUri = (Uri)getIntent().getExtras().get("imageUri");
+			String cropInputPath = result.imagePath;
+			Uri imageUri = (Uri) getIntent().getExtras().get("imageUri");
 
-		intent.setDataAndType(imageUri, "image/*");
+			intent.setDataAndType(imageUri, "image/*");
 
-		// Set crop output
-		File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
+			// Set crop output
+			File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
 
-		result.imagePath = tempFile.getAbsolutePath();
+			result.imagePath = tempFile.getAbsolutePath();
 
 
-		Uri uri = FileProvider.getUriForFile(this,
-				appContext.getPackageName() + ".provider",
-				tempFile);
-		List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		for (ResolveInfo resolveInfo : resInfoList) {
-			String packageName = resolveInfo.activityInfo.packageName;
-			grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			Uri uri = FileProvider.getUriForFile(this,
+					appContext.getPackageName() + ".provider",
+					tempFile);
+			List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			for (ResolveInfo resolveInfo : resInfoList) {
+				String packageName = resolveInfo.activityInfo.packageName;
+				grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+
+			// Set crop output size
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeFile(cropInputPath, options);
+			int smallestEdge = Math.min(options.outWidth, options.outHeight);
+
+			// Cropped image should be square (aspect ratio 1:1)
+			intent.putExtra("outputX", smallestEdge);
+			intent.putExtra("outputY", smallestEdge);
+			intent.putExtra("crop", "true");
+			intent.putExtra("aspectX", 1);
+			intent.putExtra("aspectY", 1);
+			intent.putExtra("scale", true);
+			intent.putExtra("return-data", true);
+
+			startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
 		}
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-
-
-		// Set crop output size
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(cropInputPath, options);
-		int smallestEdge = Math.min(options.outWidth, options.outHeight);
-
-		// Cropped image should be square (aspect ratio 1:1)
-		intent.putExtra("outputX", smallestEdge);
-		intent.putExtra("outputY", smallestEdge);
-		intent.putExtra("crop", "true");
-		intent.putExtra("aspectX", 1);
-		intent.putExtra("aspectY", 1);
-		intent.putExtra("scale", true);
-		intent.putExtra("return-data", true);
-
-		startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
+		catch (Exception e) {
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			finish();
+		}
 	}
 
 	@Override
@@ -97,17 +103,29 @@ public class CropActivity extends ImagePickerActivityBase {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == Activity.RESULT_OK) {
 
-			Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-			if(bitmap == null) {
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			try {
+				if(result.imagePath == null) {
+					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, "Image path of cropped image is null");
+					finish();
+					return;
+				}
+
+				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+				if(bitmap == null) {
+					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+					finish();
+					return;
+				}
+				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
+				bitmap = AirImagePickerUtils.swapColors(bitmap);
+				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
 				finish();
-				return;
 			}
-			bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
-			bitmap = AirImagePickerUtils.swapColors(bitmap);
-			AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
-			finish();
+			catch (Exception e) {
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+				finish();
+			}
 		}
 		else {
 			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");

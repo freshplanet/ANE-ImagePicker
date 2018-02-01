@@ -69,9 +69,15 @@ public class GalleryActivity extends ImagePickerActivityBase {
 	}
 
 	private void displayImagePicker() {
-		Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-		int action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
-		startActivityForResult(intent, action);
+		try{
+			Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			int action = AirImagePickerUtils.GALLERY_IMAGES_ONLY_ACTION;
+			startActivityForResult(intent, action);
+		}
+		catch (Exception e) {
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			finish();
+		}
 	}
 
 	@Override
@@ -79,30 +85,35 @@ public class GalleryActivity extends ImagePickerActivityBase {
 		super.onActivityResult(requestCode, resultCode, data);
 
 		if (resultCode == Activity.RESULT_OK) {
-			Uri selectedImageUri = data.getData();
+			try {
+				Uri selectedImageUri = data.getData();
 
-			result.imagePath = getPath(selectedImageUri);
-			imageUri = selectedImageUri;
+				result.imagePath = getPath(selectedImageUri);
+				imageUri = selectedImageUri;
 
-			if(parameters.shouldCrop) {
-				finish();
-				doCrop();
-			}
-			else {
-				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-				if(bitmap == null) {
-					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+				if(parameters.shouldCrop) {
+					doCrop();
 					finish();
-					return;
 				}
+				else {
+					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+					if(bitmap == null) {
+						AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+						finish();
+						return;
+					}
 
-				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
-				bitmap = AirImagePickerUtils.swapColors(bitmap);
-				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+					bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
+					bitmap = AirImagePickerUtils.swapColors(bitmap);
+					AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
+					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+					finish();
+				}
+			}
+			catch (Exception e) {
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 				finish();
 			}
-
 
 		}
 		else {

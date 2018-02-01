@@ -64,19 +64,26 @@ public class CameraActivity extends ImagePickerActivityBase {
 	}
 
 	private void displayCamera() {
-		Context appContext = getApplicationContext();
-		File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
-		result.imagePath = tempFile.getAbsolutePath();
+		try {
+			Context appContext = getApplicationContext();
+			File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
+			result.imagePath = tempFile.getAbsolutePath();
 
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-		imageUri = FileProvider.getUriForFile(appContext,
-				appContext.getPackageName() + ".provider",
-				tempFile);
+			imageUri = FileProvider.getUriForFile(appContext,
+					appContext.getPackageName() + ".provider",
+					tempFile);
 
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
 
-		startActivityForResult(intent, AirImagePickerUtils.CAMERA_IMAGE_ACTION);
+			startActivityForResult(intent, AirImagePickerUtils.CAMERA_IMAGE_ACTION);
+		}
+		catch (Exception e) {
+			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			finish();
+		}
+
 	}
 
 	@Override
@@ -101,25 +108,33 @@ public class CameraActivity extends ImagePickerActivityBase {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 		if (resultCode == Activity.RESULT_OK) {
-			if (parameters.shouldCrop) {
-				finish();
-				doCrop();
-			}
-			else {
-				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 
-				if(bitmap == null) {
-					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			try {
+				if (parameters.shouldCrop) {
+					doCrop();
 					finish();
-					return;
 				}
+				else {
+					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 
-				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
-				bitmap = AirImagePickerUtils.swapColors(bitmap);
-				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+					if(bitmap == null) {
+						AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+						finish();
+						return;
+					}
+
+					bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
+					bitmap = AirImagePickerUtils.swapColors(bitmap);
+					AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
+					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+					finish();
+				}
+			}
+			catch (Exception e) {
+				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 				finish();
 			}
+
 		}
 		else {
 			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
