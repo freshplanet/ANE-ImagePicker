@@ -264,6 +264,7 @@
                      <activity android:name="com.freshplanet.ane.AirImagePicker.activities.GalleryActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
                      <activity android:name="com.freshplanet.ane.AirImagePicker.activities.CropActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
                      <activity android:name="com.freshplanet.ane.AirImagePicker.activities.CameraActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+                     <activity android:name="com.freshplanet.ane.AirImagePicker.activities.RecentPhotosActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
                 </application>
             </manifest>
             ]]>
