@@ -22,9 +22,6 @@ public class AirImagePickerDataEvent extends Event {
 	public static const IMAGE_CHOSEN:String = "AirImagePickerDataEvent_onImageChosen";
 	public static const CANCELLED:String = "AirImagePickerDataEvent_cancelled";
 
-	public static const CAMERA_PERMISSION_ERROR:String = "AirImagePickerDataEvent_cameraPermissionError";
-	public static const GALLERY_PERMISSION_ERROR:String = "AirImagePickerDataEvent_galleryPermissionError";
-
 	private var _imageData:AirImagePickerImageData;
 
 

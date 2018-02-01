@@ -17,6 +17,7 @@ package com.freshplanet.ane.AirImagePicker;
 public class Constants {
 
     public static final String AirImagePickerDataEvent_cancelled = "AirImagePickerDataEvent_cancelled";
+    public static final String AirImagePickerErrorEvent_error = "AirImagePickerErrorEvent_error";
 
     // internal
     public static final String photoChosen = "photoChosen";

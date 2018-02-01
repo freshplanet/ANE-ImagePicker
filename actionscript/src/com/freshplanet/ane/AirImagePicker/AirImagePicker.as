@@ -15,6 +15,7 @@
 package com.freshplanet.ane.AirImagePicker {
 import com.freshplanet.ane.AirImagePicker.enums.AirImagePickerPermissionStatus;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerDataEvent;
+import com.freshplanet.ane.AirImagePicker.events.AirImagePickerErrorEvent;
 import com.freshplanet.ane.AirImagePicker.events.AirImagePickerRecentImagesEvent;
 
 import flash.display.BitmapData;
@@ -224,8 +225,12 @@ public class AirImagePicker extends EventDispatcher {
 		else if (event.code == AirImagePickerDataEvent.CANCELLED) {
 			this.dispatchEvent(new AirImagePickerDataEvent(AirImagePickerDataEvent.CANCELLED));
 		}
-		else if (event.code == AirImagePickerDataEvent.GALLERY_PERMISSION_ERROR || event.code == AirImagePickerDataEvent.CAMERA_PERMISSION_ERROR) {
-			this.dispatchEvent(new AirImagePickerDataEvent(event.code));
+		else if (
+				event.code == AirImagePickerErrorEvent.GALLERY_PERMISSION_ERROR ||
+				event.code == AirImagePickerErrorEvent.CAMERA_PERMISSION_ERROR  ||
+				event.code == AirImagePickerErrorEvent.ERROR
+		) {
+			this.dispatchEvent(new AirImagePickerErrorEvent(event.code, event.level));
 		}
 		else if (event.code == AirImagePickerRecentImagesEvent.PERMISSION_ERROR) {
 			this.dispatchEvent(new AirImagePickerRecentImagesEvent(AirImagePickerRecentImagesEvent.PERMISSION_ERROR));

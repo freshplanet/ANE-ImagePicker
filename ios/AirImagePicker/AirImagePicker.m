@@ -290,14 +290,14 @@ DEFINE_ANE_FUNCTION(displayImagePicker) {
                 }
                 else {
                     // Access has not been granted.
-                    [controller sendEvent:kAirImagePickerDataEvent_galleryPermissionError];
+                    [controller sendEvent:kAirImagePickerErrorEvent_galleryPermissionError];
                 }
                 
                 
             }];
         }
         else if (status != PHAuthorizationStatusAuthorized) {
-            [controller sendEvent:kAirImagePickerDataEvent_galleryPermissionError];
+            [controller sendEvent:kAirImagePickerErrorEvent_galleryPermissionError];
         }
         else {
             [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary crop:crop anchor:anchor maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
@@ -334,13 +334,13 @@ DEFINE_ANE_FUNCTION(displayCamera) {
                 if (granted) {
                     [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];
                 } else {
-                    [controller sendEvent:kAirImagePickerDataEvent_cameraPermissionError];
+                    [controller sendEvent:kAirImagePickerErrorEvent_cameraPermissionError];
                 }
             }];
           
         }
         else if (status != AVAuthorizationStatusAuthorized) {
-            [controller sendEvent:kAirImagePickerDataEvent_cameraPermissionError];
+            [controller sendEvent:kAirImagePickerErrorEvent_cameraPermissionError];
         }
         else {
             [controller displayImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera crop:crop anchor:CGRectZero maxDimensions:CGSizeMake((float)maxWidth, (float)maxHeight)];

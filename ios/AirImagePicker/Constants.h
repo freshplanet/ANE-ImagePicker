@@ -20,8 +20,8 @@
 #endif /* Constants_h */
 
 static NSString *const kAirImagePickerDataEvent_cancelled = @"AirImagePickerDataEvent_cancelled";
-static NSString *const kAirImagePickerDataEvent_cameraPermissionError = @"AirImagePickerDataEvent_cameraPermissionError";
-static NSString *const kAirImagePickerDataEvent_galleryPermissionError = @"AirImagePickerDataEvent_galleryPermissionError";
+static NSString *const kAirImagePickerErrorEvent_cameraPermissionError = @"AirImagePickerErrorEvent_cameraPermissionError";
+static NSString *const kAirImagePickerErrorEvent_galleryPermissionError = @"AirImagePickerErrorEvent_galleryPermissionError";
 static NSString *const kAirImagePickerRecentImagesEvent_onPremissionError = @"AirImagePickerRecentImagesEvent_onPremissionError";
 
 // internal events
