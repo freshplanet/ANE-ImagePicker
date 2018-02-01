@@ -15,19 +15,16 @@
 
 package com.freshplanet.ane.AirImagePicker.functions;
 
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.provider.MediaStore;
+import android.content.Intent;
+import android.os.Bundle;
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREObject;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
-import com.freshplanet.ane.AirImagePicker.Constants;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
+import com.freshplanet.ane.AirImagePicker.ImagePickerParameters;
+import com.freshplanet.ane.AirImagePicker.ImagePickerResult;
+import com.freshplanet.ane.AirImagePicker.activities.ImagePickerActivityBase;
+import com.freshplanet.ane.AirImagePicker.activities.RecentPhotosActivity;
 
-import java.io.File;
 
 public class LoadRecentPhotosFunction extends BaseFunction
 {
@@ -41,44 +38,13 @@ public class LoadRecentPhotosFunction extends BaseFunction
 		int maxImageWidth = getIntFromFREObject(args[1]);
 		int maxImageHeight = getIntFromFREObject(args[2]);
 
-		try {
-			String[] projection = new String[]{
-					MediaStore.Images.ImageColumns._ID,
-					MediaStore.Images.ImageColumns.DATA,
-					MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-					MediaStore.Images.ImageColumns.DATE_TAKEN,
-					MediaStore.Images.ImageColumns.MIME_TYPE
-			};
-			final Cursor cursor = context.getActivity().getContentResolver()
-					.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
-							null, MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
-
-			int fetchCount = cursor.getCount() > fetchLimit ? fetchLimit : cursor.getCount();
-
-			JSONObject recentPhotosResult = new JSONObject();
-			JSONArray recentPhotosArray = new JSONArray();
-
-			for (int i = 0; i < fetchCount; i++) {
-				cursor.moveToPosition(i);
-				String imageLocation = cursor.getString(1);
-				File imageFile = new File(imageLocation);
-				if (imageFile.exists()) {
-					Bitmap bitmap = BitmapFactory.decodeFile(imageLocation);
-					bitmap = AirImagePickerUtils.resizeImage(bitmap, maxImageWidth, maxImageHeight);
-					bitmap = AirImagePickerUtils.swapColors(bitmap);
-					AirImagePickerExtensionContext.storeBitmap(imageLocation, bitmap);
-					recentPhotosArray.put(imageLocation);
-
-				}
-			}
-
-			recentPhotosResult.put("imagePaths", recentPhotosArray);
-
-			context.dispatchStatusEventAsync(Constants.recentResult, recentPhotosResult.toString());
-
-		} catch (Exception e) {
-			context.dispatchStatusEventAsync("log", "loadRecentPhotos error "+ e.getLocalizedMessage());
-		}
+		ImagePickerParameters params = new ImagePickerParameters(ImagePickerParameters.SCHEME_RECENT_PHOTOS, false, maxImageWidth, maxImageHeight, fetchLimit);
+		Intent intent = new Intent(context.getActivity().getApplicationContext(), RecentPhotosActivity.class);
+		params.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
+		Bundle b = new Bundle();
+		b.putParcelable(ImagePickerActivityBase.PARAMETERS, params);
+		intent.putExtra(AirImagePickerExtension.context.getActivity().getPackageName() + ImagePickerActivityBase.PARAMETERS, b);
+		context.getActivity().startActivity(intent);
 
 		return null;
 	}
