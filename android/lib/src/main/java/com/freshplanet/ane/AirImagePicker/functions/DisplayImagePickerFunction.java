@@ -19,10 +19,8 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.adobe.fre.FREContext;
-import com.adobe.fre.FREFunction;
 import com.adobe.fre.FREObject;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 import com.freshplanet.ane.AirImagePicker.ImagePickerParameters;
 import com.freshplanet.ane.AirImagePicker.ImagePickerResult;
 import com.freshplanet.ane.AirImagePicker.activities.GalleryActivity;
@@ -40,7 +38,7 @@ public class DisplayImagePickerFunction extends BaseFunction
 		int maxImageHeight = getIntFromFREObject(args[1]);
 		Boolean crop = getBooleanFromFREObject(args[2]);
 
-		ImagePickerParameters params = new ImagePickerParameters("airImagePicker", crop, maxImageWidth, maxImageHeight);
+		ImagePickerParameters params = new ImagePickerParameters(ImagePickerParameters.SCHEME_GALLERY, crop, maxImageWidth, maxImageHeight, 0);
 		Intent intent = new Intent(context.getActivity().getApplicationContext(), GalleryActivity.class);
 		params.mediaType = ImagePickerResult.MEDIA_TYPE_IMAGE;
 		Bundle b = new Bundle();

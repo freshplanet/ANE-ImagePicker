@@ -15,19 +15,14 @@
 
 package com.freshplanet.ane.AirImagePicker.functions;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREObject;
-import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.ImagePickerParameters;
 import com.freshplanet.ane.AirImagePicker.ImagePickerResult;
 import com.freshplanet.ane.AirImagePicker.activities.CameraActivity;
-import com.freshplanet.ane.AirImagePicker.activities.GalleryActivity;
 import com.freshplanet.ane.AirImagePicker.activities.ImagePickerActivityBase;
 
 public class DisplayCameraFunction extends BaseFunction
@@ -41,7 +36,7 @@ public class DisplayCameraFunction extends BaseFunction
 		int maxImageHeight = getIntFromFREObject(args[1]);
 		Boolean crop = getBooleanFromFREObject(args[2]);
 
-		ImagePickerParameters params = new ImagePickerParameters("airImagePicker", crop, maxImageWidth, maxImageHeight);
+		ImagePickerParameters params = new ImagePickerParameters(ImagePickerParameters.SCHEME_CAMERA, crop, maxImageWidth, maxImageHeight, 0);
 
 		Intent intent;
 
