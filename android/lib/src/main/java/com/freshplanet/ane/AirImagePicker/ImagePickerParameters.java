@@ -20,13 +20,18 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class ImagePickerParameters implements Parcelable {
-	
+
+	public static String SCHEME_RECENT_PHOTOS = "recentPhotosScheme";
+	public static String SCHEME_GALLERY = "galleryScheme";
+	public static String SCHEME_CAMERA = "cameraScheme";
+
 	public final String MEDIA_TYPE = "mediaType";
 	public final String SCHEME = "scheme";
 
 	public final String SHOULD_CROP = "shouldCrop";
 	public final String MAX_WIDTH = "maxWidth";
 	public final String MAX_HEIGHT = "maxHeight";
+	public final String LIMIT = "limit";
 
 	
 	public String mediaType;
@@ -34,6 +39,7 @@ public class ImagePickerParameters implements Parcelable {
 	public Boolean shouldCrop;
 	public int maxWidth;
 	public int maxHeight;
+	public int limit;
 
 
 	public static final Parcelable.Creator<ImagePickerParameters> CREATOR = new Parcelable.Creator<ImagePickerParameters>() {
@@ -53,15 +59,17 @@ public class ImagePickerParameters implements Parcelable {
 		shouldCrop = b.getBoolean(SHOULD_CROP);
 		maxWidth = b.getInt(MAX_WIDTH, -1);
 		maxHeight = b.getInt(MAX_HEIGHT, -1);
+		limit = b.getInt(LIMIT, 1);
 
 	}
 	
 	
-	public ImagePickerParameters(String scheme, Boolean shouldCrop, int maxWidth, int maxHeight) {
+	public ImagePickerParameters(String scheme, Boolean shouldCrop, int maxWidth, int maxHeight, int limit) {
 		this.scheme = scheme;
 		this.shouldCrop = shouldCrop;
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
+		this.limit = limit;
 
 	}
 	
@@ -79,6 +87,7 @@ public class ImagePickerParameters implements Parcelable {
 		b.putBoolean(SHOULD_CROP, shouldCrop );
 		b.putInt(MAX_WIDTH, maxWidth);
 		b.putInt(MAX_HEIGHT, maxHeight);
+		b.putInt(LIMIT, limit);
 		dest.writeBundle(b);
 	}
 
