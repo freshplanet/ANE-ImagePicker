@@ -100,7 +100,12 @@ public class RecentPhotosActivity extends ImagePickerActivityBase {
 				String imageLocation = cursor.getString(1);
 				File imageFile = new File(imageLocation);
 				if (imageFile.exists()) {
-					Bitmap bitmap = BitmapFactory.decodeFile(imageLocation);
+					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(imageLocation);
+					if(bitmap == null) {
+						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Error occurred loading recent photos bitmap!");
+						finish();
+						return;
+					}
 					bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 					bitmap = AirImagePickerUtils.swapColors(bitmap);
 					AirImagePickerExtensionContext.storeBitmap(imageLocation, bitmap);
