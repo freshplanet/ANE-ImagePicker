@@ -15,8 +15,6 @@
 
 package com.freshplanet.ane.AirImagePicker;
 
-import android.util.Log;
-
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREExtension;
 
@@ -25,6 +23,12 @@ public class AirImagePickerExtension implements FREExtension {
 
 	public FREContext createContext(String extId) {
 		return context = new AirImagePickerExtensionContext();
+	}
+
+	public static void dispatchEvent(String code, String level) {
+		if(context != null) {
+			context.dispatchStatusEventAsync(code, level);
+		}
 	}
 
 	public void dispose() {

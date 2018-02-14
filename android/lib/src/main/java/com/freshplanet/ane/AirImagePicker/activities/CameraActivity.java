@@ -80,7 +80,7 @@ public class CameraActivity extends ImagePickerActivityBase {
 			startActivityForResult(intent, AirImagePickerUtils.CAMERA_IMAGE_ACTION);
 		}
 		catch (Exception e) {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 			finish();
 		}
 
@@ -98,7 +98,7 @@ public class CameraActivity extends ImagePickerActivityBase {
 			displayCamera();
 		} else {
 			// denied - do nothing
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 
@@ -118,7 +118,7 @@ public class CameraActivity extends ImagePickerActivityBase {
 					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 
 					if(bitmap == null) {
-						AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 						finish();
 						return;
 					}
@@ -126,18 +126,18 @@ public class CameraActivity extends ImagePickerActivityBase {
 					bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 					bitmap = AirImagePickerUtils.swapColors(bitmap);
 					AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+					AirImagePickerExtension.dispatchEvent(Constants.photoChosen, result.imagePath);
 					finish();
 				}
 			}
 			catch (Exception e) {
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+				AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 				finish();
 			}
 
 		}
 		else {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 

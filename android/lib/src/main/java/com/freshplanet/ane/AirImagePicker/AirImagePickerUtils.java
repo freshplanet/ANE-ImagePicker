@@ -35,6 +35,8 @@ import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.List;
 
@@ -194,8 +196,8 @@ public class AirImagePickerUtils {
 		// make sure that the image has the correct height
 		if ((image.getWidth() > maxWidth || image.getHeight() > maxHeight)
 				&& maxWidth > 0 && maxHeight > 0) {
-	        float reductionFactor = Math.max(Float.valueOf(image.getWidth()) / maxWidth, Float.valueOf(image.getHeight()) / maxHeight);
-	        
+			float reductionFactor = Math.max(Float.valueOf(image.getWidth()) / maxWidth, Float.valueOf(image.getHeight()) / maxHeight);
+
 			result = Bitmap.createScaledBitmap( image, (int)(image.getWidth()/reductionFactor), (int)(image.getHeight()/reductionFactor), true);
 			Log.d(TAG, "[AirImagePickerUtils] resized image to: " + String.valueOf(result.getWidth()) + " x " + String.valueOf(result.getHeight()));
 		}

@@ -93,7 +93,7 @@ public class CropActivity extends ImagePickerActivityBase {
 			startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
 		}
 		catch (Exception e) {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 			finish();
 		}
 	}
@@ -105,30 +105,30 @@ public class CropActivity extends ImagePickerActivityBase {
 
 			try {
 				if(result.imagePath == null) {
-					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, "Image path of cropped image is null");
+					AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Image path of cropped image is null");
 					finish();
 					return;
 				}
 
 				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 				if(bitmap == null) {
-					AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+					AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 					finish();
 					return;
 				}
 				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 				bitmap = AirImagePickerUtils.swapColors(bitmap);
 				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.photoChosen, result.imagePath);
+				AirImagePickerExtension.dispatchEvent(Constants.photoChosen, result.imagePath);
 				finish();
 			}
 			catch (Exception e) {
-				AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+				AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 				finish();
 			}
 		}
 		else {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 

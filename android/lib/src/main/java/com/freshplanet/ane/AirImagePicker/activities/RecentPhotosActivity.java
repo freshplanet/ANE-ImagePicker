@@ -70,7 +70,7 @@ public class RecentPhotosActivity extends ImagePickerActivityBase {
 			loadRecentPhotos();
 		} else {
 			// denied - do nothing
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
 			finish();
 		}
 
@@ -116,11 +116,11 @@ public class RecentPhotosActivity extends ImagePickerActivityBase {
 
 			recentPhotosResult.put("imagePaths", recentPhotosArray);
 
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.recentResult, recentPhotosResult.toString());
+			AirImagePickerExtension.dispatchEvent(Constants.recentResult, recentPhotosResult.toString());
 			finish();
 
 		} catch (Exception e) {
-			AirImagePickerExtension.context.dispatchStatusEventAsync(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
 			finish();
 		}
 	}
