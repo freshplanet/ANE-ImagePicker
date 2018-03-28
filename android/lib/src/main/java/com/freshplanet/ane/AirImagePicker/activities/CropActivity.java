@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
@@ -61,18 +60,17 @@ public class CropActivity extends ImagePickerActivityBase {
 			// Set crop output
 			File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
 
-			result.imagePath = tempFile.getAbsolutePath();
-
-
 			Uri uri = FileProvider.getUriForFile(this,
 					appContext.getPackageName() + ".provider",
 					tempFile);
+
 			List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 			for (ResolveInfo resolveInfo : resInfoList) {
 				String packageName = resolveInfo.activityInfo.packageName;
 				grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			}
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+			result.imagePath = tempFile.getAbsolutePath();
 
 
 			// Set crop output size
@@ -89,7 +87,6 @@ public class CropActivity extends ImagePickerActivityBase {
 			intent.putExtra("aspectY", 1);
 			intent.putExtra("scale", true);
 			intent.putExtra("return-data", true);
-
 			startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
 		}
 		catch (Exception e) {
@@ -104,18 +101,22 @@ public class CropActivity extends ImagePickerActivityBase {
 		if (resultCode == Activity.RESULT_OK) {
 
 			try {
-				if(result.imagePath == null) {
-					AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Image path of cropped image is null");
-					finish();
-					return;
+				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+
+				if(bitmap == null) {
+					// try to get bitmap from extras
+					Bundle extras = data.getExtras();
+					if (extras != null) {
+						bitmap = extras.getParcelable("data");
+					}
+
+					if(bitmap == null) {
+						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Something went wrong while trying to crop photo");
+						finish();
+						return;
+					}
 				}
 
-				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-				if(bitmap == null) {
-					AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
-					finish();
-					return;
-				}
 				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 				bitmap = AirImagePickerUtils.swapColors(bitmap);
 				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);

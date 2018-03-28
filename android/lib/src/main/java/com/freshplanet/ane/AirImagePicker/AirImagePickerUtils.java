@@ -29,6 +29,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -38,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class AirImagePickerUtils {
@@ -143,6 +146,35 @@ public class AirImagePickerUtils {
 		// Create temp file
 		try {
 			return new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+		} catch (Exception e) {
+			Log.e(TAG, "Couldn't create temp file");
+		}
+		return null;
+	}
+
+	static public File saveToTemporaryFile(Context context, String extension, Bitmap picture ) {
+
+		File tempFolder = new File(context.getCacheDir(), "airImagePicker");
+
+		if (!tempFolder.exists()) {
+			tempFolder.mkdirs();
+
+			try {
+				new File(tempFolder, ".nomedia").createNewFile();
+			}
+			catch (Exception e) {
+				Log.e(TAG, "Couldn't create temporary file with extension '" + extension + "'");
+			}
+		}
+
+		// Create temp file
+		try {
+			File file = new File(tempFolder, String.valueOf(System.currentTimeMillis())+extension);
+			FileOutputStream stream = new FileOutputStream(file);
+			stream.write(getJPEGRepresentationFromBitmap(picture));
+			stream.close();
+			return file;
+
 		} catch (Exception e) {
 			Log.e(TAG, "Couldn't create temp file");
 		}
@@ -305,5 +337,7 @@ public class AirImagePickerUtils {
 		canvas.drawBitmap(inBitmap, 0, 0, paint);
 		return outBitmap;
 	}
+
+
 
 }

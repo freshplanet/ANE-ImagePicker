@@ -25,11 +25,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-
+import android.support.v4.content.FileProvider;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 import com.freshplanet.ane.AirImagePicker.Constants;
+
+import java.io.File;
 
 public class GalleryActivity extends ImagePickerActivityBase {
 	
@@ -62,7 +64,7 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			displayImagePicker();
 		} else {
 			// denied - do nothing
-			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
+			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Permission denied in GalleryActivity");
 			finish();
 		}
 
@@ -92,13 +94,23 @@ public class GalleryActivity extends ImagePickerActivityBase {
 				imageUri = selectedImageUri;
 
 				if(parameters.shouldCrop) {
+
+					// save to temp file and then do crop thingy
+					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
+					File imageFile = AirImagePickerUtils.saveToTemporaryFile(getApplicationContext() ,".jpg", bitmap );
+
+					imageUri = FileProvider.getUriForFile(this,
+							getApplicationContext().getPackageName() + ".provider",
+							imageFile);
+					result.imagePath = imageFile.getAbsolutePath();
+
 					doCrop();
 					finish();
 				}
 				else {
 					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
 					if(bitmap == null) {
-						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
+						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Something went wrong while trying to get the photo");
 						finish();
 						return;
 					}
