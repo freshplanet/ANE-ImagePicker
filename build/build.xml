@@ -109,11 +109,6 @@
             <fileset dir="${android.res}/xml"/>
         </copy>
 
-        <!-- Copy over the bundled libs -->
-        <copy todir="temp/android">
-            <fileset dir="${build.release}/libs" excludes="FlashRuntimeExtensions.jar, runtimeClasses.jar"/>
-        </copy>
-
         <!-- Copy dependencies into temp folder -->
         <exec executable="./gradlew" dir="../android">
             <env key="JAVA_HOME" path="${java.home}"/>
