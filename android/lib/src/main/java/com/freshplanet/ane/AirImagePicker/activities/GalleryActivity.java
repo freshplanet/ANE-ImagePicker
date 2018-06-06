@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
@@ -44,8 +45,8 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			return;
 		}
 
-		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
+		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
 		}
 		else  {
 			displayImagePicker();
@@ -91,6 +92,8 @@ public class GalleryActivity extends ImagePickerActivityBase {
 				Uri selectedImageUri = data.getData();
 
 				result.imagePath = getPath(selectedImageUri);
+				if(result.imagePath == null)
+					result.imagePath = getPathFromInputStreamUri(AirImagePickerExtension.context.getActivity().getApplicationContext(), selectedImageUri);
 				imageUri = selectedImageUri;
 
 				if(parameters.shouldCrop) {
@@ -133,6 +136,8 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			finish();
 		}
 	}
+
+
 
 
 }

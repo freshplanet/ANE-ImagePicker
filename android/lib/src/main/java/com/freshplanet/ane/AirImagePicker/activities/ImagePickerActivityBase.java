@@ -17,6 +17,7 @@ package com.freshplanet.ane.AirImagePicker.activities;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -30,6 +31,11 @@ import com.freshplanet.ane.AirImagePicker.ImagePickerParameters;
 import com.freshplanet.ane.AirImagePicker.ImagePickerResult;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 public abstract class ImagePickerActivityBase extends Activity {
@@ -96,6 +102,7 @@ public abstract class ImagePickerActivityBase extends Activity {
 		outState.putParcelable("imageUri", imageUri);
 		outState.putParcelable(PARAMETERS, parameters);
 		outState.putParcelable(RESULT, result);
+
 		super.onSaveInstanceState(outState);
 		Log.d(TAG, "[ImagePickerActivityBase] onSaveInstanceState" );
 	}
@@ -104,17 +111,21 @@ public abstract class ImagePickerActivityBase extends Activity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 		if(savedInstanceState != null) {
-			airPackageName = savedInstanceState.getString("airPackageName");
-			imageUri = savedInstanceState.getParcelable("imageUri");
+
 
 			if(savedInstanceState.containsKey(RESULT)) {
+				Log.d(TAG, "[ImagePickerActivityBase] onRestoreInstanceState contains RESULT" );
 				savedInstanceState.setClassLoader(ImagePickerResult.class.getClassLoader());
 				result = savedInstanceState.getParcelable(RESULT);
 			}
 			if(savedInstanceState.containsKey(PARAMETERS)) {
+				Log.d(TAG, "[ImagePickerActivityBase] onRestoreInstanceState contains PARAMETERS" );
 				savedInstanceState.setClassLoader(ImagePickerParameters.class.getClassLoader());
 				parameters = savedInstanceState.getParcelable(PARAMETERS);
 			}
+
+			airPackageName = savedInstanceState.getString("airPackageName");
+			imageUri = savedInstanceState.getParcelable("imageUri");
 
 
 		}
@@ -169,30 +180,64 @@ public abstract class ImagePickerActivityBase extends Activity {
 		else return null;
 	}
 
-	protected Uri getImageContentUri(File imageFile) {
-		String filePath = imageFile.getAbsolutePath();
-		Cursor cursor = getContentResolver().query(
-				MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-				new String[] { MediaStore.Images.Media._ID },
-				MediaStore.Images.Media.DATA + "=? ",
-				new String[] { filePath }, null);
+	public static String getPathFromInputStreamUri(Context context, Uri uri) {
+		InputStream inputStream = null;
+		String filePath = null;
 
-		if (cursor != null && cursor.moveToFirst()) {
-			int id = cursor.getInt(cursor
-					.getColumnIndex(MediaStore.MediaColumns._ID));
-			Uri baseUri = Uri.parse("content://media/external/images/media");
-			return Uri.withAppendedPath(baseUri, "" + id);
-		} else {
-			if (imageFile.exists()) {
-				ContentValues values = new ContentValues();
-				values.put(MediaStore.Images.Media.DATA, filePath);
-				return getContentResolver().insert(
-						MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-			} else {
-				return null;
+		if (uri.getAuthority() != null) {
+			try {
+				inputStream = context.getContentResolver().openInputStream(uri);
+				File photoFile = createTemporalFileFrom(context, inputStream);
+
+				filePath = photoFile.getPath();
+
+			} catch (FileNotFoundException e) {
+				Log.d(TAG, e.getLocalizedMessage());
+			} catch (IOException e) {
+				Log.d(TAG, e.getLocalizedMessage());
+			} finally {
+				try {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
+
+		return filePath;
 	}
+
+	private static File createTemporalFileFrom(Context context, InputStream inputStream) throws IOException {
+		File targetFile = null;
+
+		if (inputStream != null) {
+			int read;
+			byte[] buffer = new byte[8 * 1024];
+
+			targetFile = createTemporalFile(context);
+			OutputStream outputStream = new FileOutputStream(targetFile);
+
+			while ((read = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, read);
+			}
+			outputStream.flush();
+
+			try {
+				outputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return targetFile;
+	}
+
+	private static File createTemporalFile(Context context) {
+		return new File(context.getCacheDir(), "tempPicture.jpg");
+	}
+
 
 
 	

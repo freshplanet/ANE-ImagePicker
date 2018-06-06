@@ -53,7 +53,7 @@ public class ImagePickerParameters implements Parcelable {
 	};
 	
 	private ImagePickerParameters(Parcel in) {
-		Bundle b = in.readBundle();
+		Bundle b = in.readBundle(getClass().getClassLoader());
 		mediaType = b.getString(MEDIA_TYPE);
 		scheme = b.getString(SCHEME);
 		shouldCrop = b.getBoolean(SHOULD_CROP);
