@@ -214,7 +214,7 @@ public abstract class ImagePickerActivityBase extends Activity {
 
 		if (inputStream != null) {
 			int read;
-			byte[] buffer = new byte[8 * 1024];
+			byte[] buffer = new byte[AirImagePickerUtils.BITMAP_MEMORY_LIMIT];
 
 			targetFile = createTemporalFile(context);
 			OutputStream outputStream = new FileOutputStream(targetFile);

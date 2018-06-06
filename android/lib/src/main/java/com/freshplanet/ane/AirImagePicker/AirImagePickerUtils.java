@@ -318,7 +318,7 @@ public class AirImagePickerUtils {
 	}
 
 
-	static final int BITMAP_MEMORY_LIMIT = 5 * 1024 * 1024; // 5MB
+	public static final int BITMAP_MEMORY_LIMIT = 5 * 1024 * 1024; // 5MB
 
 	public static Bitmap swapColors(Bitmap inBitmap) {
 
