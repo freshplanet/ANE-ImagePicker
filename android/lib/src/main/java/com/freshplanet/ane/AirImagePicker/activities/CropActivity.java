@@ -72,21 +72,19 @@ public class CropActivity extends ImagePickerActivityBase {
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
 			result.imagePath = tempFile.getAbsolutePath();
 
-
-			// Set crop output size
+//			// Set crop output size
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
 			BitmapFactory.decodeFile(cropInputPath, options);
 			int smallestEdge = Math.min(options.outWidth, options.outHeight);
 
-			// Cropped image should be square (aspect ratio 1:1)
+//			 Cropped image should be square (aspect ratio 1:1)
 			intent.putExtra("outputX", smallestEdge);
 			intent.putExtra("outputY", smallestEdge);
 			intent.putExtra("crop", "true");
 			intent.putExtra("aspectX", 1);
 			intent.putExtra("aspectY", 1);
 			intent.putExtra("scale", true);
-			intent.putExtra("return-data", true);
 			startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
 		}
 		catch (Exception e) {
