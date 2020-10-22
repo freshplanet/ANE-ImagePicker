@@ -14,17 +14,30 @@
 -->
 <platform xmlns="http://ns.adobe.com/air/extension/22.0">
     <packagedDependencies>
-        <!--<packagedDependency>animated-vector-drawable-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>appcompat-v7-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>common-1.0.0.jar</packagedDependency>-->
-        <!--<packagedDependency>common-1.0.3.jar</packagedDependency>-->
-        <!--<packagedDependency>runtime-1.0.3.jar</packagedDependency>-->
-        <!--<packagedDependency>support-annotations-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>support-compat-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>support-core-ui-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>support-core-utils-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>support-fragment-27.0.2.jar</packagedDependency>-->
-        <!--<packagedDependency>support-vector-drawable-27.0.2.jar</packagedDependency>-->
+<!--        <packagedDependency>appcompat-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>activity-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>annotation-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>appcompat-resources-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>collection-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>core-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>core-common-2.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>core-runtime-2.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>cursoradapter-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>customview-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>drawerlayout-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>fragment-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>interpolator-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>lifecycle-common-2.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>lifecycle-livedata-2.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>lifecycle-livedata-core-2.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>lifecycle-runtime-2.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>lifecycle-viewmodel-2.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>loader-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>savedstate-1.0.0.jar</packagedDependency>-->
+<!--        <packagedDependency>vectordrawable-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>vectordrawable-animated-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>versionedparcelable-1.1.0.jar</packagedDependency>-->
+<!--        <packagedDependency>viewpager-1.0.0.jar</packagedDependency>-->
     </packagedDependencies> 
     <packagedResources>
         <packagedResource>

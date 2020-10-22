@@ -18,7 +18,8 @@ package com.freshplanet.ane.AirImagePicker.functions;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.support.v4.content.ContextCompat;
+
+import androidx.core.content.ContextCompat;
 
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREObject;
