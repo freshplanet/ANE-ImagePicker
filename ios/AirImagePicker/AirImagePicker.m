@@ -237,6 +237,10 @@ AirImagePicker* GetAirImagePickerContextNativeData(FREContext context) {
         chosenEditedImage = [self resizeImage:chosenEditedImage toMaxDimension:_maxDimensions forceSquare:true];
     }
     
+    if (chosenImage == nil && chosenEditedImage == nil) {
+        [self sendEvent:kAirImagePickerErrorEvent_error level:@"Something went wrong when choosing the image."];
+        return;
+    }
     
     [self storeImage:imagePath image:chosenEditedImage ? chosenEditedImage : chosenImage];
     [self sendEvent:kPhotoChosen level:imagePath];

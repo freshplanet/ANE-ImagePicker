@@ -23,6 +23,8 @@ static NSString *const kAirImagePickerDataEvent_cancelled = @"AirImagePickerData
 static NSString *const kAirImagePickerErrorEvent_cameraPermissionError = @"AirImagePickerErrorEvent_cameraPermissionError";
 static NSString *const kAirImagePickerErrorEvent_galleryPermissionError = @"AirImagePickerErrorEvent_galleryPermissionError";
 static NSString *const kAirImagePickerRecentImagesEvent_onPremissionError = @"AirImagePickerRecentImagesEvent_onPremissionError";
+static NSString *const kAirImagePickerErrorEvent_error = @"AirImagePickerErrorEvent_error";
+
 
 // internal events
 static NSString *const kPhotoChosen = @"photoChosen";
