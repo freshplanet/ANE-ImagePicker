@@ -163,15 +163,19 @@ public abstract class ImagePickerActivityBase extends Activity {
 			cursor.moveToFirst();
 			int columnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATA);
 
+			String selectedImagePath;
 			// if it is a picassa image on newer devices with OS 3.0 and up
 			if (AirImagePickerUtils.isPicasa(selectedImage.toString()))
 			{
-				columnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-				return selectedImage.toString();
+				selectedImagePath = selectedImage.toString();
+				cursor.close();
+				return selectedImagePath;
 			}
 			else
 			{
-				return cursor.getString(columnIndex);
+				selectedImagePath = cursor.getString(columnIndex);
+				cursor.close();
+				return selectedImagePath;
 			}
 		}
 		else if ( selectedImage != null && selectedImage.toString().length() > 0 ) {

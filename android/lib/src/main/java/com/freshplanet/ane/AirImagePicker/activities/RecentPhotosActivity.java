@@ -118,6 +118,7 @@ public class RecentPhotosActivity extends ImagePickerActivityBase {
 			recentPhotosResult.put("imagePaths", recentPhotosArray);
 
 			AirImagePickerExtension.dispatchEvent(Constants.recentResult, recentPhotosResult.toString());
+			cursor.close();
 			finish();
 
 		} catch (Exception e) {
