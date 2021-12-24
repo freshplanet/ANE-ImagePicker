@@ -16,6 +16,8 @@
 package com.freshplanet.ane.AirImagePicker.functions;
 
 import android.content.Intent;
+import android.net.Uri;
+
 import com.adobe.fre.FREContext;
 import com.adobe.fre.FREObject;
 
@@ -26,7 +28,8 @@ public class OpenSettingsFunction extends BaseFunction {
 	public FREObject call(FREContext context, FREObject[] args) {
 		super.call(context, args);
 
-		context.getActivity().startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+
+		context.getActivity().startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + context.getActivity().getPackageName())));
 
 		return null;
 	}
