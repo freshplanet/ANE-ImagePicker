@@ -161,6 +161,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = A2EDB9DF1F226F83003CDD74;
@@ -320,6 +321,7 @@
 			baseConfigurationReference = 9CCC4FB828214022F977533B /* Pods-AirImagePicker.debug.xcconfig */;
 			buildSettings = {
 				DEVELOPMENT_TEAM = HWKC8H7H6U;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -331,6 +333,7 @@
 			baseConfigurationReference = 3DAB39A397B577417FFE82CE /* Pods-AirImagePicker.release.xcconfig */;
 			buildSettings = {
 				DEVELOPMENT_TEAM = HWKC8H7H6U;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
