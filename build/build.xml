@@ -123,6 +123,12 @@
             </fileset>
         </foreach>
 
+        <copy todir="temp/android/ucrop-2.2.6-res" verbose="true">
+            <fileset dir="../android/lib/dependencies/ucrop-2.2.6/res" />
+        </copy>
+        <copy todir="temp/android/transition-1.2.0-rc01-res" verbose="true">
+            <fileset dir="../android/lib/dependencies/transition-1.2.0-rc01/res" />
+        </copy>
         <!-- Copy to build folder -->
         <copy todir="temp/android">
             <fileset dir="../android/lib/dependencies" excludes="FlashRuntimeExtensions.jar, runtimeClasses.jar">
@@ -144,6 +150,7 @@
                 <move file="../android/lib/dependencies/${aarFileName}/classes.jar" tofile="../android/lib/dependencies/${aarFileName}.jar"/>
             </then>
         </if>
+        
     </target>
 
     <!-- Actionscript -->

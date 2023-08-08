@@ -15,26 +15,19 @@
 
 package com.freshplanet.ane.AirImagePicker.activities;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-
-import androidx.core.content.FileProvider;
+import android.util.Log;
 
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 import com.freshplanet.ane.AirImagePicker.Constants;
+import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import java.util.List;
 
 public class CropActivity extends ImagePickerActivityBase {
 
@@ -47,47 +40,11 @@ public class CropActivity extends ImagePickerActivityBase {
 		}
 
 		try {
-			Intent intent = new Intent("com.android.camera.action.CROP");
-			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-			intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-
-			Context appContext = getApplicationContext();
-
-			String cropInputPath = result.imagePath;
 			Uri imageUri = (Uri) getIntent().getExtras().get("imageUri");
-
-			intent.setDataAndType(imageUri, "image/*");
-
-			// Set crop output
-			File tempFile = AirImagePickerUtils.getTemporaryFile(appContext, ".jpg");
-
-			Uri uri = FileProvider.getUriForFile(this,
-					appContext.getPackageName() + ".provider",
-					tempFile);
-
-			List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-			for (ResolveInfo resolveInfo : resInfoList) {
-				String packageName = resolveInfo.activityInfo.packageName;
-				grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-			}
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-			result.imagePath = tempFile.getAbsolutePath();
-
-//			// Set crop output size
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inJustDecodeBounds = true;
-			BitmapFactory.decodeFile(cropInputPath, options);
-			int smallestEdge = Math.min(options.outWidth, options.outHeight);
-
-//			 Cropped image should be square (aspect ratio 1:1)
-			intent.putExtra("outputX", smallestEdge);
-			intent.putExtra("outputY", smallestEdge);
-			intent.putExtra("crop", "true");
-			intent.putExtra("aspectX", 1);
-			intent.putExtra("aspectY", 1);
-			intent.putExtra("scale", true);
-			startActivityForResult(intent, AirImagePickerUtils.CROP_ACTION);
+			File tempFile = AirImagePickerUtils.getTemporaryFile(getApplicationContext(), ".jpg");
+			UCrop uCrop = UCrop.of(imageUri, Uri.fromFile(tempFile));
+			uCrop.withAspectRatio(1,1);
+			uCrop.start(CropActivity.this);
 		}
 		catch (Exception e) {
 			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
@@ -98,40 +55,27 @@ public class CropActivity extends ImagePickerActivityBase {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (resultCode == Activity.RESULT_OK) {
-
-			try {
-				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-
-				if(bitmap == null) {
-					// try to get bitmap from extras
-					Bundle extras = data.getExtras();
-					if (extras != null) {
-						bitmap = extras.getParcelable("data");
-					}
-
-					if(bitmap == null) {
-						AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Something went wrong while trying to crop photo");
-						finish();
-						return;
-					}
-				}
-
+		if(requestCode == UCrop.REQUEST_CROP) {
+			if(resultCode == RESULT_CANCELED) {
+				AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
+			}
+			else if (resultCode == RESULT_OK) {
+				final Uri resultUri = UCrop.getOutput(data);
+				Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(resultUri.getPath());
 				bitmap = AirImagePickerUtils.resizeImage(bitmap, parameters.maxWidth, parameters.maxHeight);
 				bitmap = AirImagePickerUtils.swapColors(bitmap);
 				AirImagePickerExtensionContext.storeBitmap(result.imagePath, bitmap);
 				AirImagePickerExtension.dispatchEvent(Constants.photoChosen, result.imagePath);
-				finish();
 			}
-			catch (Exception e) {
-				AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, e.getLocalizedMessage());
-				finish();
+			else if(resultCode == UCrop.RESULT_ERROR) {
+				Throwable cropError = UCrop.getError(data);
+				AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, cropError.toString());
 			}
 		}
-		else {
-			AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerDataEvent_cancelled, "");
-			finish();
-		}
+		AirImagePickerExtension.dispatchEvent(Constants.AirImagePickerErrorEvent_error, "Something went wrong");
+		finish();
+
+
 
 
 	}

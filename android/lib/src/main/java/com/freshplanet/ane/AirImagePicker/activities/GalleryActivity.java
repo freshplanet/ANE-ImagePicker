@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -98,15 +99,6 @@ public class GalleryActivity extends ImagePickerActivityBase {
 				imageUri = selectedImageUri;
 
 				if(parameters.shouldCrop) {
-
-					// save to temp file and then do crop thingy
-					Bitmap bitmap = AirImagePickerUtils.getOrientedSampleBitmapFromPath(result.imagePath);
-					File imageFile = AirImagePickerUtils.saveToTemporaryFile(getApplicationContext() ,".jpg", bitmap );
-
-					imageUri = FileProvider.getUriForFile(this,
-							getApplicationContext().getPackageName() + ".provider",
-							imageFile);
-					result.imagePath = imageFile.getAbsolutePath();
 
 					doCrop();
 					finish();
