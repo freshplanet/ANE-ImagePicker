@@ -42,8 +42,8 @@
 <!--        <packagedDependency>exifinterface-1.3.4.jar</packagedDependency>-->
 <!--        <packagedDependency>viewbinding-7.3.1.jar</packagedDependency>-->
         <packagedDependency>ucrop-2.2.6.jar</packagedDependency>
-        <packagedDependency>transition-1.2.0-rc01.jar</packagedDependency>
-        <packagedDependency>exifinterface-1.1.0-beta01.jar</packagedDependency>
+<!--        <packagedDependency>transition-1.2.0-rc01.jar</packagedDependency>-->
+<!--        <packagedDependency>exifinterface-1.1.0-beta01.jar</packagedDependency>-->
     </packagedDependencies> 
     <packagedResources>
         <packagedResource>
@@ -54,9 +54,9 @@
             <packageName>com.yalantis.ucrop</packageName>
             <folderName>ucrop-2.2.6-res</folderName>
         </packagedResource>
-        <packagedResource>
-            <packageName>androidx.transition</packageName>
-            <folderName>transition-1.2.0-rc01-res</folderName>
-        </packagedResource>
+<!--        <packagedResource>-->
+<!--            <packageName>androidx.transition</packageName>-->
+<!--            <folderName>transition-1.2.0-rc01-res</folderName>-->
+<!--        </packagedResource>-->
     </packagedResources>
 </platform>
