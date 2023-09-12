@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -47,7 +48,10 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			return;
 		}
 
-		if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+		if(Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
+		}
+		if(Build.VERSION.SDK_INT < 33 && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
 		}
 		else  {
