@@ -48,11 +48,12 @@ public class GalleryActivity extends ImagePickerActivityBase {
 			return;
 		}
 
-		if(Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
+		String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			permission = Manifest.permission.READ_MEDIA_IMAGES;
 		}
-		if(Build.VERSION.SDK_INT < 33 && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
+		if(ContextCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{permission}, AirImagePickerUtils.REQUEST_GALLERY_PERMISSION_ACTION);
 		}
 		else  {
 			displayImagePicker();
