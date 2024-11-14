@@ -4,11 +4,11 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
     buildToolsVersion "33.0.2"
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 33
 
     }
@@ -22,6 +22,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.activity:activity:1.9.3'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.github.yalantis:ucrop:2.2.6'
 }

@@ -25,6 +25,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.activity.ComponentActivity;
+
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerUtils;
 import com.freshplanet.ane.AirImagePicker.ImagePickerParameters;
@@ -38,7 +40,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 
-public abstract class ImagePickerActivityBase extends Activity {
+public abstract class ImagePickerActivityBase extends ComponentActivity {
 	public static final String TAG = "AirImagePicker";
 	public static final String PARAMETERS = ":parameters";
 	public static final String RESULT = ":result";

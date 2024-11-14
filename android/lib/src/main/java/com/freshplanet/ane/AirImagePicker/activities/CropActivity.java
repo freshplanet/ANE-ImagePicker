@@ -19,7 +19,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtension;
 import com.freshplanet.ane.AirImagePicker.AirImagePickerExtensionContext;
