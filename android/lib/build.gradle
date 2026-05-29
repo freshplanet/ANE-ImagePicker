@@ -4,12 +4,14 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 android {
-    compileSdkVersion 34
-    buildToolsVersion "33.0.2"
+    namespace 'air.com.freshplanet.ane.AirImagePicker'
+
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 33
+        targetSdkVersion 35
 
     }
     buildTypes {
