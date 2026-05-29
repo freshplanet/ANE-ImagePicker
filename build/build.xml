@@ -123,8 +123,8 @@
             </fileset>
         </foreach>
 
-        <copy todir="temp/android/ucrop-2.2.6-res" verbose="true">
-            <fileset dir="../android/lib/dependencies/ucrop-2.2.6/res" />
+        <copy todir="temp/android/ucrop-2.2.11-res" verbose="true">
+            <fileset dir="../android/lib/dependencies/ucrop-2.2.11/res" />
         </copy>
         <!-- Copy to build folder -->
         <copy todir="temp/android">
