@@ -129,7 +129,6 @@
 				A2EDB9E41F226F83003CDD74 /* Sources */,
 				A2EDB9E51F226F83003CDD74 /* Frameworks */,
 				A2EDB9E61F226F83003CDD74 /* CopyFiles */,
-				3A605D004EB00623A47A692A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -175,21 +174,6 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3A605D004EB00623A47A692A /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AirImagePicker/Pods-AirImagePicker-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		562AA0A5DA3A90E08B76616A /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
