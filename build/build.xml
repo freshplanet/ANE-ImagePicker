@@ -67,7 +67,7 @@
 
         <!-- paths -->
         <property name="build.intermediates" value="../android/lib/build/intermediates"/>
-        <property name="build.release" value="${build.intermediates}/aar_main_jar/release"/>
+        <property name="build.release" value="${build.intermediates}/aar_main_jar/release/syncReleaseLibJars"/>
         <property name="android.res" value="../android/lib/src/main/res"/>
 
         <!-- make the build directory -->
@@ -123,8 +123,8 @@
             </fileset>
         </foreach>
 
-        <copy todir="temp/android/ucrop-2.2.6-res" verbose="true">
-            <fileset dir="../android/lib/dependencies/ucrop-2.2.6/res" />
+        <copy todir="temp/android/ucrop-2.2.11-res" verbose="true">
+            <fileset dir="../android/lib/dependencies/ucrop-2.2.11/res" />
         </copy>
         <!-- Copy to build folder -->
         <copy todir="temp/android">

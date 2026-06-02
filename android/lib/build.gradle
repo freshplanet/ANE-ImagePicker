@@ -4,12 +4,14 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 android {
-    compileSdkVersion 34
-    buildToolsVersion "33.0.2"
+    namespace 'air.com.freshplanet.ane.AirImagePicker'
+
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 33
+        targetSdkVersion 35
 
     }
     buildTypes {
@@ -24,7 +26,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.activity:activity:1.9.3'
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.github.yalantis:ucrop:2.2.6'
+    implementation 'com.github.yalantis:ucrop:2.2.11'
 }
 
 task copyDependencies(type: Copy) {
